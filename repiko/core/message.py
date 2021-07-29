@@ -30,19 +30,20 @@ class MCore():
         cp=CommandParser()
         setattr(cp,"mc",self)
         setattr(cp,"sendqq",sendqq)
-        parseResult=cp.tryParse(content)
-        if parseResult:
+        parseResult:ParseResult=cp.tryParse(content)
+        output=parseResult.output
+        if output:
             #把parseResult列表里的各个列表拼起来
             result=[]
-            for lst in parseResult:
+            for lst in output:
                 if lst:
                     result+=lst
             return result
-        elif cp.isCommand():
-            if not cp.isDefinedCommand(): #处理未定义指令
-                cmd=cp["command"]
+        elif parseResult.isCommand():
+            if not parseResult.isDefinedCommand(): #处理未定义指令
+                cmd=parseResult.command
                 if cmd.startswith("rolld") or cmd.startswith("rd"):
-                    return addCmd.rolldice(cp)
+                    return addCmd.rolldice(parseResult,cp)
         return []
 
     def GetAtResponse(self,content):

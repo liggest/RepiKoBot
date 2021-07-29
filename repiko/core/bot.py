@@ -132,7 +132,7 @@ class Bot():
     
     def Verification(self,request,data):
         ecp = hmac.new(self.SECRET,data, 'sha1').hexdigest()
-        receivedEcp = request.headers['X-Signature'][5:]
+        receivedEcp = request.headers['X-Signature'][5:] # len('sha1=')==5
         return ecp == receivedEcp
 
     def Restart(self,time):

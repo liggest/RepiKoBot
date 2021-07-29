@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from LSparser import CommandParser
+from LSparser import CommandParser,ParseResult
 
 
 class ACore():
@@ -12,23 +12,24 @@ class ACore():
     
     def GetAdminResponse(self,content):
         cp=CommandParser()
-        if cp.getCommand(content):
-            cmd=cp.command["command"]
+        pr=cp.getCommand(content)
+        if pr:
+            cmd=pr.command
             if cmd=="admin":
-                cp.parse()
-                if len(cp.command["params"])==0:
+                pr.parse()
+                if len(pr.params)==0:
                     return ["没有参数可不行啊…"]
                 else:
-                    return self.AdminStuff(cp.command["params"][0],*cp.command["params"][1:])
+                    return self.AdminStuff(pr.params[0],*pr.params[1:])
             elif cmd=="broadcast":
-                cp.opt(["--qq","-qq"],1).parse()
-                qqg=cp.command.get("qq",None)
-                if len(cp.command["params"])==0:
+                pr.opt(["--qq","-qq"],1).parse()
+                qqg=pr.args.get("qq",None)
+                if len(pr.params)==0:
                     return ["没有参数可不行啊…"]
                 elif qqg is None:
                     return ["我不知道要广播给哪些群"]
                 else:
-                    msg=" ".join(cp.command["params"])
+                    msg=" ".join(pr.params)
                     if msg.strip()=="update":
                         msg=self.bot.update
                     bg=[]
@@ -40,8 +41,8 @@ class ACore():
                     self.bot.SendBroadcast(bg,msg,mt="group")
                     return ["向%d个群广播了消息"%(len(bg))]
             elif self.AdminMode:
-                cp.parse()
-                return self.AdminStuff(cmd,*cp.command["params"])
+                pr.parse()
+                return self.AdminStuff(cmd,*pr.params)
             else:
                 return []
         return []

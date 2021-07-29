@@ -1,0 +1,1 @@
+uvicorn bot:app --reload

@@ -28,47 +28,48 @@ Command("eat").names("canteen").opt("-r",0,"重置列表").opt("--l",1,"添加�
 Command("cat").names("猫")
 
 @Events.onCmd("hello")
-def hello(cp):
+def hello(_):
     return ["喵哈喽~"]
 
 @Events.onCmd("help")
-def helpinfo(cp):
+def helpinfo(pr:ParseResult):
     h=Helper("./help")
-    page=cp.getByType("p","1")
+    page=pr.getByType("p","1")
     if page.isdigit():
         page=int(page)
     else:
         page=1
-    if len(cp.command["params"])>0 and CommandCore.getLast().isMatchPrefix(cp.command["params"][0]):
-        cp.command["params"][0]=cp.command["params"][0][1:]
+    if len(pr.params)>0 and CommandCore.getLast().isMatchPrefix(pr.params[0]):
+        pr.params[0]=pr.params[0][1:]
     try:
-        return h.getHelp(cp.command["params"],page)
+        return h.getHelp(pr.params,page)
     except:
         return ["没找到相关帮助……"]
 
 @Events.onCmd("calculate")
-def calculate(cp):
+def calculate(pr:ParseResult):
     a=Calculator()
-    if len(cp.command["params"])==0:
+    if len(pr.params)==0:
         return ["零最大，所以是∞"]
-    expression=cp.getParams()
+    expression=pr.paramStr
     r=a.cal([expression,expression+"\n"])
     if r[0]=="error":
         return ["解题过程中卡住了……"]
-    elif cp.getByType("show",False,bool):
+    elif pr.getByType("show",False,bool):
         return [r[1][:-1]]
     else:
         return [r[0]]
 
 @Events.onCmd("roll")
-def rolldice(cp):
-    if not cp.isDefinedCommand():
-        cp.opt("-act",1).parse()
+def rolldice(pr:ParseResult,cp:CommandParser=None):
+    if cp and not pr.isDefinedCommand():
+        pr.opt("-act",1)
+        pr=cp.parse(pr)
     a=Calculator()
-    cmd=cp["command"]
-    act=cp.getByType("act","")
+    cmd=pr.command
+    act=pr.getByType("act","")
     expression=""
-    for params in cp["params"]:
+    for params in pr.params:
         if params.isalpha() and not "d" in params:
             act+=" "+params
         else:
@@ -84,23 +85,24 @@ def rolldice(cp):
         return [a.dicetext(expression,act)]
 
 @Events.onCmd("ygocard")
-def ygocard(cp):
+def ygocard(pr:ParseResult):
     a=ygotest.ourocg()
-    if len(cp.command["params"])==0:
+    if len(pr.params)==0:
         return ["空气怎么查啊！"]
-    if cp.command.get("ver",False):
-        a.SetTranslateEdition(cp.command["ver"])
-    rcard=a.FindCardByName( cp.getParams() )
+    ver=pr.args.get("ver",False)
+    if ver:
+        a.SetTranslateEdition(ver)
+    rcard=a.FindCardByName( pr.paramStr )
     if rcard:
         resultText=str(rcard)
-        if cp.command.get("im",False):
+        if pr.args.get("im",False):
             filename=str2greyPng(resultText,rcard.name)
             result=[f"[CQ:image,file={filename}]"]
         else:
             result=[resultText]
     else:
         return ["找不到卡片的说……"]
-    if cp.getByType("wiki",False,bool):
+    if pr.getByType("wiki",False,bool):
         wikilink=a.getWikiLink(rcard)
         if wikilink:
             result.append(wikilink)
@@ -109,33 +111,33 @@ def ygocard(cp):
     return result
 
 @Events.onCmd("ygoserver")
-def ygoserver(cp):
+def ygoserver(pr:ParseResult):
     a=ygoServerRequester()
-    expression=cp.getParams()
+    expression=pr.paramStr
     if not expression.startswith(":"):
         expression=":"+expression
     return [a.request(expression)]
 
 @Events.onCmd("translate")
-def translate(cp):
-    if len(cp.command["params"])==0:
+def translate(pr:ParseResult):
+    if len(pr.params)==0:
         return ["给点东西让我翻译嘛"]
-    text=cp.getParams()
+    text=pr.paramStr
     a=gTranslator()
-    donly=cp.getByType("donly",False,bool)
+    donly=pr.getByType("donly",False,bool)
     if donly:
         return a.detectonly(text)
-    fromlan=cp.getByType("from","auto")
-    tolan=cp.getByType("to","cn")
-    poun=cp.getByType("p",False,bool)
-    dtct=cp.getByType("d",False,bool)
+    fromlan=pr.getByType("from","auto")
+    tolan=pr.getByType("to","cn")
+    poun=pr.getByType("p",False,bool)
+    dtct=pr.getByType("d",False,bool)
     return a.trans(text,fromlan=fromlan,tolan=tolan,poun=poun,detect=dtct or donly)
 
 @Events.onCmd("luck")
-def luck(cp):
-    luckbar=cp.mc.data["luckbar"]
+def luck(pr:ParseResult):
+    luckbar=pr.parser.mc.data["luckbar"]
     today=str(datetime.date.today())
-    qq=str(cp.sendqq[-1])
+    qq=str(pr.parser.sendqq[-1])
     random.seed( today+"-"+qq ) #20xx-xx-xx-xxxxxxxxxx
     luck=random.randint(0,100) #实际上有101种可能
     random.seed()
@@ -144,17 +146,17 @@ def luck(cp):
     result+=luckbar[4]*barbody
     barhead=luck%4
     result+=luckbar[barhead]
-    if cp.command.get("yci",False):
-        cp.command["params"]=[f"No.{luck}"]
-        cp.command["im"]=True
-        return [result]+ygocard(cp)
+    if pr.args.get("yci",False):
+        pr.params=[f"No.{luck}"]
+        pr.args["im"]=True
+        return [result]+ygocard(pr)
 
     return [result]
 
 @Events.onCmd("ygodraw")
-def ygodraw(cp):
-    cdb=cp.mc.data["ygocdb"]
-    conf=cp.mc.data["ygoconf"]
+def ygodraw(pr:ParseResult):
+    cdb=pr.parser.mc.data["ygocdb"]
+    conf=pr.parser.mc.data["ygoconf"]
     cdb.connect()
     cid=cdb.getRandomIDs()[0]
     ct=cdb.getCardByID(cid)
@@ -162,48 +164,48 @@ def ygodraw(cp):
     c=Card()
     c.fromCDBTuple(ct,conf.setdict,conf.lfdict)
     resultText=str(c)
-    if cp.command.get("im",False):
+    if pr.args.get("im",False):
         filename=str2greyPng(resultText,c.name)
         return [f"[CQ:image,file={filename}]"]
     else:
         return [resultText]
 
 @Events.onCmd("aword")
-def aword(cp):
+def aword(pr:ParseResult):
     a=HitokotoRequester()
-    if cp is None:
+    if pr is None:
         word=a.request()
         return word
-    otypes=cp.command.get("t",[])
+    otypes=pr.args.get("t",[])
     if isinstance(otypes,str):
         otypes=[otypes]
     ctypes=[]
-    ctypes+=cp["params"]
+    ctypes+=pr.params
     ctypes+=otypes
     word=a.request(*ctypes)
     return [word]
 
 
 @Events.onCmd("eat")
-def where2eat(cp):
-    canteen_meta=cp.mc.data["canteen_meta"]
-    canteen_current=cp.mc.data["canteen_current"]
-    newlist=cp.command.get("l",[])
+def where2eat(pr:ParseResult):
+    canteen_meta=pr.parser.mc.data["canteen_meta"]
+    canteen_current=pr.parser.mc.data["canteen_current"]
+    newlist=pr.args.get("l",[])
     if isinstance(newlist,list) and len(newlist)!=0:
-        cp.mc.data["canteen_current"]=newlist
-        canteen_current=cp.mc.data["canteen_current"]
-    banlist=cp.command.get("ban",[])
+        pr.parser.mc.data["canteen_current"]=newlist
+        canteen_current=pr.parser.mc.data["canteen_current"]
+    banlist=pr.args.get("ban",[])
     if isinstance(banlist,list) and len(banlist)!=0:
         for s in banlist:
             if s in canteen_current:
                 canteen_current.remove(s)
     l=len(canteen_current)
-    if cp.command.get("r",False) or l==0:
-        cp.mc.data["canteen_current"]=canteen_meta.copy()
-        canteen_current=cp.mc.data["canteen_current"]
+    if pr.args.get("r",False) or l==0:
+        pr.parser.mc.data["canteen_current"]=canteen_meta.copy()
+        canteen_current=pr.parser.mc.data["canteen_current"]
     l=len(canteen_current)
     return[canteen_current.pop(random.randint(0,l-1))]
 
 @Events.onCmd("cat")
-def catImage(cp):
+def catImage(_):
     return [r"[CQ:image,file=https://thiscatdoesnotexist.com,cache=0]"]

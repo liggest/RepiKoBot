@@ -1,20 +1,28 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from flask import Flask,request
-from werkzeug.serving import is_running_from_reloader
+# from flask import Flask,request
+# from werkzeug.serving import is_running_from_reloader
+from fastapi import FastAPI,Request
+
 import random
 import json
 
-app = Flask(__name__)
-bot=None
-if not is_running_from_reloader():
-    import repiko.core.bot as bot_core
-    bot=bot_core.Bot()
+# app = Flask(__name__)
+app=FastAPI()
+import repiko.core.bot as bot_core
+bot=bot_core.Bot()
+# if not is_running_from_reloader():
+#     import repiko.core.bot as bot_core
+#     bot=bot_core.Bot()
 
-@app.route('/',methods=['POST'])
-def MessageReceiver():
-    rd=request.get_data()
+# @app.route('/',methods=['POST'])
+# def MessageReceiver():
+
+@app.post("/")
+async def MessageReceiver(request:Request):
+    # rd=request.get_data()
+    rd=await request.body()
     if bot.Verification(request,rd):
         rj=json.loads(rd)#request.get_data(as_text=True)
         #DEBUG
