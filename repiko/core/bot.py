@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import requests
-import configparser
+# import configparser
+import yaml
 import hmac
-import imp
+import importlib
 import shutil
 import os
 
@@ -29,24 +30,30 @@ class Bot():
         #    print(dict(self.config[k]))
         
     #读取配置文件
-    def LoadConfig(self,path=None):
-        if path is None:
-            path=r"setting.ini"
-        cfg=configparser.ConfigParser()
-        cfg.read(path)
+    def LoadConfig(self,path=r"config/config.yaml") -> dict:
+        if not os.path.exists(path):
+            return None
+        with open(path,encoding="utf-8") as f:
+            cfg=yaml.safe_load(f.read())
+        # cfg=configparser.ConfigParser()
+        # cfg.read(path)
         return cfg
 
     #初始化各种设置
     def ConfigInit(self):
         print("正在读取设置……")
         self.config=self.LoadConfig()
+        if self.config is None:
+            self.config=self.LoadConfig(path=r"config/config!.yaml") #默认配置
         self.POSTURL=self.config["system"]["postURL"]
         print("bot的命根子："+self.POSTURL)
-        self.AdminQQ=[int(x.strip()) for x in self.config["admin"]["adminQQ"].split(",")]
+        # self.AdminQQ=[int(x.strip()) for x in self.config["admin"]["adminQQ"].split(",")]
+        self.AdminQQ=self.config["admin"]["adminQQ"]
         self.SECRET=str.encode(self.config["system"]["secret"])
         self.broadcastGroup={}
         for k,v in self.config["broadcast"].items():
-            self.broadcastGroup[k]=[int(x.strip()) for x in v.split(",")]
+            # self.broadcastGroup[k]=[int(x.strip()) for x in v.split(",")]
+            self.broadcastGroup[k]=v
         #print(self.broadcastGroup)
         print("读取更新信息……")
         self.update
@@ -55,7 +62,7 @@ class Bot():
     #读取更新信息
     def ReadUpdateInfo(self):
         result=""
-        with open("update.txt","r",encoding="utf-8") as f:
+        with open(r"config/update.txt","r",encoding="utf-8") as f:
             nextline=f.readline()
             if nextline.startswith("==="):
                 result+=nextline
@@ -166,8 +173,8 @@ class Bot():
         if rtype=="config":
             return
         admode=self.ac.AdminMode #暂存AdminMode状态
-        imp.reload(message)
-        imp.reload(admin)
+        importlib.reload(message)
+        importlib.reload(admin)
         self.mc=message.MCore(self)
         self.ac=admin.ACore(self)
         self.ac.AdminMode=admode
@@ -175,9 +182,10 @@ class Bot():
     def CopyYGO(self):
         cplist=["cards.cdb","lflist.conf","strings.conf"]
         self.ygodir="./ygo/"
-        if not self.config.has_option("ygo","ygopath"):
+        # if not self.config.has_option("ygo","ygopath"):
+        if not (self.config.get("ygo") and self.config["ygo"].get("ygoPath")):
             return
-        ygopath=self.config["ygo"]["ygopath"]
+        ygopath=self.config["ygo"]["ygoPath"]
         if not os.path.exists(self.ygodir):
             os.mkdir(self.ygodir)
         for f in cplist:

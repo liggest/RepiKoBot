@@ -1,6 +1,6 @@
 #coding:utf-8
-import sqlite3
-import configparser
+# import sqlite3
+# import configparser
 import json
 
 from urllib import request

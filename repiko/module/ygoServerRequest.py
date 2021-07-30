@@ -1,6 +1,6 @@
 #coding:utf-8
 import requests
-import json
+# import json
 
 class ygoServerRequester():
     def __init__(self):

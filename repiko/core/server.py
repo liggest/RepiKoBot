@@ -10,14 +10,20 @@ import json
 
 # app = Flask(__name__)
 app=FastAPI()
-import repiko.core.bot as bot_core
-bot=bot_core.Bot()
+
+
+bot=None
 # if not is_running_from_reloader():
 #     import repiko.core.bot as bot_core
 #     bot=bot_core.Bot()
 
 # @app.route('/',methods=['POST'])
 # def MessageReceiver():
+@app.on_event("startup")
+async def StartUp():
+    global bot
+    import repiko.core.bot as bot_core
+    bot=bot_core.Bot()
 
 @app.post("/")
 async def MessageReceiver(request:Request):

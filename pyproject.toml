@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "repiko"
+version = "0.1.0"
+description = "一个基于OneBot的复读机"
+authors = []
+license = "MIT"
+
+# [[tool.poetry.source]]
+# name = "aliyun"
+# default = true
+# url = "https://mirrors.aliyun.com/pypi/simple"
+
+[tool.poetry.dependencies]
+python = "^3.7"
+LSparser = "^0.1.1"
+fastapi = {extras = ["all"], version = "^0.68.0"}
+beautifulsoup4 = "^4.9.3"
+googletrans = ">=4.0.0rc1"
+Pillow = "^8.3.1"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

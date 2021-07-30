@@ -127,18 +127,22 @@ class gTranslator():
     def dresult(self,d):
         result="是讲水星文的friends呢~\n我非、非常确定哦！"
         if not d is None:
-            ptg=d.confidence*100
+            ptg = d.confidence if d.confidence else 0
+            ptg*=100
+            dr=self.lan[d.lang]
             if ptg!=0:
-                dr=self.lan[d.lang]
                 result="是讲%s的friends呢~\n我有%.1f%%的自信确定哦！"%(dr,ptg)
+            else:
+                result="是讲%s的friends呢~\n我非、非常确定哦！"%(dr)
         return result
 
     def detectlan(self,text):
         d=None
         try:
             d=self.translator.detect(text)
-        except:
-            pass
+        except Exception as ex:
+            print(ex)
+        # d=self.translator.detect(text)
         return d
     def detectonly(self,text):
         d=self.detectlan(text)
@@ -176,11 +180,10 @@ class gTranslator():
 
 if __name__=="__main__":
     a=gTranslator()
-    #print(a.detectlan("我很高兴"))
-    #print(a.dresult(a.detectlan("Nice to meet you...")))
-    #print(a.detectlan("おはようございます!"))
-    #print(a.trans("おはようございます!"))
-    #print(a.trans("ありがとうございます!",poun=True))
-    #print(a.trans("お疲れ様です!",fromlan="cn",poun=True,detect=True))
- 
-#print(a.FindCardByName(text))
+    # print(a.detectlan("我很高兴"))
+    # print(a.dresult(a.detectlan("Nice to meet you...")))
+    # print(a.detectlan("おはようございます!"))
+    # print(a.trans("おはようございます!"))
+    # print(a.trans("ありがとうございます!",poun=True))
+    # print(a.trans("お疲れ様です!",fromlan="cn",poun=True,detect=True))
+

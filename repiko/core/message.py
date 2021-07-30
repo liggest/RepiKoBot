@@ -11,7 +11,8 @@ class MCore():
     ModeText={False:"OFF",True:"ON"}
 
     def __init__(self,bot):
-        self.bot=bot
+        from repiko.core.bot import Bot
+        self.bot:Bot=bot
         self.data={}
         self.data["canteen_meta"]=["新1","新2","新3","新4","老1","老2","楼上楼","清真餐厅","风味餐厅","小南门","大南门","西北风"]
         self.data["canteen_current"]=self.data["canteen_meta"].copy()
