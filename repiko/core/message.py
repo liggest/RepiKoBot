@@ -4,7 +4,7 @@
 from LSparser import *
 from repiko.module.ygo.dataloader import cdbReader,confReader
 
-import repiko.plugin.basic as addCmd
+# import repiko.plugin.basic as addCmd
 
 class MCore():
 
@@ -25,6 +25,11 @@ class MCore():
             conf.loadSets(ygopath+"strings.conf")
             self.data["ygoconf"]=conf
 
+            self.addCmd=self.bot.plugins["basic"]
+        else:
+            from repiko.core.loader import loadPlugins
+            self.addCmd=loadPlugins()["basic"]
+
     
     #sendqq 即rq private时为 [对话者qq] group时为 [群号,消息发送者qq]
     def GetResponse(self,content,sendqq):
@@ -44,7 +49,7 @@ class MCore():
             if not parseResult.isDefinedCommand(): #处理未定义指令
                 cmd=parseResult.command
                 if cmd.startswith("rolld") or cmd.startswith("rd"):
-                    return addCmd.rolldice(parseResult,cp)
+                    return self.addCmd.rolldice(parseResult,cp)
         return []
 
     def GetAtResponse(self,content):
@@ -63,7 +68,7 @@ class MCore():
         elif content.strip()=="弱人工智能" or content.strip()=="鶸人工智能":
             return "你们阉太监也不会动人脑子！"
         elif "来一句" in content or "说一句" in content or "来句话" in content:
-            return addCmd.aword(None)
+            return self.addCmd.aword(None)
         else:
             return "不要碰我呀QwQ"
 

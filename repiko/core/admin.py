@@ -35,9 +35,9 @@ class ACore():
                     bg=[]
                     if isinstance(qqg,list):
                         for x in qqg:
-                            self.getBroadcastMembers(x,bg)
+                            bg=self.getBroadcastMembers(x,bg)
                     elif isinstance(qqg,str):
-                        self.getBroadcastMembers(qqg,bg)          
+                        bg=self.getBroadcastMembers(qqg,bg)      
                     self.bot.SendBroadcast(bg,msg,mt="group")
                     return ["向%d个群广播了消息"%(len(bg))]
             elif self.AdminMode:
@@ -53,6 +53,7 @@ class ACore():
             group+=qqs
         elif qqinfo.isdigit:
             group.append(int(qqinfo))
+        return group
 
     def AdminStuff(self,cmd,*params):
         if cmd=="debug":

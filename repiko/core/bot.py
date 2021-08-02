@@ -7,9 +7,14 @@ import hmac
 import importlib
 import shutil
 import os
+import typing
 
+from LSparser import Events
+
+import repiko.core.loader as loader
 import repiko.core.message as message
 import repiko.core.admin as admin
+from repiko.msg.message import Message
 
 class Bot():
     #POSTURL在config里面
@@ -23,6 +28,10 @@ class Bot():
         self.MYQQ,self.MYNICK=self.GetMyQQInf()
 
         self.CopyYGO()
+
+        self.EM=Events.getEM()
+
+        self.plugins=loader.loadPlugins()
 
         self.mc=message.MCore(self)
         self.ac=admin.ACore(self)
@@ -45,6 +54,7 @@ class Bot():
         self.config=self.LoadConfig()
         if self.config is None:
             self.config=self.LoadConfig(path=r"config/config!.yaml") #默认配置
+        self.name=self.config["system"]["name"]
         self.POSTURL=self.config["system"]["postURL"]
         print("bot的命根子："+self.POSTURL)
         # self.AdminQQ=[int(x.strip()) for x in self.config["admin"]["adminQQ"].split(",")]
@@ -62,17 +72,20 @@ class Bot():
     #读取更新信息
     def ReadUpdateInfo(self):
         result=""
-        with open(r"config/update.txt","r",encoding="utf-8") as f:
-            nextline=f.readline()
-            if nextline.startswith("==="):
-                result+=nextline
+        updatePath=r"config/update.txt"
+        if os.path.exists(updatePath):
+            with open(updatePath,"r",encoding="utf-8") as f:
                 nextline=f.readline()
-            while not nextline.startswith("===") and not nextline.strip()=="":
-                result+=nextline
-                nextline=f.readline()
-        if result=="":
-            return "没有更新信息！"
+                if nextline.startswith("==="):
+                    result+=nextline
+                    nextline=f.readline()
+                while not nextline.startswith("===") and not nextline.strip()=="":
+                    result+=nextline
+                    nextline=f.readline()
+        if result.strip()=="":
+            print("没有找到bot更新信息！")
         return result
+
     @property
     def update(self):
         self.__update=self.ReadUpdateInfo()
@@ -84,34 +97,64 @@ class Bot():
         return requests.post(url, json=param,headers=self.HEADER)
 
     #mt=MsgType
-    def SendMessage(self,mt,qq,msg):
-        if msg=="":
+    # def SendMessage(self,mt,qq,msg):
+    #     if msg=="":
+    #         return
+    #     param={ "message":msg , self.MsgTypeConvert[mt]:qq }
+    #     return self.PostRequest("send_"+mt+"_msg",param)
+    def SendMessage(self,msg:Message):
+        if not msg.content:
             return
-        param={ "message":msg , self.MsgTypeConvert[mt]:qq }
-        return self.PostRequest("send_"+mt+"_msg",param)
+        param={ "message":msg.content , msg.mtype2key:msg.dst }
+        return self.PostRequest(f"send_{msg.mtype}_msg",param)
 
-    #ml=MsgList
-    def SendMsgList(self,mt,qq,ml):
-        if ml==[] or ml is None:
+    def SendStrList(self,mt,qq,ml:list):
+        if not ml:
+            return
+        msgs=[]
+        for s in ml:
+            msg=Message(qq,mt,str(s))
+            msgs.append(msg)
+        self.SendMsgList(msgs)
+
+    # #ml=MsgList
+    # def SendMsgList(self,mt,qq,ml):
+    #     if ml==[] or ml is None:
+    #         return
+    #     for msg in ml:
+    #         self.SendMessage(mt,qq,msg)
+    def SendMsgList(self,ml:typing.List[Message]):
+        if not ml:
             return
         for msg in ml:
-            self.SendMessage(mt,qq,msg)
+            self.SendMessage(msg)
     
     #qqs [] or {"private":[],"group":[],"discuss":[]}
-    def SendBroadcast(self,qqs,msg,mt="private"):
+    # def SendBroadcast(self,qqs,msg,mt="private"):
+    #     if isinstance(qqs,list):
+    #         for qq in qqs:
+    #             self.SendMessage(mt,qq,msg)
+    #     else:
+    #         for mt in qqs.keys():
+    #             for qq in qqs[mt]:
+    #                 self.SendMessage(mt,qq,msg)
+    def SendBroadcast(self,qqs,msg:Message):
         if isinstance(qqs,list):
             for qq in qqs:
-                self.SendMessage(mt,qq,msg)
+                msg.dst=qq
+                self.SendMessage(msg)
         else:
             for mt in qqs.keys():
+                msg.mtype=mt
                 for qq in qqs[mt]:
-                    self.SendMessage(mt,qq,msg)
+                    msg.dst=qq
+                    self.SendMessage(msg)
 
-    #rj=requestJSON
-    def GetReceiveQQ(self,rj,mt):
-        if mt!="private":
-            return [rj[self.MsgTypeConvert[mt]],rj["user_id"]]
-        return [rj["user_id"]]
+    # #rj=requestJSON
+    # def GetReceiveQQ(self,rj,mt):
+    #     if mt!="private":
+    #         return [rj[self.MsgTypeConvert[mt]],rj["user_id"]]
+    #     return [rj["user_id"]]
 
     def GetMyQQInf(self):
         MYQQ=int(self.config["system"]["myQQ"])

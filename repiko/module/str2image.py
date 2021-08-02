@@ -1,16 +1,16 @@
 from PIL import Image,ImageDraw,ImageFont
 import os
-import textwrap
+# import textwrap
 
 marginSize=(20,20)
 standardWidth=640
-titleFont=ImageFont.truetype(r"font/PingFang Regular.ttf",24)
+titleFont=ImageFont.truetype(r"font/PingFang Regular.ttf",24) #总之需要一个字体
 titleSpacing=3
 titleXY=(marginSize[0]//2,marginSize[1]//2)
 font=ImageFont.truetype(r"font/PingFang Regular.ttf",16)
 spacing=2
 lineHeight=font.getsize("A")[1]
-imageDir=r"images/"
+imageDir=r"image/"
 
 def getFileName(title,fileName,suffix=".png"):
     if fileName is None:

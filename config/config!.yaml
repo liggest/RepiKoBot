@@ -6,8 +6,9 @@ broadcast:
   - 10086 
   - 10086
 system:
+  name: RepiKo
   myQQ: 10086
   postURL: http://host:port/
   secret: post_secret
 ygo:
-  ygoPath: /path/to/cards.cdb
+  ygoPath: /path/to/ygoroot/
