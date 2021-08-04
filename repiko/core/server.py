@@ -108,7 +108,7 @@ async def MessageReceiver(request:Request):
         #     pass
     else:
         pass
-    return ""
+    return {}
 
 
 if __name__ =='__main__':

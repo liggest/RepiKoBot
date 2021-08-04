@@ -6,6 +6,11 @@ import json
 from urllib import request
 from urllib import parse
 from bs4 import BeautifulSoup
+from bs4.element import NavigableString,CData
+try:
+    from bs4.element import TemplateString #新版bs4需要
+except:
+    TemplateString=NavigableString
 
 from .ygo.card import Card,CardAttribute,CardRace,CardType,LinkMark
 
@@ -66,8 +71,10 @@ class ourocg():
             if html.find("div",{"class":"rd-mark"}):
                 isRD=True
             div=html.find_all("div",{"class":"val"})
-            divr=[[y for y in x.stripped_strings] for x in div]
-            #print(divr)
+            # divr=[[y for y in x.stripped_strings] for x in div]
+            divr=[[y for y in x._all_strings(True,types=(NavigableString,CData,TemplateString))] for x in div]
+            # 类似 stripped_strings，但新版本需要纳入 TemplateString 才能效果一致
+            # print(divr)
             cardtypes=divr[3]
             c=Card(cardtypes)
             if c.isLink:

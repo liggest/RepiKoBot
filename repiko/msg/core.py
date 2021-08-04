@@ -91,7 +91,10 @@ if __name__=="__main__":
     mc=MCore(None)
     ipt=input("请输入信息：")
     while ipt!="-exit":
-        result=mc.GetResponse(ipt,[759851475,1559619324])
+        # result=mc.GetResponse(ipt,[759851475,1559619324])
+        msg=Message(0,"private",ipt)
+        msg.srcList=[759851475,1559619324]
+        result=mc.GetResponse(msg)
         print(result)
         ipt=input("请输入信息：")
     
