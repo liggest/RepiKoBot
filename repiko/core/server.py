@@ -3,11 +3,12 @@
 
 # from flask import Flask,request
 # from werkzeug.serving import is_running_from_reloader
-from fastapi import FastAPI,Request
+from fastapi import FastAPI,Request,Depends
 
 # import random
 import json
 import typing
+import asyncio
 
 from repiko.msg.selector import *
 # from repiko.msg.message import Message
@@ -31,13 +32,22 @@ async def StartUp():
     for cls in (MessageSelector,NoticeSelector,RequestSelector):
         selectors.append(cls(bot))
 
-@app.post("/")
-async def MessageReceiver(request:Request):
+async def get_body(request: Request):
+    await request.json()
+    return request
+
+@app.post("/",response_model=None)
+def MessageReceiver(request:Request=Depends(get_body)): #暂时的异步->同步对策
     # rd=request.get_data()
-    rd=await request.body()
+    # rd=await request.body()
+    # if not hasattr(request,"_body"):
+    #     return {}
+    rd=request._body
     if bot.Verification(request,rd):
-        # rj=json.loads(rd)#request.get_data(as_text=True)
-        rj=await request.json()
+        # rj=json.loads(rd)
+        #request.get_data(as_text=True)
+        # rj=await request.json()
+        rj=request._json
         postType=rj["post_type"]
 
         #DEBUG
@@ -45,6 +55,10 @@ async def MessageReceiver(request:Request):
         if bot.DebugMode and postType!=PostType.Meta:
             #不打印心跳
             print(rj)
+        
+        # if postType!=PostType.Meta:
+        #     import time
+        #     time.sleep(5)
 
         s=None
         for s in selectors:
