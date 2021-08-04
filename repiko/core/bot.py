@@ -12,9 +12,9 @@ import typing
 from LSparser import Events
 
 import repiko.core.loader as loader
-import repiko.core.message as message
-import repiko.core.admin as admin
 from repiko.msg.message import Message
+import repiko.msg.core as msgCore
+import repiko.msg.admin as admin
 
 class Bot():
     #POSTURL在config里面
@@ -33,7 +33,7 @@ class Bot():
 
         self.plugins=loader.loadPlugins()
 
-        self.mc=message.MCore(self)
+        self.mc=msgCore.MCore(self)
         self.ac=admin.ACore(self)
         #for k in self.config.keys():
         #    print(dict(self.config[k]))
@@ -105,17 +105,19 @@ class Bot():
     def SendMessage(self,msg:Message):
         if not msg.content:
             return
-        param={ "message":msg.content , msg.mtype2key:msg.dst }
-        return self.PostRequest(f"send_{msg.mtype}_msg",param)
+        # param={ "message":msg.content , msg.mtype2key:msg.dst }
+        return self.PostRequest(f"send_{msg.mtype}_msg",msg.sendParam)
 
-    def SendStrList(self,mt,qq,ml:list):
+    def SendStrList(self,msg:Message,ml:list):
+        """
+            msg 作为发消息的模板，使用其 mtype 和 dst
+            ml 真正要发的消息字符串列表
+        """
         if not ml:
             return
-        msgs=[]
         for s in ml:
-            msg=Message(qq,mt,str(s))
-            msgs.append(msg)
-        self.SendMsgList(msgs)
+            msg.content=s
+            self.SendMessage(msg)
 
     # #ml=MsgList
     # def SendMsgList(self,mt,qq,ml):
@@ -173,12 +175,12 @@ class Bot():
     def IsMe(self,qq):
         return qq==self.MYQQ
 
-    def ClearAtMe(self,msg):
-        atcode="[CQ:at,qq=%d]"%(self.MYQQ)
-        #print(atcode)
-        if atcode in msg:
-            return msg.replace(atcode,""),True #说明有@me，将其从消息中剔除
-        return msg,False #说明没有@me
+    # def ClearAtMe(self,msg):
+    #     atcode="[CQ:at,qq=%d]"%(self.MYQQ)
+    #     #print(atcode)
+    #     if atcode in msg:
+    #         return msg.replace(atcode,""),True #说明有@me，将其从消息中剔除
+    #     return msg,False #说明没有@me
     
     def Verification(self,request,data):
         ecp = hmac.new(self.SECRET,data, 'sha1').hexdigest()
@@ -216,9 +218,9 @@ class Bot():
         if rtype=="config":
             return
         admode=self.ac.AdminMode #暂存AdminMode状态
-        importlib.reload(message)
+        importlib.reload(msgCore)
         importlib.reload(admin)
-        self.mc=message.MCore(self)
+        self.mc=msgCore.MCore(self)
         self.ac=admin.ACore(self)
         self.ac.AdminMode=admode
 
@@ -238,7 +240,13 @@ class Bot():
                 print(f"拷贝{fpath}到{self.ygodir}")
             else:
                 print(f"没有发现{fpath}")
-        
+    
+    def GenerateMainHelp(self):
+        from LSparser.command import CommandHelper
+        #不知道现在用不用得上
+        helper=CommandHelper()
+        helper.generateMainHelp(endText=r"\n指令详情请使用【.help 某指令名 -p 页码】")
+
 
 if __name__=="__main__":
     bot=Bot()

@@ -1,0 +1,10 @@
+.ygoserver/.ys
+  为logoyo群的diy服提供一些辅助功能
+  testcard 卡号  测试服务器卡片是否有红字
+  roomlist 查看服务器房间列表
+  reload 用于刷新机器人卡片数据和服务器台词
+  ※现在估计挂了（
+例：
+  .ys testcard 1861629
+  .ys roomlist
+  .ys reload

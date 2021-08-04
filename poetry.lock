@@ -323,7 +323,7 @@ i18n = ["Babel (>=0.8)"]
 
 [[package]]
 name = "lsparser"
-version = "0.1.1"
+version = "0.1.3"
 description = "A command parser which breaks down a \"command\" into name, params, short & long options"
 category = "main"
 optional = false
@@ -697,7 +697,7 @@ jinja2 = [
     {file = "Jinja2-2.11.3.tar.gz", hash = "sha256:a6d58433de0ae800347cab1fa3043cebbabe8baa9d29e668f1c768cb87a333c6"},
 ]
 lsparser = [
-    {file = "LSparser-0.1.1.tar.gz", hash = "sha256:afc5569dc0255c740681cd6cd16a2b6c0ebe9528aaf0fa90464d068c62eb5f62"},
+    {file = "LSparser-0.1.3.tar.gz", hash = "sha256:ec6024c71bd5527228a6b26d549a6a45b2870fd4b8af6b80f2b7d8424bfdf867"},
 ]
 markupsafe = [
     {file = "MarkupSafe-2.0.1-cp36-cp36m-macosx_10_9_x86_64.whl", hash = "sha256:f9081981fe268bd86831e5c75f7de206ef275defcb82bc70740ae6dc507aee51"},

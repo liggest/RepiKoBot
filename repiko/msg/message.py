@@ -2,6 +2,8 @@
 
 import copy
 
+from requests.api import get
+
 
 class Message:
     
@@ -19,10 +21,24 @@ class Message:
         msg=Message()
         msg.json=j
         msg.mtype=j["message_type"]
-        msg.dst=j["self_id"]
+        msg.dst=j["self_id"] # 接收者是自己
         msg.srcList=cls.getSrcList(j)
         msg.content=j["message"]
         msg.id=j["message_id"]
+        return msg
+
+    def copy(self,srcAsDst=False):
+        """
+            浅拷贝一个 msg 对象 \n
+            srcList 会被额外拷贝 \n 
+            srcAsDst 默认为 False 若为 True 则复制对象的 src 和 dst 调转
+        """
+        msg=copy.copy(self)
+        if srcAsDst:
+            msg.dst=self.src
+            msg.srcList=[self.dst]
+        else:
+            msg.srcList=self.srcList.copy()
         return msg
 
     def __init__(self,dst=0,mtype="private",*msgs):
@@ -41,34 +57,56 @@ class Message:
 
     @property
     def src(self):
+        """
+            群聊 - 群号\\
+            私聊 - 发送者的QQ
+        """
         return self.srcList[0]
 
     @property
     def realSrc(self):
+        """
+            发送者的QQ
+        """
         return self.srcList[-1]
 
-    def srcAsDst(self):
-        msg=copy.copy(self)
-        msg.dst=self.src
-        msg.srcList=[self.dst]
-        return msg
+    @property
+    def isMe(self):
+        return self.dst == self.realSrc # 接收者和发送者是同一位，说明是收到了自己的发言
+
+    @property
+    def sendParam(self):
+        return {"message":self.content,self.mtype2key:self.dst}
     
     def addQuickResponse(self,reply,atSender=True):
-        self.quickResponse=True
+        self._quickResponse=True
         self.resj={}
         self.resj["reply"]=str(reply)
         if self.mtype=="group" or self.mtype=="discuss":
             self.resj["at_sender"]=atSender
 
+    @property
+    def quickResponse(self):
+        return getattr(self,"_quickResponse",False)
 
-
-    # def copy(self):
-    #     msg=Message()
-    #     msg.content=self.content
-    #     msg.src=self.src.copy()
-    #     msg.dst=self.dst
-    #     msg.id=self.id
-    #     msg.mtype=self.mtype
-    #     return msg
-
-
+    def clearAtMe(self):
+        atcode=f"[CQ:at,qq={self.dst}]"
+        if atcode in self.content:
+            self.content=self.content.replace(atcode,"")
+            self._atMe=True
+        else:
+            self._atMe=False
+    
+    @property
+    def hasAtMe(self):
+        """
+            消息内容中是否有@到bot
+        """
+        return getattr(self,"_atMe",False)
+    
+    @property
+    def isReply(self):
+        """
+            消息是否是个回复
+        """
+        return self.content.lstrip().startswith("[CQ:reply")

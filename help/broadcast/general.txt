@@ -1,0 +1,7 @@
+-broadcast
+  群广播
+  向给定的各群发送消息
+  --qq 群1 群2 ...  要广播到的QQ群
+例：
+  -broadcast 喵哈喽~ --qq 10001 10002
+  -broadcast update --qq update

@@ -1,0 +1,13 @@
+.translate/.ts
+  基于Googletrans的谷歌翻译
+  常用语言码：cn en ja ru de
+  -from 语言码  设定源语言
+  -to 语言码  设定目标语言
+  -p  显示发音
+  -d  推测内容属于的语言
+  -donly  只推测，不翻译
+例：
+  .ts make it Chinese!
+  .ts 俺のターン！ -to cn -p
+  .ts 顺便告诉你这是什么语言 -d
+  .ts Uygarlastiramadiklarimizdanmissinizcasina -donly

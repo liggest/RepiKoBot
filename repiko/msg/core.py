@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import typing
+
 from LSparser import *
 from repiko.module.ygo.dataloader import cdbReader,confReader
+from repiko.msg.message import Message
 
 # import repiko.plugin.basic as addCmd
 
@@ -30,29 +33,41 @@ class MCore():
             from repiko.core.loader import loadPlugins
             self.addCmd=loadPlugins()["basic"]
 
+        self.cps:typing.List[CommandParser]=[]
+        for coreName in CommandCore.cores:
+            cp=CommandParser(coreName)
+            cp.data["mc"]=self
+            self.cps.append( cp )
+
     
     #sendqq 即rq private时为 [对话者qq] group时为 [群号,消息发送者qq]
-    def GetResponse(self,content,sendqq):
-        cp=CommandParser()
-        setattr(cp,"mc",self)
-        setattr(cp,"sendqq",sendqq)
-        parseResult:ParseResult=cp.tryParse(content)
-        output=parseResult.output
-        if output:
-            #把parseResult列表里的各个列表拼起来
-            result=[]
-            for lst in output:
-                if lst:
-                    result+=lst
-            return result
-        elif parseResult.isCommand():
-            if not parseResult.isDefinedCommand(): #处理未定义指令
-                cmd=parseResult.command
-                if cmd.startswith("rolld") or cmd.startswith("rd"):
-                    return self.addCmd.rolldice(parseResult,cp)
-        return []
+    # def GetResponse(self,content,sendqq):
+    def GetResponse(self,msg:Message):
+        # cp=CommandParser()
+        # setattr(cp,"mc",self)
+        # setattr(cp,"sendqq",sendqq)
+        result=[]
+        for cp in self.cps:
+            parseResult:ParseResult=cp.tryParse(msg)
+            output=parseResult.output
+            if output:
+                #把parseResult列表里的各个列表拼起来
+                for lst in output:
+                    if lst:
+                        result+=lst
+        # parseResult:ParseResult=cp.tryParse(content)
+        return result
+        # elif parseResult.isCommand():
+        #     if not parseResult.isDefinedCommand(): #处理未定义指令
+        #         cmd=parseResult.command
+        #         if cmd.startswith("rolld") or cmd.startswith("rd"):
+        #             return self.addCmd.rolldice(parseResult,cp)
+        # return []
 
     def GetAtResponse(self,content):
+        raw=content
+        if not isinstance(content,str):
+            content=str(content)
         if "是不是" in content:
             return "围观群众：是啊是啊"
         elif "生气了" in content:

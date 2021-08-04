@@ -1,16 +1,19 @@
+from repiko.msg.message import Message
+
 import repiko.module.ygoOurocg_ver4 as ygotest
 from repiko.module.calculator import Calculator
 from repiko.module.ygoServerRequest import ygoServerRequester
-from repiko.module.helper import Helper
+# from repiko.module.helper import Helper
 from repiko.module.google_translatation import gTranslator
 from repiko.module.ygo.card import Card
 from repiko.module.hitokoto import HitokotoRequester
 from repiko.module.str2image import str2greyPng
 import random
 import datetime
+import os
 
 from LSparser import *
-from LSparser.command import CommandCore
+from LSparser.command import CommandHelper
 
 Command("-hello")
 Command("help").names("?","？").opt("-p",1,"页数")
@@ -31,20 +34,32 @@ Command("cat").names("猫")
 def hello(_):
     return ["喵哈喽~"]
 
+# @Events.onCmd("help")
+# def helpinfo(pr:ParseResult):
+#     h=Helper("./help")
+#     page=pr.getByType("p","1")
+#     if page.isdigit():
+#         page=int(page)
+#     else:
+#         page=1
+#     if len(pr.params)>0 and pr.parser.core.isMatchPrefix(pr.params[0]):
+#         pr.params[0]=pr.params[0][1:]
+#     try:
+#         return h.getHelp(pr.params,page)
+#     except:
+#         return ["没找到相关帮助……"]@Events.onCmd("help")
 @Events.onCmd("help")
 def helpinfo(pr:ParseResult):
-    h=Helper("./help")
-    page=pr.getByType("p","1")
-    if page.isdigit():
-        page=int(page)
-    else:
-        page=1
-    if len(pr.params)>0 and CommandCore.getLast().isMatchPrefix(pr.params[0]):
-        pr.params[0]=pr.params[0][1:]
-    try:
-        return h.getHelp(pr.params,page)
-    except:
-        return ["没找到相关帮助……"]
+    root="./help"
+    core=pr.parser.core
+    if core.name!=CommandCore.default:
+        root=os.path.join(root,core.name)
+    h=CommandHelper(root,core)
+    page=pr.getToType("p",1,int)
+    result=h.getHelp(pr.params,page)
+    if result:
+        return [result]
+    return ["是没见过的帮助呢"]
 
 @Events.onCmd("calculate")
 def calculate(pr:ParseResult):
@@ -61,10 +76,11 @@ def calculate(pr:ParseResult):
         return [r[0]]
 
 @Events.onCmd("roll")
-def rolldice(pr:ParseResult,cp:CommandParser=None):
-    if cp and not pr.isDefinedCommand():
-        pr.opt("-act",1)
-        pr=cp.parse(pr)
+def rolldice(pr:ParseResult):
+    # if cp and not pr.isDefinedCommand():
+    if not pr.isDefinedCommand():
+        pr=pr.opt("-act",1).parse()
+        # pr=cp.parse(pr)
     a=Calculator()
     cmd=pr.command
     act=pr.getByType("act","")
@@ -84,10 +100,18 @@ def rolldice(pr:ParseResult,cp:CommandParser=None):
     else:
         return [a.dicetext(expression,act)]
 
+@Events.onUndefinedCmd
+def undefined(pr:ParseResult, cp:CommandParser):
+    cmd=pr.command
+    if cmd.startswith("rolld") or cmd.startswith("rd"):
+        return rolldice(pr)
+
 @Events.onCmd("ygocard")
 def ygocard(pr:ParseResult):
     a=ygotest.ourocg()
     if len(pr.params)==0:
+        if pr.getByType("wiki",False,bool):
+            return [f"拿去吧~\n{a.wikiLink}"]
         return ["空气怎么查啊！"]
     ver=pr.args.get("ver",False)
     if ver:
@@ -135,13 +159,23 @@ def translate(pr:ParseResult):
 
 @Events.onCmd("luck")
 def luck(pr:ParseResult):
-    luckbar=pr.parser.mc.data["luckbar"]
+    luckbar=pr.data["mc"].data["luckbar"]
     today=str(datetime.date.today())
-    qq=str(pr.parser.sendqq[-1])
+    msg:Message=pr.raw
+    qq=str(msg.realSrc)
     random.seed( today+"-"+qq ) #20xx-xx-xx-xxxxxxxxxx
     luck=random.randint(0,100) #实际上有101种可能
     random.seed()
-    result=f"[CQ:at,qq={qq}]的今日运势为 {luck} \n"
+    name=f"[CQ:at,qq={qq}]"
+    if hasattr(msg,"json") and msg.mtype=="private":
+        name=None
+        sender=msg.json.get("sender")
+        if sender:
+            name=sender.get("nickname")
+    if name:
+        result=f"{name}的今日运势为 {luck} \n"
+    else:
+        result=f"今日运势为 {luck} \n"
     barbody=luck//4
     result+=luckbar[4]*barbody
     barhead=luck%4
@@ -155,8 +189,8 @@ def luck(pr:ParseResult):
 
 @Events.onCmd("ygodraw")
 def ygodraw(pr:ParseResult):
-    cdb=pr.parser.mc.data["ygocdb"]
-    conf=pr.parser.mc.data["ygoconf"]
+    cdb=pr.data["mc"].data["ygocdb"]
+    conf=pr.data["mc"].data["ygoconf"]
     cdb.connect()
     cid=cdb.getRandomIDs()[0]
     ct=cdb.getCardByID(cid)
@@ -188,12 +222,12 @@ def aword(pr:ParseResult):
 
 @Events.onCmd("eat")
 def where2eat(pr:ParseResult):
-    canteen_meta=pr.parser.mc.data["canteen_meta"]
-    canteen_current=pr.parser.mc.data["canteen_current"]
+    canteen_meta=pr.data["mc"].data["canteen_meta"]
+    canteen_current=pr.data["mc"].data["canteen_current"]
     newlist=pr.args.get("l",[])
     if isinstance(newlist,list) and len(newlist)!=0:
-        pr.parser.mc.data["canteen_current"]=newlist
-        canteen_current=pr.parser.mc.data["canteen_current"]
+        pr.data["mc"].data["canteen_current"]=newlist
+        canteen_current=pr.data["mc"].data["canteen_current"]
     banlist=pr.args.get("ban",[])
     if isinstance(banlist,list) and len(banlist)!=0:
         for s in banlist:
@@ -201,8 +235,8 @@ def where2eat(pr:ParseResult):
                 canteen_current.remove(s)
     l=len(canteen_current)
     if pr.args.get("r",False) or l==0:
-        pr.parser.mc.data["canteen_current"]=canteen_meta.copy()
-        canteen_current=pr.parser.mc.data["canteen_current"]
+        pr.data["mc"].data["canteen_current"]=canteen_meta.copy()
+        canteen_current=pr.data["mc"].data["canteen_current"]
     l=len(canteen_current)
     return[canteen_current.pop(random.randint(0,l-1))]
 

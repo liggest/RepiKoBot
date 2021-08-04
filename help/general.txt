@@ -1,0 +1,12 @@
+.aword/.aw/.一句话/.一言  基于一言的短句分享
+.calculate/.cal  带括号四则运算
+.cat/.猫  猫猫
+.help  指令帮助
+.luck/.jrrp  查看今日运势(
+.roll/.r  投骰子
+.translate/.ts  基于Googletrans的谷歌翻译
+.ygocard/.yc  基于ourocg的卡查
+.ygodraw/.yd/.抽卡  抽一张游戏王卡
+-hello 喵哈喽~
+
+指令详情请使用【.help 某指令名 -p 页码】

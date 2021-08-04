@@ -39,20 +39,21 @@ async def MessageReceiver(request:Request):
         # rj=json.loads(rd)#request.get_data(as_text=True)
         rj=await request.json()
         postType=rj["post_type"]
+
+        #DEBUG
+        # if bot.DebugMode:
+        if bot.DebugMode and postType!=PostType.Meta:
+            #不打印心跳
+            print(rj)
+
         s=None
         for s in selectors:
             if s.isAccept(postType): 
                 break
         if s:
             msg=s.action(rj)
-            if hasattr(msg,"quickResponse") and msg.quickResponse: #快速操作
+            if msg and msg.quickResponse: #快速操作
                 return json.dumps(msg.resj)
-        
-        #DEBUG
-        # if bot.DebugMode:
-        if bot.DebugMode and postType!=PostType.Meta:
-            #不打印心跳
-            print(rj)
         
         #回复相关
         # if postType=="message":

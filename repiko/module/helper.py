@@ -48,7 +48,7 @@ class Helper():
             result=f.readlines()
         return result
 
-    def fileclipper(self,fresult):
+    def fileClipper(self,fresult):
         l=len(fresult)
         result=[]
         for i in range(0,l,self.linenum):
@@ -73,7 +73,7 @@ class Helper():
         return fcresult,l
 
     def getFileResult(self,filepath,page=1):
-        r,l=self.addPage(self.fileclipper(self.readFile(filepath)))
+        r,l=self.addPage(self.fileClipper(self.readFile(filepath)))
         index=page-1
         if index>=l:
             return r[l-1]

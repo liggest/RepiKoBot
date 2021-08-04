@@ -1,0 +1,7 @@
+.cat/.猫
+  猫猫
+  生成一只本不存在的猫
+  基于https://thiscatdoesnotexist.com/
+  发图不稳定，测试中
+例：
+  .cat

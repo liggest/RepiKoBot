@@ -52,15 +52,16 @@ class MessageSelector(BaseSelector):
         if msg.realSrc in self.bot.AdminQQ:
             if msg.content.startswith("-"):
                 adminr=self.bot.ac.GetAdminResponse(msg.content)
-                self.bot.SendStrList(msg.mtype,msg.src,adminr)
+                self.bot.SendStrList(msg.copy(srcAsDst=True),adminr)
         #响应消息
         if not self.bot.IsMe(msg.realSrc): #如果不是自己发的
-            msg.content,atMe=self.bot.ClearAtMe(msg.content)
-            if atMe:
-                responseMsg=self.bot.mc.GetAtResponse(msg.content)
+            # msg.content,atMe=self.bot.ClearAtMe(msg.content)
+            msg.clearAtMe()
+            if msg.hasAtMe and not msg.isReply:
+                responseMsg=self.bot.mc.GetAtResponse(msg)
                 msg.addQuickResponse(responseMsg) # 快速回复
-            result=self.bot.mc.GetResponse(msg.content,msg.srcList)
-            self.bot.SendStrList(msg.mtype,msg.src,result)
+            result=self.bot.mc.GetResponse(msg)
+            self.bot.SendStrList(msg.copy(srcAsDst=True),result)
         return msg
 
 

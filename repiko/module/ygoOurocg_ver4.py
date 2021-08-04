@@ -124,6 +124,8 @@ class ourocg():
             return c
         return None
 
+    wikiLink=r"https://yugioh-wiki.net/"
+
     def getWikiLink(self,card):
         if card.jpname:
             pageword=f"《{ourocg.towikistr(card.jpname)}》"
@@ -132,7 +134,7 @@ class ourocg():
         else:
             return None
         pageword=parse.quote(pageword,encoding="euc-jp")
-        return r"https://yugioh-wiki.net/index.php?cmd=read&page="+pageword
+        return f"{self.wikiLink}index.php?cmd=read&page={pageword}"
 
     @staticmethod
     def towikistr(text):
