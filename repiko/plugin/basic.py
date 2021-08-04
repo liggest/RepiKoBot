@@ -104,7 +104,7 @@ def rolldice(pr:ParseResult):
 def undefined(pr:ParseResult, cp:CommandParser):
     cmd=pr.command
     if cmd.startswith("rolld") or cmd.startswith("rd"):
-        return rolldice(pr)
+        pr.output.append(rolldice(pr))
 
 @Events.onCmd("ygocard")
 def ygocard(pr:ParseResult):

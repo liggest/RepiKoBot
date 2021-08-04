@@ -68,7 +68,9 @@ def MessageReceiver(request:Request=Depends(get_body)): #暂时的异步->同步
         if selector:
             msg=selector.action(rj)
             if msg and msg.quickResponse: #快速操作
-                return json.dumps(msg.resj)
+                print("quickResponse",msg.resj)
+                # return json.dumps(msg.resj)
+                return msg.resj
         
         #回复相关
         # if postType=="message":
