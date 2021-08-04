@@ -60,12 +60,13 @@ def MessageReceiver(request:Request=Depends(get_body)): #暂时的异步->同步
         #     import time
         #     time.sleep(5)
 
-        s=None
+        selector=None
         for s in selectors:
-            if s.isAccept(postType): 
+            if s.isAccept(postType):
+                selector=s 
                 break
-        if s:
-            msg=s.action(rj)
+        if selector:
+            msg=selector.action(rj)
             if msg and msg.quickResponse: #快速操作
                 return json.dumps(msg.resj)
         
