@@ -3,12 +3,11 @@
 
 # from flask import Flask,request
 # from werkzeug.serving import is_running_from_reloader
-from fastapi import FastAPI,Request,Depends
+from fastapi import FastAPI,Request,Depends,BackgroundTasks
 
 # import random
 import json
 import typing
-import asyncio
 
 from repiko.msg.selector import *
 # from repiko.msg.message import Message
@@ -37,7 +36,7 @@ async def get_body(request: Request):
     return request
 
 @app.post("/",response_model=None)
-def MessageReceiver(request:Request=Depends(get_body)): #暂时的异步->同步对策
+def MessageReceiver(backTasks:BackgroundTasks,request:Request=Depends(get_body)): #暂时的异步->同步对策
     # rd=request.get_data()
     # rd=await request.body()
     # if not hasattr(request,"_body"):
@@ -66,7 +65,7 @@ def MessageReceiver(request:Request=Depends(get_body)): #暂时的异步->同步
                 selector=s 
                 break
         if selector:
-            msg=selector.action(rj)
+            msg=selector.action(rj,backTasks)
             if msg and msg.quickResponse: #快速操作
                 print("quickResponse",msg.resj)
                 # return json.dumps(msg.resj)
