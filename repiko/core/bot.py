@@ -92,9 +92,9 @@ class Bot():
         return self.__update
 
     #发请求
-    def PostRequest(self,etype,param={}):
+    def PostRequest(self,etype,param={},timeout=(5,5)): # (连接超时，读取超时)
         url=self.POSTURL+etype
-        return requests.post(url, json=param,headers=self.HEADER)
+        return requests.post(url, json=param,headers=self.HEADER,timeout=timeout)
 
     #mt=MsgType
     # def SendMessage(self,mt,qq,msg):
@@ -106,7 +106,12 @@ class Bot():
         if not msg.content:
             return
         # param={ "message":msg.content , msg.mtype2key:msg.dst }
-        return self.PostRequest(f"send_{msg.mtype}_msg",msg.sendParam)
+        try:
+            return self.PostRequest(f"send_{msg.mtype}_msg",msg.sendParam)
+        except requests.exceptions.Timeout:
+            print(f"发送 send_{msg.mtype}_msg 超时")
+            print(f"发送内容",msg.sendParam)
+            return
 
     def SendStrList(self,msg:Message,ml:list):
         """
