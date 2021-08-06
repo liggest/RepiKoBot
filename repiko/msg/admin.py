@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 from LSparser import CommandParser,ParseResult
 
+from repiko.msg.message import Message
 
 class ACore():
     def __init__(self,bot):
@@ -37,8 +38,12 @@ class ACore():
                         for x in qqg:
                             bg=self.getBroadcastMembers(x,bg)
                     elif isinstance(qqg,str):
-                        bg=self.getBroadcastMembers(qqg,bg)      
-                    self.bot.SendBroadcast(bg,msg,mt="group")
+                        bg=self.getBroadcastMembers(qqg,bg)
+                    private=pr.args.get("p") or pr.args.get("private")
+                    if private:
+                        self.bot.SendBroadcast(bg,Message(0,"private",msg))
+                    else:
+                        self.bot.SendBroadcast(bg,Message(0,"group",msg))
                     return ["向%d个群广播了消息"%(len(bg))]
             elif self.AdminMode:
                 pr.parse()

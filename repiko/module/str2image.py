@@ -11,6 +11,8 @@ font=ImageFont.truetype(r"font/PingFang Regular.ttf",16)
 spacing=2
 lineHeight=font.getsize("A")[1]
 imageDir=r"image/"
+if not os.path.exists(imageDir):
+    os.makedirs(imageDir)
 
 def getFileName(title,fileName,suffix=".png"):
     if fileName is None:
@@ -31,10 +33,10 @@ def str2greyPng(text,fileName=None):
     fileName=getFileName(title,fileName)
     fileName=imageDir+fileName
     if imageExists(fileName):
-        return r"file://"+os.path.abspath(fileName)
+        return r"file:///"+os.path.abspath(fileName).lstrip("/")
     img=drawText(title,lines[1:])
     img.save(fileName)
-    return r"file://"+os.path.abspath(fileName)
+    return r"file:///"+os.path.abspath(fileName).lstrip("/")
 
 def drawText(title,lines): #这里的lines不包括title
     titleSize=titleFont.getsize(title)
