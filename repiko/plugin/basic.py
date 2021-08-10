@@ -30,7 +30,7 @@ Command("translate").names("ts").opt("-from",OPT.M,"源语言").opt("-to",OPT.M,
     .opt("-d",OPT.N,"检测语言").opt("-donly",OPT.N,"只检测语言")
 Command("luck").names("jrrp").opt("-yci",OPT.N,"根据运值卡查，发送图片")
 Command("ygodraw").names("yd","抽卡").opt("-n",OPT.M,"抽卡数").opt("-im",OPT.N,"以图片发送")
-Command("logodraw").names("群赛抽卡","决斗都市").opt("-im",OPT.N,"以图片发送")
+Command("logodraw").names("群赛抽卡","决斗都市","yddc","duelcity").opt("-im",OPT.N,"以图片发送")
 Command("aword").names("aw","一句话","一言").opt(["-t","--t"],OPT.M,"句子类型")
 
 Command("eat").names("canteen").opt("-r",OPT.N,"重置列表").opt("--l",OPT.M,"添加自定义列表").opt("--ban",OPT.M,"添加排除列表")
