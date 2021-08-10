@@ -318,6 +318,16 @@ class Bot():
         self.ac=admin.ACore(self)
         self.ac.AdminMode=admode
 
+    async def ApproveGroup(self,flag):
+        json={"flag":flag,'sub_type': 'invite',"approve":True}
+        await self.AsyncPost("set_group_add_request",json)
+
+    async def ApproveFriend(self,flag,nickname:str=None):
+        json={"flag":flag,"approve":True}
+        if nickname:
+            json["remark"]=nickname
+        await self.AsyncPost("set_friend_add_request",json)
+
     # def CopyYGO(self):
     #     cplist=["cards.cdb","lflist.conf","strings.conf"]
     #     self.ygodir="./ygo/"

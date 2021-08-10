@@ -6,7 +6,7 @@
 .roll/.r  投骰子
 .translate/.ts  基于Googletrans的谷歌翻译
 .ygocard/.yc  基于ourocg的卡查
-.ygodraw/.yd/.抽卡  抽一张游戏王卡
+.ygodraw/.yd/.抽卡  抽游戏王卡
 -hello 喵哈喽~
 
 指令详情请使用【.help 某指令名 -p 页码】

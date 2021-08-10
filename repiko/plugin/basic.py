@@ -151,7 +151,7 @@ def initLuck(core:MCore):
     core.data["luckbar"]=["","一","二","三","亖"]
 
 @Events.onCmd("luck")
-def luck(pr:ParseResult):
+async def luck(pr:ParseResult):
     luckbar=pr.parserData["mc"].data["luckbar"]
     today=str(datetime.date.today())
     msg:Message=pr.raw
@@ -176,8 +176,7 @@ def luck(pr:ParseResult):
     if pr.args.get("yci",False):
         pr.params=[f"No.{luck}"]
         pr.args["im"]=True
-        return [result]+ygocard(pr)
-
+        return [result]+await ygocard(pr)
     return [result]
 
 ygodir="./ygo/"
