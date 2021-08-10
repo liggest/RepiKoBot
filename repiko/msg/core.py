@@ -119,7 +119,7 @@ if __name__=="__main__":
         ipt=input("请输入信息：")
         while ipt!="-exit":
             # result=mc.GetResponse(ipt,[759851475,1559619324])
-            msg=Message(0,"private",ipt)
+            msg=Message(ipt,dst=0,mtype="private")
             msg.srcList=[759851475,1559619324]
             result=await mc.AsyncResponse(msg)
             print(result)

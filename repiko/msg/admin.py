@@ -41,9 +41,9 @@ class ACore():
                         bg=self.getBroadcastMembers(qqg,bg)
                     private=pr.args.get("p") or pr.args.get("private")
                     if private:
-                        self.bot.SendBroadcast(bg,Message(0,"private",msg))
+                        self.bot.SendBroadcast(bg,Message(msg,dst=0,mtype="private"))
                     else:
-                        self.bot.SendBroadcast(bg,Message(0,"group",msg))
+                        self.bot.SendBroadcast(bg,Message(msg,dst=0,mtype="group"))
                     return ["向%d个群广播了消息"%(len(bg))]
             elif self.AdminMode:
                 pr.parse()

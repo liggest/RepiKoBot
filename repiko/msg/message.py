@@ -2,8 +2,6 @@
 
 import copy
 
-from requests.api import get
-
 
 class Message:
     
@@ -41,7 +39,7 @@ class Message:
             msg.srcList=self.srcList.copy()
         return msg
 
-    def __init__(self,dst=0,mtype="private",*msgs):
+    def __init__(self,*msgs,dst=0,mtype="private"):
         self.content="\n".join(msgs)
         self.srcList=[0]
         self.dst=dst

@@ -16,6 +16,7 @@ from LSparser import Events
 import repiko.core.loader as loader
 from repiko.core.constant import EventNames
 from repiko.msg.message import Message
+from repiko.msg.request import RequestData
 import repiko.msg.core as msgCore
 import repiko.msg.admin as admin
 
@@ -75,7 +76,7 @@ class Bot():
         self.POSTURL=self.config["system"]["postURL"]
         print("bot的命根子："+self.POSTURL)
         # self.AdminQQ=[int(x.strip()) for x in self.config["admin"]["adminQQ"].split(",")]
-        self.AdminQQ=self.config["admin"]["adminQQ"]
+        self.AdminQQ:typing.List[int]=self.config["admin"]["adminQQ"]
         self.SECRET=str.encode(self.config["system"]["secret"])
         self.broadcastGroup={}
         for k,v in self.config["broadcast"].items():
@@ -234,7 +235,7 @@ class Bot():
     #         for mt in qqs.keys():
     #             for qq in qqs[mt]:
     #                 self.SendMessage(mt,qq,msg)
-    def SendBroadcast(self,qqs,msg:Message):
+    def SendBroadcast(self,qqs:typing.Union[list,dict],msg:Message):
         if isinstance(qqs,list):
             for qq in qqs:
                 msg.dst=qq
@@ -246,13 +247,25 @@ class Bot():
                     msg.dst=qq
                     self.SendMessage(msg)
 
+    async def AsyncBroadcast(self,qqs:typing.Union[list,dict],msg:Message):
+        if isinstance(qqs,list):
+            for qq in qqs:
+                msg.dst=qq
+                await self.AsyncSend(msg)
+        else:
+            for mt in qqs.keys():
+                msg.mtype=mt
+                for qq in qqs[mt]:
+                    msg.dst=qq
+                    await self.AsyncSend(msg)
+
     # #rj=requestJSON
     # def GetReceiveQQ(self,rj,mt):
     #     if mt!="private":
     #         return [rj[self.MsgTypeConvert[mt]],rj["user_id"]]
     #     return [rj["user_id"]]
 
-    def GetMyQQInf(self):
+    def GetMyQQInf(self) -> typing.Tuple[int,str]:
         MYQQ=int(self.config["system"]["myQQ"])
         MYNICK="人"
         try:
@@ -318,15 +331,8 @@ class Bot():
         self.ac=admin.ACore(self)
         self.ac.AdminMode=admode
 
-    async def ApproveGroup(self,flag):
-        json={"flag":flag,'sub_type': 'invite',"approve":True}
-        await self.AsyncPost("set_group_add_request",json)
-
-    async def ApproveFriend(self,flag,nickname:str=None):
-        json={"flag":flag,"approve":True}
-        if nickname:
-            json["remark"]=nickname
-        await self.AsyncPost("set_friend_add_request",json)
+    async def ResolveReq(self,req:RequestData):
+        await self.AsyncPost("set_group_add_request",req.sendParam)
 
     # def CopyYGO(self):
     #     cplist=["cards.cdb","lflist.conf","strings.conf"]

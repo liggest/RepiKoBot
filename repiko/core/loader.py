@@ -1,7 +1,9 @@
+from types import ModuleType
+import typing
 import importlib
 import os
 
-def loadPlugins(path:str="repiko/plugin"):
+def loadPlugins(path:str="repiko/plugin") -> typing.Dict[str,ModuleType]:
     pkgName="repiko"
     plugins={}
     files=os.listdir(path)

@@ -2,6 +2,7 @@
 from repiko.core.bot import Bot
 from repiko.core.constant import PostType,EventNames
 from repiko.msg.message import Message
+from repiko.msg.request import RequestData
 
 from fastapi import BackgroundTasks
 
@@ -105,4 +106,20 @@ class NoticeSelector(BaseSelector):
 class RequestSelector(BaseSelector):
 
     ptype=PostType.Request
-    dataClass=None
+    dataClass=RequestData
+
+    def __init__(self,bot:Bot):
+        super().__init__(bot)
+
+        self.lastRequest=None
+
+    async def asyncAction(self,j,backTasks:BackgroundTasks):
+        req:RequestData=await super().asyncAction(j,backTasks)
+        
+        if self.bot.AdminQQ:
+            msg=Message(str(req),dst=0,mtype="private")
+            backTasks.add_task(self.bot.AsyncBroadcast,self.bot.AdminQQ,msg)
+
+        self.lastRequest=req
+
+        return req
