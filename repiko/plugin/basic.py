@@ -55,6 +55,7 @@ c.opt(["-server","-s","-服","-服务器"],OPT.M,"服务器")
 c.opt(["-233"],OPT.N,"233服-233").opt(["-2333"],OPT.N,"233服-2333").opt(["-23333"],OPT.N,"233服-23333")
 c.opt(["-me","-ME","-mine","-我","-俺","-老子"],OPT.N,"我的房")
 c.opt(["-set","-盖放"],OPT.T,"记录房").opt(["-get","-发动","-检索","-召唤","-特招"],OPT.M,"得到房")
+c.opt(["-del","-remove","-破坏","-除外","-送去墓地"],OPT.T,"移除房")
 
 @Events.onCmd("hello")
 def hello(_):
@@ -410,7 +411,15 @@ def duel(pr:ParseResult):
             if isinstance(setKey,str):
                 result.append(f"记录房间为 {setKey}")
             else:
-                result.append(f"记录了房间")
+                result.append(f"记录了[CQ:at,qq={setKey}]的房间")
+    if pr["del"]:
+        delKey=pr.getByType("set",msg.realSrc)
+        if delKey in memberRooms:
+            memberRooms.pop(delKey)
+            if isinstance(delKey,str):
+                result.append(f"移除了房间 {setKey}")
+            else:
+                result.append(f"移除了[CQ:at,qq={setKey}]的房间")
     return result
 
 @Events.on(EventNames.StartUp)
