@@ -16,6 +16,7 @@ from repiko.module.str2image import str2greyPng
 import random
 import datetime
 import os
+import yaml
 
 from LSparser import *
 from LSparser.command import CommandHelper
@@ -35,6 +36,25 @@ Command("aword").names("aw","一句话","一言").opt(["-t","--t"],OPT.M,"句子
 
 Command("eat").names("canteen").opt("-r",OPT.N,"重置列表").opt("--l",OPT.M,"添加自定义列表").opt("--ban",OPT.M,"添加排除列表")
 Command("cat").names("猫")
+
+c=Command("duel").names("决斗","duel!","duel！","决斗！")
+c.opt(["-match","-m","-M","-比赛","-三局"],OPT.N,"比赛模式").opt(["-tag","-t","-T","-双打","-麻将"],OPT.N,"双打")
+c.opt(["-ot","-OT","-ot混","-OT混"],OPT.N,"OT混").opt(["-tcg","-TCG"],OPT.N,"TCG")
+c.opt(["-lp","-LP","-基本分","-生命","-生命值","-血"],OPT.M,"基本分")
+c.opt(["-time","-tm","-TM","-时间"],OPT.T,"回合时间")
+c.opt(["-start","-st","-ST","-起手"],OPT.M,"起手手牌数")
+c.opt(["-draw","-dr","-DR","-抽","-抽卡","-抽牌"],OPT.M,"回合抽牌数")
+c.opt(["-lflist","-lf","-LF","-禁卡表"],OPT.M,"禁限卡表")
+c.opt(["-nolflist","-nf","-NF","-nolf","-NOLF","-无禁卡表","-无禁卡","-无禁限","-无限制"],OPT.N,"无禁限卡表")
+c.opt(["-nounique","-nu","-NU","-无独有"],OPT.N,"无独有卡")
+c.opt(["-nocheck","-nc","-NC","-不检查","-不检查卡组"],OPT.N,"不检查卡组")
+c.opt(["-noshuffle","-ns","-NS","-不洗牌"],OPT.N,"不洗牌")
+c.opt(["-ai","-AI","-人机"],OPT.N,"人机")
+c.opt(["-rule","-mr","-MR","-规则"],OPT.M,"大师规则")
+c.opt(["-server","-s","-服","-服务器"],OPT.M,"服务器")
+c.opt(["-233"],OPT.N,"233服-233").opt(["-2333"],OPT.N,"233服-2333").opt(["-23333"],OPT.N,"233服-23333")
+c.opt(["-me","-ME","-mine","-我","-俺","-老子"],OPT.N,"我的房")
+c.opt(["-set","-盖放"],OPT.T,"记录房").opt(["-get","-发动","-检索","-召唤","-特招"],OPT.M,"得到房")
 
 @Events.onCmd("hello")
 def hello(_):
@@ -285,6 +305,114 @@ def where2eat(pr:ParseResult):
 def catImage(_):
     return [r"[CQ:image,file=https://thiscatdoesnotexist.com,cache=0]"]
 
+boolCodeMap={"match":"M","tag":"T","tcg":"TO","ot":"OT","nolflist":"NF","nounique":"NU","nocheck":"NC","noshuffle":"NS","ai":"AI"}
+intCodeMap={"lp":"LP","time":"TM","start":"ST","draw":"DR","lflist":"LF","rule":"MR"}
+intRangeMap={"lp":(1,99999,8000),"time":(0,999,3),"start":(1,40,5),"draw":(0,35,1),"lflist":(1,99999,1),"rule":(1,5,5)} 
+# (下限，上限，默认值) 禁卡表数量一直在变化，故不设上限
+
+roomFile="MemberRoom.yaml"
+memberRooms={} # {"room":"","server":""}
+servers={}
+
+def initDuel(core:MCore):
+    global memberRooms,servers
+    roomFilePath=os.path.join(ygodir,roomFile)
+    if os.path.exists(roomFilePath):
+        with open(roomFilePath,encoding="utf-8") as f:
+            memberRooms=yaml.safe_load(f)
+    bot:Bot=core.bot
+    servers=bot.config.get("ygo",{}).get("servers",{})
+
+def saveDuel():
+    if not memberRooms:
+        return
+    roomFilePath=os.path.join(ygodir,roomFile)
+    with open(roomFilePath,"w",encoding="utf-8") as f:
+        yaml.safe_dump(memberRooms,f,encoding="utf-8",allow_unicode=True)
+    
+def randomRoomName(pr:ParseResult):
+    cdb:cdbReader=pr.parserData["mc"].data["ygocdb"]
+    conf:confReader=pr.parserData["mc"].data["ygoconf"]
+    result=[]
+    with cdb:
+        ct=cdb.getRandomNames(count=random.randint(2,6))
+        result=[n[0] for n in ct]
+    return "".join(result)
+
+@Events.onCmd("duel")
+def duel(pr:ParseResult):
+    msg:Message=pr.raw
+    result=[]
+    room=pr.paramStr or randomRoomName(pr)
+    prefix=[]
+    roomInfo:dict=None
+    srv=None
+    if not pr.params:
+        pr.args["me"]=True
+    key=pr["get"]
+    if key:
+        roomInfo=memberRooms.get(key)
+    elif pr["me"]:
+        roomInfo=memberRooms.get(msg.realSrc)
+    if roomInfo:
+        fullRoom:str=roomInfo["room"]
+        roomList=fullRoom.split("#")
+        if len(roomList)<2:
+            room=fullRoom
+        else:
+            prefix.append(roomList[0])
+            room="#".join(roomList[1:])
+        srv:str=roomInfo.get("server")
+    if pr.getByType("time",None,bool):
+        pr.args["time"]="0"
+    for arg in pr.args:
+        code=boolCodeMap.get(arg)
+        if code:
+            prefix.append(code)
+        else:
+            code=intCodeMap.get(arg)
+            if code:
+                minVal,maxVal,defaultVal=intRangeMap[arg]
+                val=pr.getToType(arg,defaultVal,int)
+                val=max(minVal,val)
+                val=min(maxVal,val)
+                prefix.append(f"{code}{val}")
+    if prefix:
+        fullRoom=f"{','.join(prefix)}#{room}"
+    else:
+        fullRoom=room
+    result.append(fullRoom)
+    if not pr["server"]:
+        for s in ("23333","233","2333"):
+            if pr[s]:
+                pr.args["server"]=s
+    if not srv or pr["server"]:
+        srv=pr.getByType("server","2333")
+    noserver=(None,None)
+    if srv.startswith("233"):
+        host,port=servers.get("233",noserver)
+        port=int(f"2{'3'*srv.count('3')}")
+    elif srv.endswith("编年史"):
+        host,port=servers.get("编年史",noserver)
+    elif srv=="2pick" or srv=="轮抽":
+        host,port=servers.get("2pick",noserver)
+    elif srv.startswith("复读") or srv.lower()=="repiko":
+        host,port=servers.get("repiko",noserver)
+    if host and port:
+        result.append(f"{host}  {port}")
+    if pr["set"]:
+        setKey=pr.getByType("set",msg.realSrc) #无值的场合使用QQ号
+        if fullRoom:
+            roomInfo={"room":fullRoom}
+            if host and port:
+                roomInfo["server"]=srv
+            memberRooms[setKey]=roomInfo
+            if isinstance(setKey,str):
+                result.append(f"记录房间为 {setKey}")
+            else:
+                result.append(f"记录了房间")
+    return result
+
 @Events.on(EventNames.StartUp)
 def botStartUP(bot:Bot):
     copyYGO(bot)
@@ -292,5 +420,10 @@ def botStartUP(bot:Bot):
 @Events.on(EventNames.MsgCoreInit)
 def coreInit(core:MCore):
     initYGO(core)
+    initDuel(core)
     initEat(core)
     initLuck(core)
+
+@Events.on(EventNames.ShutDown)
+def botShutDown(bot:Bot):
+    saveDuel()

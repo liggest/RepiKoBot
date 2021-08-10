@@ -12,3 +12,7 @@ system:
   secret: post_secret
 ygo:
   ygoPath: /path/to/ygoroot/
+  servers:
+    "233": ["s1.ygo233.com",233]
+    编年史: ["duelstart.com",2333]
+    2pick: ["2pick.mycard.moe",765]
