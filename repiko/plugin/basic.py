@@ -417,9 +417,9 @@ def duel(pr:ParseResult):
         if delKey in memberRooms:
             memberRooms.pop(delKey)
             if isinstance(delKey,str):
-                result.append(f"移除了房间 {setKey}")
+                result.append(f"移除了房间 {delKey}")
             else:
-                result.append(f"移除了[CQ:at,qq={setKey}]的房间")
+                result.append(f"移除了[CQ:at,qq={delKey}]的房间")
     return result
 
 @Events.on(EventNames.StartUp)
