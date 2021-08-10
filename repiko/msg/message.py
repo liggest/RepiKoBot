@@ -108,3 +108,20 @@ class Message:
             消息是否是个回复
         """
         return self.content.lstrip().startswith("[CQ:reply")
+
+    def getSrcName(self):
+        name=None
+        if hasattr(self,"json"):
+            sender=self.json.get("sender")
+            if sender:
+                name=sender.get("nickname")
+        return name
+
+    def getSrcCard(self):
+        card=None
+        if not hasattr(self,"json") or not self.mtype=="group":
+            return None
+        sender=self.json.get("sender")
+        if sender:
+            card=sender.get("card")
+        return card

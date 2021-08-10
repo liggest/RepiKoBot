@@ -1,3 +1,4 @@
+from math import nan
 from repiko.core.bot import Bot
 from repiko.core.constant import EventNames
 from repiko.msg.core import MCore
@@ -181,11 +182,8 @@ async def luck(pr:ParseResult):
     luck=random.randint(0,100) #实际上有101种可能
     random.seed()
     name=f"[CQ:at,qq={qq}]"
-    if hasattr(msg,"json") and msg.mtype=="private":
-        name=None
-        sender=msg.json.get("sender")
-        if sender:
-            name=sender.get("nickname")
+    if msg.mtype=="private":
+        name=msg.getSrcName()
     if name:
         result=f"{name}的今日运势为 {luck} \n"
     else:
@@ -409,17 +407,29 @@ def duel(pr:ParseResult):
                 roomInfo["server"]=srv
             memberRooms[setKey]=roomInfo
             if isinstance(setKey,str):
-                result.append(f"记录房间为 {setKey}")
+                result.append(f"记录房间为 - {setKey}")
             else:
-                result.append(f"记录了[CQ:at,qq={setKey}]的房间")
+                name=f"[CQ:at,qq={setKey}]"
+                if msg.mtype=="private":
+                    name=msg.getSrcName()
+                if name:
+                    result.append(f"记录了{name}的房间")
+                else:
+                    result.append(f"记录了房间")
     if pr["del"]:
         delKey=pr.getByType("set",msg.realSrc)
         if delKey in memberRooms:
             memberRooms.pop(delKey)
             if isinstance(delKey,str):
-                result.append(f"移除了房间 {delKey}")
+                result.append(f"移除了房间 - {delKey}")
             else:
-                result.append(f"移除了[CQ:at,qq={delKey}]的房间")
+                name=f"[CQ:at,qq={delKey}]"
+                if msg.mtype=="private":
+                    name=msg.getSrcName()
+                if name:
+                    result.append(f"移除了{delKey}的房间")
+                else:
+                    result.append(f"移除了房间")
     return result
 
 @Events.on(EventNames.StartUp)
