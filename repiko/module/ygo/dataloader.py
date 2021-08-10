@@ -8,6 +8,15 @@ class cdbReader():
         self.conn=None
         self.cursor=None
 
+    def __enter__(self):
+        self.connect()
+        # print("连上啦")
+        return self
+    
+    def __exit__(self,etype,eval,traceback):
+        # print("关掉啦")
+        self.close()
+
     def connect(self,path=None):
         if path:
             self.conn=sqlite3.connect(path)
@@ -61,6 +70,11 @@ class cdbReader():
         self.cursor.execute("SELECT id FROM texts ORDER BY RANDOM() limit ?",(count,))
         ids=self.cursor.fetchall()
         return [x[0] for x in ids]
+
+    def getRandomNames(self,count=1):
+        self.cursor.execute("SELECT name FROM texts ORDER BY RANDOM() limit ?",(count,))
+        names=self.cursor.fetchall()
+        return [x[0] for x in names]
 
     def getIDsByInput(self,ipt,expect=()):
         pass

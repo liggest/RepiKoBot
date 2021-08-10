@@ -1,17 +1,20 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import requests
+import httpx
+import contextvars
 # import configparser
 import yaml
 import hmac
 import importlib
-import shutil
+# import shutil
 import os
 import typing
 
 from LSparser import Events
 
 import repiko.core.loader as loader
+from repiko.core.constant import EventNames
 from repiko.msg.message import Message
 import repiko.msg.core as msgCore
 import repiko.msg.admin as admin
@@ -22,12 +25,15 @@ class Bot():
     MsgTypeConvert={"private":"user_id","group":"group_id","discuss":"discuss_id"}
 
     def __init__(self):
+
+        self._aClient:httpx.AsyncClient=None
+
         print("bot醒了，bot想初始化")
         self.ConfigInit()
         self.DebugMode=False
         self.MYQQ,self.MYNICK=self.GetMyQQInf()
 
-        self.CopyYGO()
+        # self.CopyYGO()
 
         self.EM=Events.getEM()
 
@@ -35,9 +41,20 @@ class Bot():
 
         self.mc=msgCore.MCore(self)
         self.ac=admin.ACore(self)
+
+        self.SelectorInit()
         #for k in self.config.keys():
         #    print(dict(self.config[k]))
-        
+
+    async def Init(self):
+        await self.EM.asyncSend(EventNames.StartUp,self)
+        await self.mc.Init()
+
+    async def Shutdown(self):
+        await self.EM.asyncSend(EventNames.ShutDown,self)
+        if self._aClient:
+            await self._aClient.aclose()
+
     #读取配置文件
     def LoadConfig(self,path=r"config/config.yaml") -> dict:
         if not os.path.exists(path):
@@ -91,10 +108,53 @@ class Bot():
         self.__update=self.ReadUpdateInfo()
         return self.__update
 
+    def SelectorInit(self):
+        from repiko.msg.selector import BaseSelector,MessageSelector,NoticeSelector,RequestSelector
+        selectors:typing.List[BaseSelector]=[]
+        for cls in (MessageSelector,NoticeSelector,RequestSelector):
+            sltr=cls(self)
+            selectors.append(sltr)
+
+        self.selectors=selectors
+        self._sltrVar=contextvars.ContextVar("Current Selector",default=self.mSelector)
+
+        return selectors
+
+    @property
+    def mSelector(self):
+        """
+            MessageSelector 对象
+        """
+        return self.selectors[0]
+
+    @property
+    def currentSelector(self):
+        """
+            ContextVar 中的当前 Selector
+        """
+        return self._sltrVar.get()
+
+    @currentSelector.setter
+    def currentSelector(self,val):
+        self._sltrVar.set(val)
+
+    def AddBackTask(self,func,*args,**kw):
+        self.currentSelector.addBackTask(func,*args,**kw)
+
     #发请求
     def PostRequest(self,etype,param={},timeout=None): # timeout: (连接超时，读取超时)
         url=self.POSTURL+etype
         return requests.post(url, json=param,headers=self.HEADER,timeout=timeout)
+
+    @property
+    def aClient(self):
+        if not self._aClient:
+            self._aClient=httpx.AsyncClient()
+        return self._aClient
+
+    async def AsyncPost(self,api,json={},timeout=None):
+        url=self.POSTURL+api
+        return await self.aClient.post(url,json=json,headers=self.HEADER,timeout=timeout)
 
     #mt=MsgType
     # def SendMessage(self,mt,qq,msg):
@@ -114,9 +174,20 @@ class Bot():
             print(f"发送内容",msg.sendParam)
             return
 
+    async def AsyncSend(self,msg:Message):
+        if not msg.content:
+            return
+        try:
+            return await self.AsyncPost(f"send_{msg.mtype}_msg",msg.sendParam)
+        except httpx.HTTPError as err:
+            print(f"发送 send_{msg.mtype}_msg 失败")
+            print(repr(err))
+            print(f"发送内容",msg.sendParam)
+            return
+
     def SendStrList(self,msg:Message,ml:list):
         """
-            msg 作为发消息的模板，使用其 mtype 和 dst
+            msg 发消息的模板，使用其 mtype 和 dst
             ml 真正要发的消息字符串列表
         """
         if not ml:
@@ -124,6 +195,17 @@ class Bot():
         for s in ml:
             msg.content=s
             self.SendMessage(msg)
+
+    async def AsyncSendStrs(self,msg:Message,ml:typing.List[str]):
+        """
+            msg 发消息的模板，使用其 mtype 和 dst
+            ml 真正要发的消息字符串列表
+        """
+        if not ml:
+            return
+        for s in ml:
+            msg.content=s
+            await self.AsyncSend(msg)
 
     # #ml=MsgList
     # def SendMsgList(self,mt,qq,ml):
@@ -137,6 +219,12 @@ class Bot():
         for msg in ml:
             self.SendMessage(msg)
     
+    async def AsyncSendMany(self,ml:typing.List[Message]):
+        if not ml:
+            return
+        for msg in ml:
+            await self.AsyncSend(msg)
+
     #qqs [] or {"private":[],"group":[],"discuss":[]}
     # def SendBroadcast(self,qqs,msg,mt="private"):
     #     if isinstance(qqs,list):
@@ -230,22 +318,22 @@ class Bot():
         self.ac=admin.ACore(self)
         self.ac.AdminMode=admode
 
-    def CopyYGO(self):
-        cplist=["cards.cdb","lflist.conf","strings.conf"]
-        self.ygodir="./ygo/"
-        # if not self.config.has_option("ygo","ygopath"):
-        if not (self.config.get("ygo") and self.config["ygo"].get("ygoPath")):
-            return
-        ygopath=self.config["ygo"]["ygoPath"]
-        if not os.path.exists(self.ygodir):
-            os.mkdir(self.ygodir)
-        for f in cplist:
-            fpath=os.path.join(ygopath,f)
-            if os.path.exists(fpath):
-                shutil.copy(fpath,self.ygodir)
-                print(f"拷贝{fpath}到{self.ygodir}")
-            else:
-                print(f"没有发现{fpath}")
+    # def CopyYGO(self):
+    #     cplist=["cards.cdb","lflist.conf","strings.conf"]
+    #     self.ygodir="./ygo/"
+    #     # if not self.config.has_option("ygo","ygopath"):
+    #     if not (self.config.get("ygo") and self.config["ygo"].get("ygoPath")):
+    #         return
+    #     ygopath=self.config["ygo"]["ygoPath"]
+    #     if not os.path.exists(self.ygodir):
+    #         os.mkdir(self.ygodir)
+    #     for f in cplist:
+    #         fpath=os.path.join(ygopath,f)
+    #         if os.path.exists(fpath):
+    #             shutil.copy(fpath,self.ygodir)
+    #             print(f"拷贝{fpath}到{self.ygodir}")
+    #         else:
+    #             print(f"没有发现{fpath}")
     
     def GenerateMainHelp(self):
         from LSparser.command import CommandHelper

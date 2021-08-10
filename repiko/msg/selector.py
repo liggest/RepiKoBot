@@ -1,16 +1,9 @@
-from enum import Enum
 
 from repiko.core.bot import Bot
+from repiko.core.constant import PostType,EventNames
 from repiko.msg.message import Message
 
 from fastapi import BackgroundTasks
-
-class PostType(str,Enum):
-    Unknown="unknown" # 一般不用这个
-    Message="message"
-    Notice="notice"
-    Request="request"
-    Meta="meta_event"
 
 
 class BaseSelector:
@@ -24,10 +17,10 @@ class BaseSelector:
 
     @classmethod
     def getEventName(cls):
-        return f"receive-{cls.ptype.name}"
+        return EventNames.Receive(cls.ptype)
 
     @classmethod
-    def getJSONData(cls,j):
+    def json2Obj(cls,j):
         if cls.dataClass:
             return cls.dataClass.fromJSON(j)
         return None
@@ -39,10 +32,19 @@ class BaseSelector:
         self.backTasks=[]
 
     def action(self,j,backTasks:BackgroundTasks):
-        msg=self.getJSONData(j)
-        
-        self.bot.EM.send(self.eventName,msg,bot=self.bot,selector=self)
+        self.bot.currentSelector=self
 
+        msg=self.json2Obj(j)
+        
+        self.bot.EM.send(self.eventName,msg,bot=self.bot)
+
+        self.transBackTasks(backTasks)
+        return msg
+
+    async def asyncAction(self,j,backTasks:BackgroundTasks):
+        self.bot.currentSelector=self
+        msg=self.json2Obj(j)
+        await self.bot.EM.asyncSend(self.eventName,msg,bot=self.bot)
         self.transBackTasks(backTasks)
         return msg
 
@@ -59,26 +61,41 @@ class MessageSelector(BaseSelector):
     ptype=PostType.Message
     dataClass=Message
 
-    def action(self,j,backTasks:BackgroundTasks):
-        msg:Message=super().action(j,backTasks)
-        #管理
-        if msg.realSrc in self.bot.AdminQQ:
+    # def action(self,j,backTasks:BackgroundTasks):
+    #     msg:Message=super().action(j,backTasks)
+    #     #管理
+    #     if msg.realSrc in self.bot.AdminQQ:
+    #         if msg.content.startswith("-"):
+    #             adminr=self.bot.ac.GetAdminResponse(msg.content)
+    #             backTasks.add_task(self.bot.SendStrList,msg.copy(srcAsDst=True),adminr)
+    #             # self.bot.SendStrList(msg.copy(srcAsDst=True),adminr)
+    #     #响应消息
+    #     if not self.bot.IsMe(msg.realSrc): #如果不是自己发的
+    #         # msg.content,atMe=self.bot.ClearAtMe(msg.content)
+    #         msg.clearAtMe()
+    #         if msg.hasAtMe and not msg.isReply:
+    #             responseMsg=self.bot.mc.GetAtResponse(msg)
+    #             msg.addQuickResponse(responseMsg) # 快速回复
+    #         result=self.bot.mc.GetResponse(msg)
+    #         backTasks.add_task(self.bot.SendStrList,msg.copy(srcAsDst=True),result)
+    #         # self.bot.SendStrList(msg.copy(srcAsDst=True),result)
+    #     return msg
+
+    async def asyncAction(self,j,backTasks:BackgroundTasks):
+        msg:Message=await super().asyncAction(j,backTasks)
+        if msg.realSrc in self.bot.AdminQQ: #管理
             if msg.content.startswith("-"):
+                #TODO
                 adminr=self.bot.ac.GetAdminResponse(msg.content)
-                backTasks.add_task(self.bot.SendStrList,msg.copy(srcAsDst=True),adminr)
-                # self.bot.SendStrList(msg.copy(srcAsDst=True),adminr)
-        #响应消息
-        if not self.bot.IsMe(msg.realSrc): #如果不是自己发的
-            # msg.content,atMe=self.bot.ClearAtMe(msg.content)
+                backTasks.add_task(self.bot.AsyncSendStrs,msg.copy(srcAsDst=True),adminr)
+        if not self.bot.IsMe(msg.realSrc): #如果不是自己发的，响应消息
             msg.clearAtMe()
             if msg.hasAtMe and not msg.isReply:
-                responseMsg=self.bot.mc.GetAtResponse(msg)
+                responseMsg=await self.bot.mc.AsyncAtResponse(msg)
                 msg.addQuickResponse(responseMsg) # 快速回复
-            result=self.bot.mc.GetResponse(msg)
-            backTasks.add_task(self.bot.SendStrList,msg.copy(srcAsDst=True),result)
-            # self.bot.SendStrList(msg.copy(srcAsDst=True),result)
+            result=await self.bot.mc.AsyncResponse(msg)
+            backTasks.add_task(self.bot.AsyncSendStrs,msg.copy(srcAsDst=True),result)
         return msg
-
 
 class NoticeSelector(BaseSelector):
 

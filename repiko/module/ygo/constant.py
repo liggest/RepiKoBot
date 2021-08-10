@@ -194,7 +194,9 @@ class LinkMark(Enum):
         return number2linkMark[num-1]
 
 number2linkMark=[lm for lm in LinkMark]
-linkMark2str=[" ◣"," ↓ ","◢ ","←","   ","→"," ◤"," ↑ ","◥ "]
+# linkMark2str=[" ◣"," ↓ ","◢ ","←","   ","→"," ◤"," ↑ ","◥ "]
+linkMark2str=["↙","⬇","↘","⬅","    ","➡","↖","⬆","↗"] # "⏺"
+
 
 class CardCategory(Enum):
     魔陷破坏=0x01        #SpellTrapDestroy=0x01

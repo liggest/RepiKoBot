@@ -91,11 +91,13 @@ class Card():
             if self.isLink:
                 result+=self.checkAndFill(self.linknum,"  LINK{}\n")
                 result+=self.checkAndFill(self.attack,"攻击力 {}\n")
-                marklist=["   "]*8
+                # marklist=["   "]*8
+                middle=linkMark2str[len(linkMark2str)//2]
+                marklist=[middle]*8
                 for i,lm in enumerate(LinkMark):
                     if lm in self.linkmark:
                         marklist[i]=str(lm)
-                marktext="{0[5]}{0[6]}{0[7]}\n{0[3]}   {0[4]}\n{0[0]}{0[1]}{0[2]}".format(marklist)
+                marktext="{0[5]}{0[6]}{0[7]}\n{0[3]}{1}{0[4]}\n{0[0]}{0[1]}{0[2]}".format(marklist,middle)
                 for line in marktext.split("\n"):
                     if line.strip():
                         result+=line+"\n"

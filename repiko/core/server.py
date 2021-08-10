@@ -1,42 +1,75 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# from flask import Flask,request
-# from werkzeug.serving import is_running_from_reloader
 from fastapi import FastAPI,Request,Depends,BackgroundTasks
 
 # import random
-import json
-import typing
+# import json
+# import typing
 
-from repiko.msg.selector import *
+from repiko.core.constant import PostType
+# from repiko.msg.selector import *
 # from repiko.msg.message import Message
-# app = Flask(__name__)
+
 app=FastAPI()
 
-
 bot=None
-selectors:typing.List[BaseSelector]=[]
+
+@app.on_event("startup")
+async def StartUp():
+    global bot
+    import repiko.core.bot as bot_core
+    bot=bot_core.Bot()
+    await bot.Init()
+
+@app.on_event("shutdown")
+async def ShutDown():
+    await bot.Shutdown()
+
+@app.post("/",response_model=None)
+async def MessageReceiver(backTasks:BackgroundTasks,request:Request):
+    rd=await request.body()
+    if bot.Verification(request,rd):
+        rj=await request.json()
+        postType=rj["post_type"]
+
+        #DEBUG
+        if bot.DebugMode and postType!=PostType.Meta: #不打印心跳
+            print(rj)
+        
+        sltr=None
+        for s in bot.selectors:
+            if s.isAccept(postType):
+                sltr=s 
+                break
+        if sltr:
+            msg=await sltr.asyncAction(rj,backTasks)
+            if msg and msg.quickResponse: #快速操作
+                print("quickResponse",msg.resj)
+                return msg.resj
+    return {}
+
+#============#
+# Old Stuffs #
+#============#
+
+# from flask import Flask,request
+# from werkzeug.serving import is_running_from_reloader
+
+# app = Flask(__name__)
 # if not is_running_from_reloader():
 #     import repiko.core.bot as bot_core
 #     bot=bot_core.Bot()
 
 # @app.route('/',methods=['POST'])
 # def MessageReceiver():
-@app.on_event("startup")
-async def StartUp():
-    global bot
-    import repiko.core.bot as bot_core
-    bot=bot_core.Bot()
-    for cls in (MessageSelector,NoticeSelector,RequestSelector):
-        selectors.append(cls(bot))
 
 async def get_body(request: Request):
     await request.json()
     return request
 
-@app.post("/",response_model=None)
-def MessageReceiver(backTasks:BackgroundTasks,request:Request=Depends(get_body)): #暂时的异步->同步对策
+# @app.post("/",response_model=None)
+def __MessageReceiver(backTasks:BackgroundTasks,request:Request=Depends(get_body)): #暂时的异步->同步对策
     # rd=request.get_data()
     # rd=await request.body()
     # if not hasattr(request,"_body"):
@@ -59,13 +92,13 @@ def MessageReceiver(backTasks:BackgroundTasks,request:Request=Depends(get_body))
         #     import time
         #     time.sleep(5)
 
-        selector=None
-        for s in selectors:
+        sltr=None
+        for s in bot.selectors:
             if s.isAccept(postType):
-                selector=s 
+                sltr=s 
                 break
-        if selector:
-            msg=selector.action(rj,backTasks)
+        if sltr:
+            msg=sltr.action(rj,backTasks)
             if msg and msg.quickResponse: #快速操作
                 print("quickResponse",msg.resj)
                 # return json.dumps(msg.resj)
@@ -81,7 +114,7 @@ def MessageReceiver(backTasks:BackgroundTasks,request:Request=Depends(get_body))
             # msgType=rj["message_type"]
             # contents=rj["message"]
             # msgID=rj["message_id"]
-            #TODO 更灵活的得到回复QQ
+            # 希望能更灵活的得到回复QQ
             # rq=bot.GetReceiveQQ(rj,msgType)
             # #复读 2%几率复读1次 2‰几率复读3次
             # temp=random.randint(1,1000)

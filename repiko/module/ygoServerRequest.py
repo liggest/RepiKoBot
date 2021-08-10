@@ -4,7 +4,7 @@ import requests
 
 class ygoServerRequester():
     def __init__(self):
-        self.url=r"http://47.94.214.137:8888/"
+        self.url=r"http://127.0.0.1:8888/"
         self.header={'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Trident/7.0; rv:11.0) like Gecko',"Content-Type": "application/json"}
     
     def request(self,exp):

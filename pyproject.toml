@@ -12,7 +12,7 @@ license = "MIT"
 
 [tool.poetry.dependencies]
 python = "^3.7"
-LSparser = "0.1.4"
+LSparser = "0.1.5"
 fastapi = {extras = ["all"], version = "^0.68.0"}
 beautifulsoup4 = "^4.9.3"
 googletrans = ">=4.0.0rc1"
