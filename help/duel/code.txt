@@ -1,0 +1,24 @@
+  -match/-m/-M/-比赛/-三局 比赛模式
+  -tag/-t/-T/-双打/-麻将 双打
+  -ot/-OT/-ot混/-OT混 OT混
+  -tcg/-TCG  TCG
+  -lp/-LP/-基本分/-生命/-生命值/-血 数量  基本分
+  -time/-tm/-TM/-时间 分钟  回合时间
+  -start/-st/-ST/-起手 数量  起手手牌数
+  -draw/-dr/-DR/-抽/-抽卡/-抽牌 数量  回合抽牌数
+  -lflist/-lf/-LF/-禁卡表 编号  禁限卡表
+  -nolflist/-nf/-NF/-nolf/-NOLF/-无禁卡表/-无禁卡/-无禁限/-无限制  无禁限卡表
+  -nounique/-nu/-NU/-无独有  无独有卡
+  -nocheck/-nc/-NC/-不检查/-不检查卡组  不检查卡组
+  -noshuffle/-ns/-NS/-不洗牌  不洗牌
+  -ai/-AI/-人机 人机
+  -rule/-mr/-MR/-规则 编号  大师规则
+  禁卡表编号、规则编号详见 233 服官网
+例：
+  .duel -M
+  .duel -t
+  .duel -麻将
+  .duel -tm 0
+  .duel -lp 64000
+  .duel -NF -NU -NC -NS
+  .duel 琪露诺 -ai

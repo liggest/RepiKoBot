@@ -38,25 +38,27 @@ Command("aword").names("aw","一句话","一言").opt(["-t","--t"],OPT.M,"句子
 Command("eat").names("canteen").opt("-r",OPT.N,"重置列表").opt("--l",OPT.M,"添加自定义列表").opt("--ban",OPT.M,"添加排除列表")
 Command("cat").names("猫")
 
-c=Command("duel").names("决斗","duel!","duel！","决斗！")
+c=Command("duel").names("决斗","duel!","duel！","决斗！","打牌","打牌！","牌","牌！")
 c.opt(["-match","-m","-M","-比赛","-三局"],OPT.N,"比赛模式").opt(["-tag","-t","-T","-双打","-麻将"],OPT.N,"双打")
 c.opt(["-ot","-OT","-ot混","-OT混"],OPT.N,"OT混").opt(["-tcg","-TCG"],OPT.N,"TCG")
-c.opt(["-lp","-LP","-基本分","-生命","-生命值","-血"],OPT.M,"基本分")
+c.opt(["-lp","-LP","-基本分","-生命","-生命值","-血"],OPT.T,"基本分")
 c.opt(["-time","-tm","-TM","-时间"],OPT.T,"回合时间")
-c.opt(["-start","-st","-ST","-起手"],OPT.M,"起手手牌数")
-c.opt(["-draw","-dr","-DR","-抽","-抽卡","-抽牌"],OPT.M,"回合抽牌数")
-c.opt(["-lflist","-lf","-LF","-禁卡表"],OPT.M,"禁限卡表")
+c.opt(["-tm0","-TM0"],OPT.N,"-tm 0 的简写")
+c.opt(["-start","-st","-ST","-起手"],OPT.T,"起手手牌数")
+c.opt(["-draw","-dr","-DR","-抽","-抽卡","-抽牌"],OPT.T,"回合抽牌数")
+c.opt(["-lflist","-lf","-LF","-禁卡表"],OPT.T,"禁限卡表")
 c.opt(["-nolflist","-nf","-NF","-nolf","-NOLF","-无禁卡表","-无禁卡","-无禁限","-无限制"],OPT.N,"无禁限卡表")
 c.opt(["-nounique","-nu","-NU","-无独有"],OPT.N,"无独有卡")
 c.opt(["-nocheck","-nc","-NC","-不检查","-不检查卡组"],OPT.N,"不检查卡组")
 c.opt(["-noshuffle","-ns","-NS","-不洗牌"],OPT.N,"不洗牌")
 c.opt(["-ai","-AI","-人机"],OPT.N,"人机")
-c.opt(["-rule","-mr","-MR","-规则"],OPT.M,"大师规则")
+c.opt(["-rule","-mr","-MR","-规则"],OPT.T,"大师规则")
 c.opt(["-server","-s","-服","-服务器"],OPT.M,"服务器")
 c.opt(["-233"],OPT.N,"233服-233").opt(["-2333"],OPT.N,"233服-2333").opt(["-23333"],OPT.N,"233服-23333")
 c.opt(["-me","-ME","-mine","-我","-俺","-老子"],OPT.N,"我的房")
 c.opt(["-set","-盖放"],OPT.T,"记录房").opt(["-get","-发动","-检索","-召唤","-特招"],OPT.M,"得到房")
 c.opt(["-del","-remove","-破坏","-除外","-送去墓地"],OPT.T,"移除房")
+c.opt(["-random","-r","-ran"],OPT.N,"随机房间名")
 
 @Events.onCmd("hello")
 def hello(_):
@@ -342,40 +344,44 @@ def randomRoomName(pr:ParseResult):
 def duel(pr:ParseResult):
     msg:Message=pr.raw
     result=[]
-    room=pr.paramStr or randomRoomName(pr)
-    prefix=[]
+    room=pr.paramStr.strip()
+    prefix=set()
     roomInfo:dict=None
     srv=None
-    if not pr.params:
-        pr.args["me"]=True
-    key=pr["get"]
-    if key:
-        roomInfo=memberRooms.get(key)
-    elif pr["me"]:
-        roomInfo=memberRooms.get(msg.realSrc)
-    if roomInfo:
-        fullRoom:str=roomInfo["room"]
-        roomList=fullRoom.split("#")
-        if len(roomList)<2:
-            room=fullRoom
-        else:
-            prefix.append(roomList[0])
-            room="#".join(roomList[1:])
-        srv:str=roomInfo.get("server")
-    if pr.getByType("time",None,bool):
+    if not pr["random"]:
+        if not pr.params:
+            pr.args["me"]=True
+        key=pr["get"]
+        if key:
+            roomInfo=memberRooms.get(key)
+        elif pr["me"]:
+            roomInfo=memberRooms.get(msg.realSrc)
+        if roomInfo:
+            fullRoom:str=roomInfo["room"]
+            roomList=fullRoom.split("#")
+            if len(roomList)<2:
+                room=fullRoom
+            else:
+                prefix.update(roomList[0].split(","))
+                room="#".join(roomList[1:])
+            srv:str=roomInfo.get("server")
+    if not room or pr["random"]:
+        room=randomRoomName(pr)
+    if pr.getByType("time",None,bool) or pr["tm0"]: # -tm -> -tm 0 
         pr.args["time"]="0"
     for arg in pr.args:
         code=boolCodeMap.get(arg)
         if code:
-            prefix.append(code)
+            prefix.add(code)
         else:
             code=intCodeMap.get(arg)
-            if code:
+            if code and not isinstance(pr[arg],bool):
                 minVal,maxVal,defaultVal=intRangeMap[arg]
-                val=pr.getToType(arg,defaultVal,int)
-                val=max(minVal,val)
-                val=min(maxVal,val)
-                prefix.append(f"{code}{val}")
+                val=pr.getToType(arg,None,int)
+                if val is not None:
+                    val=max(minVal,val)
+                    val=min(maxVal,val)
+                    prefix.add(f"{code}{val}")
     if prefix:
         fullRoom=f"{','.join(prefix)}#{room}"
     else:
@@ -427,7 +433,7 @@ def duel(pr:ParseResult):
                 if msg.mtype=="private":
                     name=msg.getSrcName()
                 if name:
-                    result.append(f"移除了{delKey}的房间")
+                    result.append(f"移除了{name}的房间")
                 else:
                     result.append(f"移除了房间")
     return result
@@ -446,3 +452,6 @@ def coreInit(core:MCore):
 @Events.on(EventNames.ShutDown)
 def botShutDown(bot:Bot):
     saveDuel()
+
+# c.showHelp=True
+# print(c.getHelp())
