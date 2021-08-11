@@ -423,7 +423,7 @@ def duel(pr:ParseResult):
                 else:
                     result.append(f"记录了房间")
     if pr["del"]:
-        delKey=pr.getByType("set",msg.realSrc)
+        delKey=pr.getByType("del",msg.realSrc)
         if delKey in memberRooms:
             memberRooms.pop(delKey)
             if isinstance(delKey,str):
