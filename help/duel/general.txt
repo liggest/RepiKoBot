@@ -45,13 +45,13 @@
   .duel 编年史 -s 编年史
   .duel 轮抽 -服 2pick
 
-  .duel -set（记录“我的房”）
+  .duel -set  =>（记录“我的房”）
   .duel -me
   ！决斗 -老子
   .duel 划水 -t - tm 0 -盖放 划水房
   .duel -get 划水房
   .duel -检索 划水房
-  .duel -del（移除“我的房”）
+  .duel -del  =>（移除“我的房”）
   .duel -除外 划水房
   .duel -r
-  .duel （什么都不提供，若存在“我的房”，则 -me，否则 -r）
+  .duel  =>（什么都不提供，若存在“我的房”，则 -me，否则 -r）
