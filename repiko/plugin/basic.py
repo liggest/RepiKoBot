@@ -395,7 +395,8 @@ def duel(pr:ParseResult):
             if pr[s]:
                 pr.args["server"]=s
     if not srv or pr["server"]:
-        srv=pr.getByType("server","2333")
+        srv=pr.getToType("server","2333")
+        # pr["server"]=True => "True" 只留 -s 匹配不到服务器
     noserver=(None,None)
     if srv.startswith("233"):
         host,port=servers.get("233",noserver)
@@ -415,8 +416,8 @@ def duel(pr:ParseResult):
         srcName=msg.getSrcName()
         if fullRoom:
             roomInfo={"room":fullRoom}
-            if host and port:
-                roomInfo["server"]=srv
+            # if host and port:
+            roomInfo["server"]=srv # 无论怎样都记录服务器，这样有时不想打印服务器也可以
             if srcName:
                 roomInfo["name"]=srcName
             memberRooms[setKey]=roomInfo
