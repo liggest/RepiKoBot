@@ -61,11 +61,12 @@ with CommandCore(name="admin") as core:
 
     @Events.onBeforeParse
     def check(pr:ParseResult, cp:CommandParser):
+        # print(pr)
+        # print(pr.state)
         msg:Message=pr.raw
         bot:Bot=pr.parserData["mc"].bot
         if not msg.realSrc in bot.AdminQQ:
-            pr.state=CommandState.WrongType # 不再继续解析
-            return
+            pr.state=CommandState.NotCommand # 不再继续解析
 
     def AdminOnly(func):
         """
