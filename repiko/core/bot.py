@@ -10,15 +10,16 @@ import importlib
 # import shutil
 import os
 import typing
+import time
 
-from LSparser import Events
+from LSparser import Events,CommandCore
 
 import repiko.core.loader as loader
 from repiko.core.constant import EventNames
 from repiko.msg.message import Message
 from repiko.msg.request import RequestData
 import repiko.msg.core as msgCore
-import repiko.msg.admin as admin
+# import repiko.msg.admin as admin
 
 class Bot():
     #POSTURL在config里面
@@ -41,7 +42,7 @@ class Bot():
         self.plugins=loader.loadPlugins()
 
         self.mc=msgCore.MCore(self)
-        self.ac=admin.ACore(self)
+        # self.ac=admin.ACore(self)
 
         self.SelectorInit()
         #for k in self.config.keys():
@@ -78,10 +79,10 @@ class Bot():
         # self.AdminQQ=[int(x.strip()) for x in self.config["admin"]["adminQQ"].split(",")]
         self.AdminQQ:typing.List[int]=self.config["admin"]["adminQQ"]
         self.SECRET=str.encode(self.config["system"]["secret"])
-        self.broadcastGroup={}
-        for k,v in self.config["broadcast"].items():
-            # self.broadcastGroup[k]=[int(x.strip()) for x in v.split(",")]
-            self.broadcastGroup[k]=v
+        # self.broadcastGroup={}
+        # for k,v in self.config["broadcast"].items():
+        #     # self.broadcastGroup[k]=[int(x.strip()) for x in v.split(",")]
+        #     self.broadcastGroup[k]=v
         #print(self.broadcastGroup)
         print("读取更新信息……")
         self.update
@@ -295,8 +296,11 @@ class Bot():
         return ecp == receivedEcp
 
     def Restart(self,time):
+        """
+            重启 QQ，time 为重启延迟
+        """
         param={"delay":time}
-        self.PostRequest("set_restart_plugin",param)
+        self.PostRequest("set_restart",param)
     
     def GetStatus(self,stype):
         if stype=="status":
@@ -305,31 +309,60 @@ class Bot():
             etype="get_version_info"
         r=self.PostRequest(etype)
         result=""
-        rdata=r.json()["data"]
-        for x in rdata.keys():
-            result+=str(x)+":"+str(rdata[x])+"\n"
+        rdata:dict=r.json()["data"]
+        for k,v in rdata.items():
+            if k!="stat":
+                result+=f"{k}: {v}\n"
+        if stype=="status" and "stat" in rdata:
+            keyInfo={
+                "packet_received":"收到数据包/个","packet_sent":"发送数据包/个","packet_lost":"数据包丢失/个",
+                "message_received":"接收信息/条","message_sent":"发送信息/条","disconnect_times":"TCP 连接断开/次",
+                "lost_times":"账号掉线/次","last_message_time":"最后通信时间/"
+            }
+            result+="自本次启动以来\n"
+            # print(rdata["stat"])
+            for k,v in rdata["stat"].items():
+                info,quant=keyInfo[k].split("/")
+                if k.endswith("time"):
+                    result+=f"{info}: {time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(v))} {quant}\n"
+                else:
+                    result+=f"{info}: {v} {quant}\n"
+            # print(result)
         return result
     
-    def Clean(self,ctype):
-        if ctype=="log":
-            self.PostRequest("clean_plugin_log")
-            return "插件日志"
-        elif ctype in ["image","record","show","bface"]:
-            param={"data_dir":ctype}
-            self.PostRequest("clean_data_dir",param)
-            return ctype+"目录"
-        return "不存在的"+ctype
+    # def Clean(self,ctype):
+    #     if ctype=="log":
+    #         self.PostRequest("clean_plugin_log")
+    #         return "插件日志"
+    #     elif ctype in ["image","record","show","bface"]:
+    #         param={"data_dir":ctype}
+    #         self.PostRequest("clean_data_dir",param)
+    #         return ctype+"目录"
+    #     return "不存在的"+ctype
     
-    def Reload(self,rtype="all"):
-        self.ConfigInit()
-        if rtype=="config":
-            return
-        admode=self.ac.AdminMode #暂存AdminMode状态
-        importlib.reload(msgCore)
-        importlib.reload(admin)
-        self.mc=msgCore.MCore(self)
-        self.ac=admin.ACore(self)
-        self.ac.AdminMode=admode
+    async def Reload(self,rtype="all"):
+        loadAll=rtype=="all"
+        result=[]
+        if loadAll or rtype=="config":
+            self.ConfigInit()
+            self.MYQQ,self.MYNICK=self.GetMyQQInf()
+            result.append("config")
+        if loadAll or rtype=="selector":
+            self.SelectorInit()
+            result.append("selector")
+        if loadAll or rtype=="plugin":
+            # admode=self.plugins["admin"].AdminMode
+            await self.Shutdown()
+            CommandCore.cores.clear()
+            CommandCore.last=None
+            self.EM=Events.getEM()
+            importlib.reload(msgCore)
+            self.plugins=loader.loadPlugins(reload=self.plugins)
+            self.mc=msgCore.MCore(self)
+            # self.plugins["admin"].AdminMode=admode
+            await self.Init()
+            result.append("plugin")
+        return result
 
     async def ResolveReq(self,req:RequestData):
         await self.AsyncPost("set_group_add_request",req.sendParam)

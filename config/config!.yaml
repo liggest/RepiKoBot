@@ -3,8 +3,9 @@ admin:
   - 10086
 broadcast:
   update: # 群号
-  - 10086 
-  - 10086
+    group:
+    - 10086
+    - 10086
 system:
   name: RepiKo
   myQQ: 10086

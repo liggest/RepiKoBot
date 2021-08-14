@@ -57,7 +57,7 @@ class MCore():
     async def AsyncResponse(self,msg:Message):
         result=[]
         for cp in self.cps:
-            parseResult:ParseResult=await cp.asyncTryParse(msg)
+            parseResult:ParseResult=await cp.asyncTryParse(msg) # pr.raw=msg
             output=parseResult.output
             if output:
                 for lst in output: #把parseResult列表里的各个列表拼起来

@@ -113,8 +113,9 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-config/setting.ini
+# config/setting.ini
 config/config.yaml
 /font/
 /ygo/
 /image/
+/old/

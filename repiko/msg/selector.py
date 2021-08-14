@@ -84,11 +84,11 @@ class MessageSelector(BaseSelector):
 
     async def asyncAction(self,j,backTasks:BackgroundTasks):
         msg:Message=await super().asyncAction(j,backTasks)
-        if msg.realSrc in self.bot.AdminQQ: #管理
-            if msg.content.startswith("-"):
-                #TODO
-                adminr=self.bot.ac.GetAdminResponse(msg.content)
-                backTasks.add_task(self.bot.AsyncSendStrs,msg.copy(srcAsDst=True),adminr)
+        # if msg.realSrc in self.bot.AdminQQ: #管理
+        #     if msg.content.startswith("-"):
+        #         
+        #         adminr=self.bot.ac.GetAdminResponse(msg.content)
+        #         backTasks.add_task(self.bot.AsyncSendStrs,msg.copy(srcAsDst=True),adminr)
         if not self.bot.IsMe(msg.realSrc): #如果不是自己发的，响应消息
             msg.clearAtMe()
             if msg.hasAtMe and not msg.isReply:
@@ -117,8 +117,9 @@ class RequestSelector(BaseSelector):
         req:RequestData=await super().asyncAction(j,backTasks)
         
         if self.bot.AdminQQ:
+            qqs=[ qq for qq in self.bot.AdminQQ if not self.bot.IsMe(qq) ]
             msg=Message(str(req),dst=0,mtype="private")
-            backTasks.add_task(self.bot.AsyncBroadcast,self.bot.AdminQQ,msg)
+            backTasks.add_task(self.bot.AsyncBroadcast,qqs,msg)
 
         self.lastRequest=req
 

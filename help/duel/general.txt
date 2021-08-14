@@ -3,6 +3,7 @@
   产生房间代码，主要用于233服
   可以记录生成的房间代码，方便之后快捷调出
   由于选项较多，提供快捷帮助：
+  .help duel quick  快速上手
   .help duel code  房间代码相关选项
   .help duel save  记录房间相关选项
   .help duel server  服务器相关选项

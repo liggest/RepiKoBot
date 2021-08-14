@@ -3,7 +3,7 @@ import typing
 import importlib
 import os
 
-def loadPlugins(path:str="repiko/plugin") -> typing.Dict[str,ModuleType]:
+def loadPlugins(path:str="repiko/plugin",reload:typing.Dict[str,ModuleType]=None) -> typing.Dict[str,ModuleType]:
     pkgName="repiko"
     plugins={}
     files=os.listdir(path)
@@ -20,8 +20,12 @@ def loadPlugins(path:str="repiko/plugin") -> typing.Dict[str,ModuleType]:
             nameList[-1]=name
             fullName=".".join(nameList)
             try:
-                print(f"加载 {fullName} ——")
-                plugins[name]=importlib.import_module(fullName)
+                if reload and name in reload:
+                    print(f"重载 {fullName} ——")
+                    plugins[name]=importlib.reload(reload[name])
+                else:
+                    print(f"加载 {fullName} ——")
+                    plugins[name]=importlib.import_module(fullName)
             except:
                 print(f">> {fullName} 载入失败！ <<")
     return plugins

@@ -66,6 +66,9 @@ def hello(_):
 
 @Events.onCmd("help")
 def helpinfo(pr:ParseResult):
+    if f"{pr.type}{pr.command}" in ("!?","！？"):
+        return [] # !? 和 ！？ 不触发
+
     root="./help"
     core=pr.parser.core
     if core.name!=CommandCore.default:
@@ -403,23 +406,26 @@ def duel(pr:ParseResult):
         host,port=servers.get("2pick",noserver)
     elif srv.startswith("复读") or srv.lower()=="repiko":
         host,port=servers.get("repiko",noserver)
+    else:
+        host,port=noserver
     if host and port:
         result.append(f"{host}  {port}")
     if pr["set"]:
         setKey=pr.getByType("set",msg.realSrc) #无值的场合使用QQ号
+        srcName=msg.getSrcName()
         if fullRoom:
             roomInfo={"room":fullRoom}
             if host and port:
                 roomInfo["server"]=srv
+            if srcName:
+                roomInfo["name"]=srcName
             memberRooms[setKey]=roomInfo
             if isinstance(setKey,str):
-                result.append(f"记录房间为 - {setKey}")
+                result.append(f"记录房间为 {setKey}")
             else:
                 name=f"[CQ:at,qq={setKey}]"
-                if msg.mtype=="private":
-                    name=msg.getSrcName()
-                if name:
-                    result.append(f"记录了{name}的房间")
+                if msg.mtype=="private" and srcName:
+                    result.append(f"记录了{srcName}的房间")
                 else:
                     result.append(f"记录了房间")
     if pr["del"]:
@@ -427,7 +433,7 @@ def duel(pr:ParseResult):
         if delKey in memberRooms:
             memberRooms.pop(delKey)
             if isinstance(delKey,str):
-                result.append(f"移除了房间 - {delKey}")
+                result.append(f"移除了房间 {delKey}")
             else:
                 name=f"[CQ:at,qq={delKey}]"
                 if msg.mtype=="private":
