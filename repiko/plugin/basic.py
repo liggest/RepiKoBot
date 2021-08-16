@@ -23,7 +23,7 @@ from LSparser import *
 from LSparser.command import CommandHelper
 
 Command("-hello")
-Command("help").names("?","？").opt("-p",OPT.M,"页数")
+Command("help").names("?","？").opt("-p",OPT.M,"页数")# .opt("-im",OPT.N,"以图片发送")
 Command("calculate").names("cal").opt("-show",OPT.N,"显示计算过程")
 Command("roll").names("r").opt("-act",OPT.M,"要投骰子的行动")
 Command("ygocard").names("yc","ygo").opt("-ver",OPT.M,"翻译版本").opt("-wiki",OPT.N,"提供wiki链接").opt("-im",OPT.N,"以图片发送")
@@ -63,6 +63,8 @@ c.opt(["-random","-r","-ran"],OPT.N,"随机房间名")
 @Events.onCmd("hello")
 def hello(_):
     return ["喵哈喽~"]
+
+CommandHelper.lineLimit=12
 
 @Events.onCmd("help")
 def helpinfo(pr:ParseResult):
@@ -264,7 +266,13 @@ def ygodraw(pr:ParseResult):
 def logodraw(pr:ParseResult):
     pr.command="yd"
     pr.args["n"]=20
-    return ygodraw(pr)
+    result=ygodraw(pr)[0]
+    msg:Message=pr.raw
+    if msg.mtype=="private":
+        name=msg.getSrcName()
+    else:
+        name=f"[CQ:at,qq={msg.realSrc}]"
+    return [f"{name}的卡：\n"+result]
 
 @Events.onCmd("aword")
 async def aword(pr:ParseResult):

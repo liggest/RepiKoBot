@@ -4,7 +4,6 @@ from repiko.msg.core import MCore
 from repiko.msg.message import Message
 
 from LSparser import *
-from LSparser.command.parser import CommandState 
 
 import typing
 import functools
@@ -66,7 +65,7 @@ with CommandCore(name="admin") as core:
         msg:Message=pr.raw
         bot:Bot=pr.parserData["mc"].bot
         if not msg.realSrc in bot.AdminQQ:
-            pr.state=CommandState.NotCommand # 不再继续解析
+            pr.state=ParseResult.CommandState.NotCommand # 不再继续解析
 
     def AdminOnly(func):
         """

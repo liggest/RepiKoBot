@@ -323,7 +323,7 @@ i18n = ["Babel (>=0.8)"]
 
 [[package]]
 name = "lsparser"
-version = "0.1.5"
+version = "0.1.6"
 description = "A command parser which breaks down a \"command\" into name, params, short & long options"
 category = "main"
 optional = false
@@ -582,7 +582,7 @@ python-versions = ">=3.6.1"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "b06ce8075db315be96c34ba00963b45bcb6662e3a91addb156f406d37f024094"
+content-hash = "31d9514dade3d30d6a36036686ca51216ef33d8f974859737df00075d1f12af0"
 
 [metadata.files]
 aiofiles = [
@@ -711,7 +711,7 @@ jinja2 = [
     {file = "Jinja2-2.11.3.tar.gz", hash = "sha256:a6d58433de0ae800347cab1fa3043cebbabe8baa9d29e668f1c768cb87a333c6"},
 ]
 lsparser = [
-    {file = "LSparser-0.1.5.tar.gz", hash = "sha256:7e003a17cb9edfcb8cc6dd2eee8c29cb645498b5078274f51de7ace468a124ac"},
+    {file = "LSparser-0.1.6.tar.gz", hash = "sha256:259df048dcbcb572429ed09d47083cbad01a44e8cec32b54249bfd6e8b040424"},
 ]
 lxml = [
     {file = "lxml-4.6.3-cp27-cp27m-macosx_10_9_x86_64.whl", hash = "sha256:df7c53783a46febb0e70f6b05df2ba104610f2fb0d27023409734a3ecbb78fb2"},
