@@ -4,8 +4,14 @@
   抽取多张时，只列出卡片名称
   -n 数字  抽卡张数
   -im  以图片形式发送卡片文本
+  -main/-主卡组  只抽主卡组
+  -ex/-额外  只抽额外
+  -nt/-notoken/-无衍生物  不抽衍生物
+  -na/-noalias/-无同名卡  不抽同名卡
 例：
   .yd
   .yd 5
   .yd -n 42
   .yd -im
+  .yd -ex -n 15
+  .yd -notoken -noalias
