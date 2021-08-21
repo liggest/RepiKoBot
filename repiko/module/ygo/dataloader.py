@@ -1,8 +1,44 @@
 import functools
 import sqlite3
 import os
+from enum import Enum
+import typing
+
+class ShrinkLevel(str,Enum):
+    #TODO flag
+    S0=""
+    S1="type & 0x4000=0"
+    S2="alias=0"
+    S3="type & 0x48060C0=0"
+    S4="type & 0x4802040!=0"
+    
+    No=S0
+    NoToken=S1
+    NoAlias=S2
+    NoExtra=S3
+    NoMain=S4
+
+    @classmethod
+    def fromInt(cls,i:typing.Union[int,'ShrinkLevel',typing.List[int]])-> 'ShrinkLevel':
+        if isinstance(i,cls):
+            return i
+        if isinstance(i,list):
+            return " AND ".join([cls.fromInt(x) for x in i if x]) # x!=0 and x!=S0
+        return getattr(cls,f"S{i}")
+
+    # @property
+    # def WHERE(self):
+    #     if self:
+    #         return f"WHERE {self}"
+    #     return self
+
+def WHERE(s:str):
+    if s:
+        return f"WHERE {s}"
+    return s
 
 class cdbReader():
+
     def __init__(self,path=None):
         self.cdbpath=path
         self.conn=None
@@ -57,22 +93,20 @@ class cdbReader():
         ids=self.cursor.fetchall()
         return [x[0] for x in ids]
 
-    def getCardCount(self,full=0): #full 0 全部 1 无衍生物 2 无同名卡无衍生物
-        if full==0:
-            self.cursor.execute("SELECT COUNT(*) FROM datas")
-        elif full==1:
-            self.cursor.execute("SELECT COUNT(*) FROM datas WHERE type & 0x4000=0")
-        else:
-            self.cursor.execute("SELECT COUNT(*) FROM datas WHERE alias=0 AND type & 0x4000=0")
+    def getCardCount(self,shrink=0): #full 0 全部 1 无衍生物 2 无同名卡无衍生物
+        level=ShrinkLevel.fromInt(shrink)
+        self.cursor.execute(f"SELECT COUNT(*) FROM datas {WHERE(level)}")
         return self.cursor.fetchall()[0]
 
-    def getRandomIDs(self,count=1):
-        self.cursor.execute("SELECT id FROM texts ORDER BY RANDOM() limit ?",(count,))
+    def getRandomIDs(self,count=1,shrink=0):
+        level=ShrinkLevel.fromInt(shrink)
+        self.cursor.execute(f"SELECT id FROM datas {WHERE(level)} ORDER BY RANDOM() limit ?",(count,))
         ids=self.cursor.fetchall()
         return [x[0] for x in ids]
 
-    def getRandomNames(self,count=1):
-        self.cursor.execute("SELECT name FROM texts ORDER BY RANDOM() limit ?",(count,))
+    def getRandomNames(self,count=1,shrink=0):
+        ids=self.getRandomIDs(count,shrink)
+        self.cursor.execute(f"SELECT name FROM texts WHERE id IN {cdbReader.listOfSQL(len(ids))}",tuple(ids))
         names=self.cursor.fetchall()
         return [x[0] for x in names]
 

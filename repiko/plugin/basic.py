@@ -10,7 +10,7 @@ from repiko.module.calculator import Calculator
 # from repiko.module.helper import Helper
 from repiko.module.google_translatation import gTranslator
 from repiko.module.ygo.card import Card
-from repiko.module.ygo.dataloader import cdbReader,confReader
+from repiko.module.ygo.dataloader import cdbReader,confReader,ShrinkLevel
 from repiko.module.hitokoto import HitokotoRequester
 from repiko.module.str2image import str2greyPng
 
@@ -31,7 +31,9 @@ Command("ygocard").names("yc","ygo").opt("-ver",OPT.M,"翻译版本").opt("-wiki
 Command("translate").names("ts").opt("-from",OPT.M,"源语言").opt("-to",OPT.M,"目标语言").opt("-p",OPT.N,"显示发音")\
     .opt("-d",OPT.N,"检测语言").opt("-donly",OPT.N,"只检测语言")
 Command("luck").names("jrrp").opt("-yci",OPT.N,"根据运值卡查，发送图片")
-Command("ygodraw").names("yd","抽卡").opt("-n",OPT.M,"抽卡数").opt("-im",OPT.N,"以图片发送")
+Command("ygodraw").names("yd","抽卡").opt("-n",OPT.M,"抽卡数").opt("-im",OPT.N,"以图片发送")\
+    .opt(["-notoken","-nt","-无衍生物"],OPT.N,"不含衍生物").opt(["-noalias","-na","-无同名卡"],OPT.N,"不含同名卡")\
+    .opt(["-main","-主卡组"],OPT.N,"只含主卡组").opt(["-extra","-ex","-额外"],OPT.N,"只含额外")
 Command("logodraw").names("群赛抽卡","决斗都市","yddc","duelcity").opt("-im",OPT.N,"以图片发送")
 Command("aword").names("aw","一句话","一言").opt(["-t","--t"],OPT.M,"句子类型")
 
@@ -237,12 +239,23 @@ def ygodraw(pr:ParseResult):
     num=pr.getToType("n",0,int)
     if pr.paramStr.isdigit():
         num+=int(pr.paramStr)
+    levels=[]
+    if pr["notoken"]:
+        levels.append(ShrinkLevel.NoToken)
+    if pr["noalias"]:
+        levels.append(ShrinkLevel.NoAlias)
+    if pr["main"]:
+        levels.append(ShrinkLevel.NoExtra)
+    elif pr["extra"]:
+        levels.append(ShrinkLevel.NoMain)
+    if not levels:
+        levels=ShrinkLevel.No
     cdb:cdbReader=pr.parserData["mc"].data["ygocdb"]
     conf:confReader=pr.parserData["mc"].data["ygoconf"]
     result=[]
     with cdb:
         if num<=1:
-            cid=cdb.getRandomIDs()[0]
+            cid=cdb.getRandomIDs(shrink=levels)[0]
             ct=cdb.getCardByID(cid)
             c=Card()
             c.fromCDBTuple(ct,conf.setdict,conf.lfdict)
@@ -252,7 +265,7 @@ def ygodraw(pr:ParseResult):
             if num>60:
                 num=60
                 result.append("一次出太多会刷屏\n先丢你一个卡组的份哦…")
-            ct=cdb.getRandomNames(count=num)
+            ct=cdb.getRandomNames(count=num,shrink=levels)
             name=ct[0]
             resultText="\n".join(ct)
     if pr.args.get("im",False):
@@ -266,6 +279,7 @@ def ygodraw(pr:ParseResult):
 def logodraw(pr:ParseResult):
     pr.command="yd"
     pr.args["n"]=20
+    pr.args["notoken"]=True
     result=ygodraw(pr)[0]
     msg:Message=pr.raw
     if msg.mtype=="private":
