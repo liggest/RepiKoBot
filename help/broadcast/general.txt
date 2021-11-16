@@ -1,7 +1,10 @@
 -broadcast
   群广播
   向给定的各群发送消息
-  --qq 群1 群2 ...  要广播到的QQ群
+  --qq qq1 qq2 ...  要广播到的QQ
+  --group 群1 群2 ...  要广播到的QQ群
+  --preset 预设1 预设2 ... 向预设中的QQ和群广播
+  各选项也可以用短选项版本
 例：
-  -broadcast 喵哈喽~ --qq 10001 10002
-  -broadcast update --qq update
+  -broadcast 喵哈喽~ --group 10001 10002
+  -broadcast update -preset update
