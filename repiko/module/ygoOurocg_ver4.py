@@ -32,9 +32,10 @@ class ourocg():
         res=httpx.get(url)
         return res.text
 
-    def GetCardHTMLWithP(self,searchtext,url,searchHTML):
+    def GetCardHTMLWithJ(self,searchtext,url,searchHTML):
         targeturl=""
-        Pmark=[None,None]
+        cardJson=None
+        # Pmark=[None,None]
         html=BeautifulSoup(searchHTML,"lxml")
         if html.find_all("title")[0].string.startswith("搜索"):
             scripts=html.find_all("script")
@@ -46,19 +47,22 @@ class ourocg():
                     for tar in carddata["cards"]:
                         if tar["name"]== sts or tar["name_nw"]==sts or tar["name_ja"]== sts or tar["name_en"]== sts:
                             targeturl=tar["href"].replace("\\","")
-                            Pmark=[tar.get("pend_l",None),tar.get("pend_r",None)]
+                            cardJson=tar
+                            # Pmark=[tar.get("pend_l",None),tar.get("pend_r",None)]
                             #print(Pmark)
                     if targeturl=="" and len(carddata["cards"])!=0:
                         tar=carddata["cards"][0]
                         targeturl=tar["href"].replace("\\","")
-                        Pmark=[tar.get("pend_l",None),tar.get("pend_r",None)]
+                        cardJson=tar
+                        # Pmark=[tar.get("pend_l",None),tar.get("pend_r",None)]
                     #print(targeturl)
                     break
         else:
             targeturl=url
-        return targeturl,Pmark
+        return targeturl,cardJson
 
-    def GetCardFromHTML(self,cardHTML,Pmark):
+    def GetCardFromHTML(self,cardHTML,cardJson):
+        # print(cardJson)
         html=BeautifulSoup(cardHTML,"lxml")
         isRD=False
         if html.find("div",{"class":"rd-mark"}):
@@ -85,6 +89,7 @@ class ourocg():
             c.enname=enname
         c.isRD=isRD
         c.id=divr[4][0]
+        c.img=cardJson["img_url"]
         limitnum=5
         if isRD:
             limitnum=4
@@ -100,7 +105,8 @@ class ourocg():
                 c.rank=ourocg.dealInt(divr[otnum+3][0])
                 c.level=c.rank
             if c.isP:
-                c.Pmark=Pmark
+                # c.Pmark=Pmark
+                c.Pmark=[cardJson.get("pend_l",None),cardJson.get("pend_r",None)]
             if c.isLink:
                 c.linknum=ourocg.dealInt(divr[otnum+5][0])
                 c.level=c.linknum
@@ -126,10 +132,10 @@ class ourocg():
     def FindCardByName(self,searchtext):
         url=f"{self.ourocgLink}search/{searchtext}"
         searchHTML=self.GetHTML(url)
-        targeturl,Pmark=self.GetCardHTMLWithP(searchtext,url,searchHTML)
+        targeturl,cardJson=self.GetCardHTMLWithJ(searchtext,url,searchHTML)
         if targeturl:
             cardHTML=self.GetHTML(targeturl)
-            return self.GetCardFromHTML(cardHTML,Pmark)
+            return self.GetCardFromHTML(cardHTML,cardJson)
         return None
 
     async def AsyncGetHTML(self,url):
@@ -140,10 +146,10 @@ class ourocg():
     async def AsyncSearchByName(self,searchtext):
         url=f"{self.ourocgLink}search/{searchtext}"
         searchHTML=await self.AsyncGetHTML(url)
-        targeturl,Pmark=self.GetCardHTMLWithP(searchtext,url,searchHTML)
+        targeturl,cardJson=self.GetCardHTMLWithJ(searchtext,url,searchHTML)
         if targeturl:
             cardHTML=await self.AsyncGetHTML(targeturl)
-            return self.GetCardFromHTML(cardHTML,Pmark)
+            return self.GetCardFromHTML(cardHTML,cardJson)
         return None
 
     wikiLink=r"https://yugioh-wiki.net/"

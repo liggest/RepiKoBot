@@ -1,10 +1,17 @@
-.ygocard/.yc 卡名
-  基于ourocg的卡查
-  -ver cn/nw  切换翻译版本为NW（默认）或CN
-  -wiki  提供日文wiki链接
+.ygocard/.yc/.bg 卡名
+  基于百鸽的卡查
+  -pic/-p  附加卡图
+  -wiki  附加日文wiki链接
   -im  以图片形式发送卡片文本
+  -database  附加数据库链接
+  -QA  附加Q&A链接
+  -yugipedia  附加Yugipedia链接
+  -ygorg  YGOrg链接
+  -ourocg 附加OurOcg链接
+  -script/-lua 附加脚本链接
+  -rule 附加裁定链接
 例：
   .yc 解码语者
-  .yc 蓝眼白龙 -ver cn
   .yc 地狱扭蛋 -wiki
-  .yc -im
+  .yc 治疗之神 -p
+  .yc 创圣魔导王 恩底弥翁 -im

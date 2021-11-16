@@ -18,6 +18,17 @@ class Card():
         
         self.isRD=False
 
+        # 一系列链接
+        self.img=None
+        self.database=None
+        self.QA=None
+        self.wiki=None
+        self.yugipedia=None
+        self.ygorg=None
+        self.ourocg=None
+        self.script=None
+        self.ocgRule=None
+
         self.fillCardType(*types)
 
         if self.isMonster:
@@ -58,7 +69,11 @@ class Card():
     def fillCardType(self,*types):
         for t in types:
             if isinstance(t,str):
-                self.cardType.add( CardType.fromStr(t) )
+                ct=CardType.fromStr(t)
+                if ct:
+                    self.cardType.add(ct)
+                else:
+                    self.cardType.add(t)
             else:
                 self.cardType.add(t)
     

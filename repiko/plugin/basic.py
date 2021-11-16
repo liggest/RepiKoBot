@@ -1,10 +1,12 @@
-from math import nan
+
 from repiko.core.bot import Bot
 from repiko.core.constant import EventNames
 from repiko.msg.core import MCore
 from repiko.msg.message import Message
 
 import repiko.module.ygoOurocg_ver4 as ygotest
+from repiko.module.ygoBG import BaiGe
+from repiko.module.ygoRoom import YGORoom
 from repiko.module.calculator import Calculator
 # from repiko.module.ygoServerRequest import ygoServerRequester
 # from repiko.module.helper import Helper
@@ -26,7 +28,12 @@ Command("-hello")
 Command("help").names("?","？").opt("-p",OPT.M,"页数")# .opt("-im",OPT.N,"以图片发送")
 Command("calculate").names("cal").opt("-show",OPT.N,"显示计算过程")
 Command("roll").names("r").opt("-act",OPT.M,"要投骰子的行动")
-Command("ygocard").names("yc","ygo").opt("-ver",OPT.M,"翻译版本").opt("-wiki",OPT.N,"提供wiki链接").opt("-im",OPT.N,"以图片发送")
+Command("ygocard").names("yc","bg").opt("-im",OPT.N,"以图片发送").opt(["-pic","-p"],OPT.N,"卡图")\
+    .opt("-database",OPT.N,"数据库链接").opt("-QA",OPT.N,"Q&A链接").opt("-wiki",OPT.N,"wiki链接")\
+    .opt("-yugipedia",OPT.N,"Yugipedia链接").opt("-ygorg",OPT.N,"YGOrg链接").opt("-ourocg",OPT.N,"OurOcg链接")\
+    .opt(["-script","-lua"],OPT.N,"脚本链接").opt(["-ocgRule","-rule"],OPT.N,"裁定链接")
+
+Command("ygoocg").names("yocg","ourocg","oo").opt("-ver",OPT.M,"翻译版本").opt("-wiki",OPT.N,"提供wiki链接").opt("-im",OPT.N,"以图片发送").opt(["-pic","-p"],OPT.N,"卡图")
 # Command("ygoserver").names("ys")
 Command("translate").names("ts").opt("-from",OPT.M,"源语言").opt("-to",OPT.M,"目标语言").opt("-p",OPT.N,"显示发音")\
     .opt("-d",OPT.N,"检测语言").opt("-donly",OPT.N,"只检测语言")
@@ -127,8 +134,42 @@ def undefined(pr:ParseResult, cp:CommandParser):
     if cmd.startswith("rolld") or cmd.startswith("rd"):
         pr.output.append(rolldice(pr))
 
+linkNames=["database","QA","wiki","yugipedia","ygorg","ourocg","script","ocgRule"]
+
 @Events.onCmd("ygocard")
 async def ygocard(pr:ParseResult):
+    a=BaiGe()
+    if len(pr.params)==0:
+        if pr.getByType("wiki",False,bool):
+            return [f"拿去吧~\n{ygotest.ourocg.wikiLink}"]
+        return ["空气怎么查啊！"]
+    rcard:Card=await a.asyncSearch(pr.paramStr)
+    if rcard:
+        resultText=str(rcard)
+        result=[]
+        if pr.getByType("pic",False,bool) and rcard.img:
+            result.append(f"[CQ:image,file={rcard.img}]")
+        if pr.args.get("im",False):
+            filename=str2greyPng(resultText,rcard.name)
+            result.append(f"[CQ:image,file={filename}]")
+        else:
+            result.append(resultText)
+        for ln in linkNames:
+            link=getattr(rcard,ln)
+            if pr.getByType(ln,False,bool):
+                if link:
+                    result.append(link)
+                else:
+                    description=pr.parser.core["ygocard"].shortOpts[f"-{ln}"].help
+                    result.append(f"并没有找到{description}……")
+        if pr.getByType("rule",False,bool) and rcard.ocgRule:
+            result.append(rcard.ocgRule)
+    else:
+        return ["找不到卡片的说……"]
+    return result
+
+@Events.onCmd("ygoocg")
+async def ygoocg(pr:ParseResult):
     a=ygotest.ourocg()
     if len(pr.params)==0:
         if pr.getByType("wiki",False,bool):
@@ -140,11 +181,14 @@ async def ygocard(pr:ParseResult):
     rcard=await a.AsyncSearchByName( pr.paramStr )
     if rcard:
         resultText=str(rcard)
+        result=[]
+        if pr.getByType("pic",False,bool) and rcard.img:
+            result.append(f"[CQ:image,file={rcard.img}]")
         if pr.args.get("im",False):
             filename=str2greyPng(resultText,rcard.name)
-            result=[f"[CQ:image,file={filename}]"]
+            result.append(f"[CQ:image,file={filename}]")
         else:
-            result=[resultText]
+            result.append(resultText)
     else:
         return ["找不到卡片的说……"]
     if pr.getByType("wiki",False,bool):
@@ -202,6 +246,7 @@ async def luck(pr:ParseResult):
     barhead=luck%4
     result+=luckbar[barhead]
     if pr.args.get("yci",False):
+        pr.args["pic"]="-p" in pr.params or "-pic" in pr.params
         pr.params=[f"No.{luck}"]
         pr.args["im"]=True
         return [result]+await ygocard(pr)
@@ -230,8 +275,8 @@ def initYGO(core:MCore):
     ygopath=ygodir
     core.data["ygocdb"]=cdbReader(path=ygopath+"cards.cdb")
     conf=confReader()
-    conf.loadLFlist(ygopath+"lflist.conf")
-    conf.loadSets(ygopath+"strings.conf")
+    conf.loadLFlist(os.path.join(ygopath,"lflist.conf"))
+    conf.loadSets(os.path.join(ygopath,"strings.conf"))
     core.data["ygoconf"]=conf
 
 @Events.onCmd("ygodraw")
@@ -331,140 +376,55 @@ def where2eat(pr:ParseResult):
 def catImage(_):
     return [r"[CQ:image,file=https://thiscatdoesnotexist.com,cache=0]"]
 
-boolCodeMap={"match":"M","tag":"T","tcg":"TO","ot":"OT","nolflist":"NF","nounique":"NU","nocheck":"NC","noshuffle":"NS","ai":"AI"}
-intCodeMap={"lp":"LP","time":"TM","start":"ST","draw":"DR","lflist":"LF","rule":"MR"}
-intRangeMap={"lp":(1,99999,8000),"time":(0,999,3),"start":(1,40,5),"draw":(0,35,1),"lflist":(1,99999,1),"rule":(1,5,5)} 
-# (下限，上限，默认值) 禁卡表数量一直在变化，故不设上限
-
-roomFile="MemberRoom.yaml"
-memberRooms={} # {"room":"","server":""}
-servers={}
-
-def initDuel(core:MCore):
-    global memberRooms,servers
-    roomFilePath=os.path.join(ygodir,roomFile)
-    if os.path.exists(roomFilePath):
-        with open(roomFilePath,encoding="utf-8") as f:
-            memberRooms=yaml.safe_load(f)
-    bot:Bot=core.bot
-    servers=bot.config.get("ygo",{}).get("servers",{})
-
-def saveDuel():
-    if not memberRooms:
-        return
-    roomFilePath=os.path.join(ygodir,roomFile)
-    with open(roomFilePath,"w",encoding="utf-8") as f:
-        yaml.safe_dump(memberRooms,f,encoding="utf-8",allow_unicode=True)
-    
-def randomRoomName(pr:ParseResult):
-    cdb:cdbReader=pr.parserData["mc"].data["ygocdb"]
-    conf:confReader=pr.parserData["mc"].data["ygoconf"]
-    result=[]
-    with cdb:
-        ct=cdb.getRandomNames(count=random.randint(2,6))
-        result=[n[0] for n in ct]
-    return "".join(result)
 
 @Events.onCmd("duel")
 def duel(pr:ParseResult):
     msg:Message=pr.raw
     result=[]
-    room=pr.paramStr.strip()
-    prefix=set()
-    roomInfo:dict=None
-    srv=None
+    room=None
+    pr.args["me"]=pr.args.get("me") or not pr.params
+    paramStr=pr.paramStr.strip()
+
     if not pr["random"]:
-        if not pr.params:
-            pr.args["me"]=True
-        key=pr["get"]
-        if key:
-            roomInfo=memberRooms.get(key)
-        elif pr["me"]:
-            roomInfo=memberRooms.get(msg.realSrc)
-        if roomInfo:
-            fullRoom:str=roomInfo["room"]
-            roomList=fullRoom.split("#")
-            if len(roomList)<2:
-                room=fullRoom
-            else:
-                prefix.update(roomList[0].split(","))
-                room="#".join(roomList[1:])
-            srv:str=roomInfo.get("server")
-    if not room or pr["random"]:
-        room=randomRoomName(pr)
+        key=pr["get"] or (msg.realSrc if pr["me"] else paramStr)
+        room=YGORoom.getMemberRoom(key)
+    if not room:
+        room=YGORoom(paramStr)
+    if not room.name or pr["random"]:
+        room.randomRoomName(pr.parserData["mc"].data["ygocdb"])
     if pr.getByType("time",None,bool) or pr["tm0"]: # -tm -> -tm 0 
         pr.args["time"]="0"
-    for arg in pr.args:
-        code=boolCodeMap.get(arg)
-        if code:
-            prefix.add(code)
-        else:
-            code=intCodeMap.get(arg)
-            if code and not isinstance(pr[arg],bool):
-                minVal,maxVal,defaultVal=intRangeMap[arg]
-                val=pr.getToType(arg,None,int)
-                if val is not None:
-                    val=max(minVal,val)
-                    val=min(maxVal,val)
-                    prefix.add(f"{code}{val}")
-    if prefix:
-        fullRoom=f"{','.join(prefix)}#{room}"
-    else:
-        fullRoom=room
-    result.append(fullRoom)
+    room.args2prefix(pr.args)
+    result.append(room.full)
+
     if not pr["server"]:
         for s in ("23333","233","2333"):
             if pr[s]:
                 pr.args["server"]=s
-    if not srv or pr["server"]:
-        srv=pr.getToType("server","2333")
-        # pr["server"]=True => "True" 只留 -s 匹配不到服务器
-    noserver=(None,None)
-    if srv.startswith("233"):
-        host,port=servers.get("233",noserver)
-        port=int(f"2{'3'*srv.count('3')}")
-    elif srv.endswith("编年史"):
-        host,port=servers.get("编年史",noserver)
-    elif srv=="2pick" or srv=="轮抽":
-        host,port=servers.get("2pick",noserver)
-    elif srv.startswith("复读") or srv.lower()=="repiko":
-        host,port=servers.get("repiko",noserver)
-    else:
-        host,port=noserver
-    if host and port:
-        result.append(f"{host}  {port}")
+    if pr["server"]: # 只有 -s 的时候才有服务器
+        if not room.hasServer:
+            room.serverName=pr.getToType("server","2333") # server是True的话默认2333
+        result.append(room.server)
+
     if pr["set"]:
-        setKey=pr.getByType("set",msg.realSrc) #无值的场合使用QQ号
+        key=pr.getByType("set",msg.realSrc) #无值的场合使用QQ号
         srcName=msg.getSrcName()
-        if fullRoom:
-            roomInfo={"room":fullRoom}
-            # if host and port:
-            roomInfo["server"]=srv # 无论怎样都记录服务器，这样有时不想打印服务器也可以
-            if srcName:
-                roomInfo["name"]=srcName
-            memberRooms[setKey]=roomInfo
-            if isinstance(setKey,str):
-                result.append(f"记录房间为 {setKey}")
-            else:
-                name=f"[CQ:at,qq={setKey}]"
-                if msg.mtype=="private" and srcName:
-                    result.append(f"记录了{srcName}的房间")
-                else:
-                    result.append(f"记录了房间")
+        if room.full:
+            YGORoom.saveMemberRoom(key,room,srcName)
+            if not isinstance(key,str):
+                key=None
+            result.append(YGORoom.hint("记录",key,srcName))
+
     if pr["del"]:
-        delKey=pr.getByType("del",msg.realSrc)
-        if delKey in memberRooms:
-            memberRooms.pop(delKey)
-            if isinstance(delKey,str):
-                result.append(f"移除了房间 {delKey}")
-            else:
-                name=f"[CQ:at,qq={delKey}]"
-                if msg.mtype=="private":
-                    name=msg.getSrcName()
-                if name:
-                    result.append(f"移除了{name}的房间")
-                else:
-                    result.append(f"移除了房间")
+        key=pr.getByType("del",msg.realSrc)
+        YGORoom.removeMemberRoom(key)
+        if not isinstance(key,str):
+                key=None
+        name=f"[CQ:at,qq={key}]"
+        if msg.mtype=="private":
+            name=msg.getSrcName()
+        result.append(YGORoom.hint("移除",key,name))
+
     return result
 
 @Events.on(EventNames.StartUp)
@@ -474,13 +434,13 @@ def botStartUP(bot:Bot):
 @Events.on(EventNames.MsgCoreInit)
 def coreInit(core:MCore):
     initYGO(core)
-    initDuel(core)
+    YGORoom.initDuel(ygodir,core.bot.config.get("ygo",{}).get("servers",{}))
     initEat(core)
     initLuck(core)
 
 @Events.on(EventNames.ShutDown)
 def botShutDown(bot:Bot):
-    saveDuel()
+    YGORoom.saveDuel()
 
 # c.showHelp=True
 # print(c.getHelp())

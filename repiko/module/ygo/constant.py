@@ -36,7 +36,7 @@ class CardType(Enum):
 
     @staticmethod
     def fromStr(text):
-        return str2cardType[text]
+        return str2cardType.get(text)
         
 
 cardType2str={
