@@ -64,7 +64,7 @@ with CommandCore(name="admin") as core:
         # print(pr.state)
         msg:Message=pr.raw
         bot:Bot=pr.parserData["mc"].bot
-        if not msg.realSrc in bot.AdminQQ:
+        if bot and not msg.realSrc in bot.AdminQQ:
             pr.state=ParseResult.CommandState.NotCommand # 不再继续解析
 
     def AdminOnly(func):

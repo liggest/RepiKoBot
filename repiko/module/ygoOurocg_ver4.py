@@ -89,6 +89,7 @@ class ourocg():
             c.enname=enname
         c.isRD=isRD
         c.id=divr[4][0]
+        c.url=cardJson["href"]
         c.img=cardJson["img_url"]
         limitnum=5
         if isRD:

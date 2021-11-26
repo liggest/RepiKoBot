@@ -4,6 +4,7 @@
 import typing
 
 from LSparser import *
+import LSparser
 from repiko.core.constant import EventNames
 from repiko.msg.message import Message
 
@@ -115,6 +116,7 @@ if __name__=="__main__":
 
     import asyncio
     async def main():
+        core=CommandCore.getLast() # 先创建出默认中枢
         mc=MCore(None)
         ipt=input("请输入信息：")
         while ipt!="-exit":

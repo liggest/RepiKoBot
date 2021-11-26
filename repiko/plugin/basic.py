@@ -30,10 +30,11 @@ Command("calculate").names("cal").opt("-show",OPT.N,"显示计算过程")
 Command("roll").names("r").opt("-act",OPT.M,"要投骰子的行动")
 Command("ygocard").names("yc","bg").opt("-im",OPT.N,"以图片发送").opt(["-pic","-p"],OPT.N,"卡图")\
     .opt("-database",OPT.N,"数据库链接").opt("-QA",OPT.N,"Q&A链接").opt("-wiki",OPT.N,"wiki链接")\
-    .opt("-yugipedia",OPT.N,"Yugipedia链接").opt("-ygorg",OPT.N,"YGOrg链接").opt("-ourocg",OPT.N,"OurOcg链接")\
-    .opt(["-script","-lua"],OPT.N,"脚本链接").opt(["-ocgRule","-rule"],OPT.N,"裁定链接")
+    .opt("-yugipedia",OPT.N,"Yugipedia链接").opt("-ourocg",OPT.N,"OurOcg链接")\
+    .opt(["-script","-lua"],OPT.N,"脚本链接").opt(["-ocgRule","-rule"],OPT.N,"裁定链接").opt(["-url","-link"],OPT.N,"百鸽链接")
+    #.opt("-ygorg",OPT.N,"YGOrg链接")
 
-Command("ygoocg").names("yocg","ourocg","oo").opt("-ver",OPT.M,"翻译版本").opt("-wiki",OPT.N,"提供wiki链接").opt("-im",OPT.N,"以图片发送").opt(["-pic","-p"],OPT.N,"卡图")
+Command("ygoocg").names("yo","ourocg","oo").opt("-ver",OPT.M,"翻译版本").opt("-wiki",OPT.N,"提供wiki链接").opt("-im",OPT.N,"以图片发送").opt(["-pic","-p"],OPT.N,"卡图")
 # Command("ygoserver").names("ys")
 Command("translate").names("ts").opt("-from",OPT.M,"源语言").opt("-to",OPT.M,"目标语言").opt("-p",OPT.N,"显示发音")\
     .opt("-d",OPT.N,"检测语言").opt("-donly",OPT.N,"只检测语言")
@@ -134,7 +135,7 @@ def undefined(pr:ParseResult, cp:CommandParser):
     if cmd.startswith("rolld") or cmd.startswith("rd"):
         pr.output.append(rolldice(pr))
 
-linkNames=["database","QA","wiki","yugipedia","ygorg","ourocg","script","ocgRule"]
+linkNames=["url","database","QA","wiki","yugipedia","ourocg","script","ocgRule"] # "ygorg"
 
 @Events.onCmd("ygocard")
 async def ygocard(pr:ParseResult):
@@ -155,15 +156,15 @@ async def ygocard(pr:ParseResult):
         else:
             result.append(resultText)
         for ln in linkNames:
-            link=getattr(rcard,ln)
             if pr.getByType(ln,False,bool):
+                link=getattr(rcard,ln)
                 if link:
                     result.append(link)
                 else:
                     description=pr.parser.core["ygocard"].shortOpts[f"-{ln}"].help
                     result.append(f"并没有找到{description}……")
-        if pr.getByType("rule",False,bool) and rcard.ocgRule:
-            result.append(rcard.ocgRule)
+        # if pr.getByType("rule",False,bool) and rcard.ocgRule:
+        #     result.append(rcard.ocgRule)
     else:
         return ["找不到卡片的说……"]
     return result

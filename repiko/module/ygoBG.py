@@ -27,6 +27,13 @@ class BaiGe:
         "↗":LinkMark.TopRight
     }
 
+    linkName={
+        "数据库":"database",
+        "Q&A":"QA",
+        "脚本":"script",
+        "裁定":"ocgRule"
+    }
+
     @staticmethod
     def dealInt(text:str):
         if text.isdigit():
@@ -101,8 +108,30 @@ class BaiGe:
             else:
                 c.enname=extras.pop().text
                 c.jpname=extras.pop().text
-            c.database,c.QA,c.wiki,c.yugipedia,c.ygorg,c.ourocg,c.script,c.ocgRule=[
-                a.get("href") for a in info[1].find_all("a")]
+            # c.database,c.QA,c.wiki,c.yugipedia,c.ygorg,c.ourocg,c.script,c.ocgRule=[
+            #     a.get("href") for a in info[1].find_all("a")]
+            # links={ a.text.strip().lower() : a.get("href") for a in info[1].find_all("a")}
+            for atag in info[1].find_all("a"):
+                aname:str=atag.text.strip().lower()
+                alink:str=atag.get("href")
+                if aname in self.linkName:
+                    setattr(c,self.linkName[aname],alink)
+                elif hasattr(c,aname):
+                    setattr(c,aname,alink)
+                elif aname.startswith("详情"):
+                    if alink.endswith("#faq"):
+                        alink=alink[:-4]
+                    c.url=f"{self.link[:-1]}{alink}" # https://ygocdb.com/card/xxxx
+                    
+            # c.database=links.get("数据库")
+            # c.QA=links.get("q&a")
+            # c.wiki=links.get("wiki")
+            # c.yugipedia=links.get("yugipedia")
+            # # c.ygorg=links.get("ygorg") # 好像不再提供这个链接了
+            # c.ourocg=links.get("ourocg")
+            # c.script=links.get("脚本")
+            # c.ocgRule=links.get("裁定")
+            # print(links)
             c.img=info[0].img.get("data-original")
             if isinstance(c.img,str) and c.img.endswith("!half"):
                 c.img=c.img[:-5]

@@ -3,10 +3,10 @@
   -pic/-p  附加卡图
   -wiki  附加日文wiki链接
   -im  以图片形式发送卡片文本
+  -url/-link  百鸽链接
   -database  附加数据库链接
   -QA  附加Q&A链接
   -yugipedia  附加Yugipedia链接
-  -ygorg  YGOrg链接
   -ourocg 附加OurOcg链接
   -script/-lua 附加脚本链接
   -rule 附加裁定链接

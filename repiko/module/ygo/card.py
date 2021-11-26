@@ -20,11 +20,12 @@ class Card():
 
         # 一系列链接
         self.img=None
+        self.url=None # 卡片信息来源链接
         self.database=None
         self.QA=None
         self.wiki=None
         self.yugipedia=None
-        self.ygorg=None
+        # self.ygorg=None
         self.ourocg=None
         self.script=None
         self.ocgRule=None

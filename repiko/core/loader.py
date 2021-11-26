@@ -2,6 +2,7 @@ from types import ModuleType
 import typing
 import importlib
 import os
+import traceback
 
 def loadPlugins(path:str="repiko/plugin",reload:typing.Dict[str,ModuleType]=None) -> typing.Dict[str,ModuleType]:
     pkgName="repiko"
@@ -26,6 +27,7 @@ def loadPlugins(path:str="repiko/plugin",reload:typing.Dict[str,ModuleType]=None
                 else:
                     print(f"加载 {fullName} ——")
                     plugins[name]=importlib.import_module(fullName)
-            except:
+            except Exception as ex:
+                traceback.print_exception(type(ex),ex,ex.__traceback__)
                 print(f">> {fullName} 载入失败！ <<")
     return plugins
