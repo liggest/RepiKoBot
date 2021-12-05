@@ -4,9 +4,10 @@
 import typing
 
 from LSparser import *
-import LSparser
+# import LSparser
 from repiko.core.constant import EventNames
-from repiko.msg.message import Message
+# from repiko.msg.message import Message
+from repiko.msg.data import Message
 
 class MCore():
 
@@ -92,13 +93,14 @@ class MCore():
     async def AsyncAtResponse(self,msg:Message):
         raw=msg
         if not isinstance(msg,str):
-            content=str(msg)
+            # content=str(msg)
+            content=msg.content.plainText
         if "是不是" in content:
             return "围观群众：是啊是啊"
         elif "生气了" in content:
             return "没有哦"
         elif "草" in content or "艹" in content:
-            return content
+            return msg.content
         elif "嘤" in content:
             return "我一拳打死一个嘤嘤怪"
         elif "哥" in content or "弟" in content:

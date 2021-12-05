@@ -1,6 +1,6 @@
-import json
+# import json
 
-from urllib import parse
+# from urllib import parse
 import httpx
 from bs4 import BeautifulSoup
 from bs4.element import PageElement, Tag
@@ -48,7 +48,7 @@ class BaiGe:
     async def asyncGetHTML(self,url):
         async with httpx.AsyncClient() as client:
             res=await client.get(url)
-        return res.text
+            return res.text
 
     def html2Card(self,html,cardPage=False):
         html=BeautifulSoup(html,"lxml")
@@ -159,7 +159,11 @@ class BaiGe:
                         if m:
                             c.linkmark.add(BaiGe.linkmark[m])
                 if c.isP:
-                    marks=data.pop(0).split("/") # 4/4
+                    if data:
+                        marks=data.pop(0).split("/") # 4/4
+                    else:
+                        # 刻度是 0/0 时好像不会展示在网页上
+                        marks=["0","0"]
                     c.Pmark=[ BaiGe.dealInt(m) for m in marks ]
                     desc=f"←{marks[0]} 【灵摆】 {marks[1]}→"+desc
                     if CardType.Normal in c.cardType:

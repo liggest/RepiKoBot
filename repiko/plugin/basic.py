@@ -2,7 +2,8 @@
 from repiko.core.bot import Bot
 from repiko.core.constant import EventNames
 from repiko.msg.core import MCore
-from repiko.msg.message import Message
+# from repiko.msg.message import Message
+from repiko.msg.data import Message
 
 import repiko.module.ygoOurocg_ver4 as ygotest
 from repiko.module.ygoBG import BaiGe

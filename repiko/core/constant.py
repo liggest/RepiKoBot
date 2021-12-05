@@ -1,18 +1,87 @@
 from enum import Enum
 
 class PostType(str,Enum):
-    Unknown="unknown" # 一般不用这个
+    """ 事件类型 """
+    Unknown="unknown"
+    """ 一般不用这个 """
     Message="message"
+    """ 消息事件 """
     Notice="notice"
+    """ 通知事件 """
     Request="request"
+    """ 请求事件 """
     Meta="meta_event"
+    """ 元事件 """
+
+class MessageType(str,Enum):
+    """ 消息事件类型 """
+    Unknown="unknown"
+    """ 一般不用这个 """
+    Private="private"
+    """ 私聊消息 """
+    Group="group"
+    """ 群聊消息 """
+
+class RequestType(str,Enum):
+    """ 请求事件类型 """
+    Unknown="unknown"
+    """ 一般不用这个 """
+    Friend="friend"
+    """ 加好友请求 """
+    Group="group"
+    """ 加群请求/加群邀请 """
+
+class NoticeType(str,Enum):
+    """ 通知事件类型 """
+    Unknown="unknown"
+    """ 一般不用这个 """
+    FriendAdd="friend_add"
+    """ 好友添加 """
+    FriendRecall="friend_recall"
+    """ 好友消息撤回 """
+    GroupUpload="group_upload"
+    """ 群文件上传 """
+    GroupAdmin="group_admin"
+    """ 群管理员变动 """
+    GroupDecrease="group_decrease"
+    """ 群成员减少 """
+    GroupIncrease="group_increase"
+    """ 群成员增加 """
+    GroupBan="group_ban"
+    """ 群禁言 """
+    GroupRecall="group_recall"
+    """ 群消息撤回 """
+    GroupCard="group_card"
+    """ 群成员名片更新 """
+    Notify="notify"
+    """ 群提醒（戳一戳、红包运气王、荣誉变更）等 """
+    OfflineFile="offline_file"
+    """ 接收到离线文件 """
+    ClientStatus="client_status"
+    """ 其他客户端在线状态变更 """
+    Essence="essence"
+    """ 精华消息 """
+
+class MetaEventType(str,Enum):
+    """ 请求事件类型 """
+    Unknown="unknown"
+    """ 一般不用这个 """
+    Lifecycle="lifecycle"
+    """ 生命周期 """
+    HeartBeat="heartbeat"
+    """ 心跳 """
 
 class EventNames:
+    """ 各种 bot 事件名 """
 
-    StartUp="bot-StartUp" # (bot:Bot) -> None
-    ShutDown="bot-ShutDown" # (bot:Bot) -> None
-    MsgCoreInit="msgcore-Init" # (core:MCore) -> None
+    StartUp="bot-StartUp"
+    """ bot 启动 \n f(bot:Bot) -> None """
+    ShutDown="bot-ShutDown"
+    """ bot 关闭 \n f(bot:Bot) -> None """
+    MsgCoreInit="msgcore-Init"
+    """ msg.core 初始化 \n f(core:MCore) -> None """
 
     @staticmethod
     def Receive(pt:PostType):
-        return f"receive-{pt.name}" # (msg:Message,bot:Bot=bot) -> None
+        """  收到 pt 事件 \n\n (msg:Message,bot:Bot=bot) -> None """
+        return f"receive-{pt.name}"

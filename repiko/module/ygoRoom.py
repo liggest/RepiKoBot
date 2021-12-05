@@ -24,7 +24,7 @@ class YGORoom:
     # intRangeMap={"lp":(1,99999,8000),"time":(0,999,3),"start":(1,40,5),"draw":(0,35,1),"lflist":(1,99999,1),"rule":(1,5,5)} 
     # (下限，上限，默认值) 禁卡表数量一直在变化，故不设上限
 
-    roomSuffix=("坊","村","城","现实","屋","居室","空间","的房","之间")
+    roomSuffix=("坊","村","城","域","道","屋","馆","现实","居室","空间","之间","的房")
 
     @classmethod
     def initDuel(cls,ygodir,servers):

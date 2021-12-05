@@ -1,7 +1,8 @@
 from repiko.core.bot import Bot
 from repiko.core.constant import EventNames
 from repiko.msg.core import MCore
-from repiko.msg.message import Message
+from repiko.msg.data import Message
+# from repiko.msg.message import Message
 
 from LSparser import *
 
@@ -123,7 +124,7 @@ with CommandCore(name="admin") as core:
                     qqs=fillQQs(ps,qqs)
         if qqs:
             if content:
-                await bot.AsyncBroadcast(qqs,Message(content))
+                await bot.AsyncBroadcast(qqs,Message.build(content))
             num=0
             result=""
             # result="广播如下：\n"
