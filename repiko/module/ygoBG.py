@@ -191,6 +191,30 @@ class BaiGe:
         html=await self.asyncGetHTML(url)
         return self.html2Card(html,cardPage=byID)
 
+    def getJSON(self,url):
+        res=httpx.get(url)
+        return res.json()
+
+    async def asyncGetJSON(self,url):
+        async with httpx.AsyncClient() as client:
+            res=await client.get(url)
+            return res.json()
+
+    def json2Card(self,rjson):
+        # TODO
+        pass
+
+    def searchAPI(self,text):
+        url=f"{self.link}api/v0/?search={text}"
+        rjson=self.getJSON(url)
+        return self.json2Card(rjson)
+
+    async def asyncSearchAPI(self,text):
+        url=f"{self.link}api/v0/?search={text}"
+        rjson=await self.asyncGetJSON(url)
+        return self.json2Card(rjson)
+
+
 if __name__ == "__main__":
     
     async def main():

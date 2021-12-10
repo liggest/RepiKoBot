@@ -4,6 +4,7 @@ from repiko.core.constant import EventNames
 from repiko.msg.core import MCore
 # from repiko.msg.message import Message
 from repiko.msg.data import Message
+from repiko.msg.part import Share
 
 import repiko.module.ygoOurocg_ver4 as ygotest
 from repiko.module.ygoBG import BaiGe
@@ -151,7 +152,7 @@ async def ygocard(pr:ParseResult):
         result=[]
         if pr.getByType("pic",False,bool) and rcard.img:
             result.append(f"[CQ:image,file={rcard.img}]")
-        if pr.args.get("im",False):
+        elif pr.args.get("im",False):
             filename=str2greyPng(resultText,rcard.name)
             result.append(f"[CQ:image,file={filename}]")
         else:
@@ -159,10 +160,12 @@ async def ygocard(pr:ParseResult):
         for ln in linkNames:
             if pr.getByType(ln,False,bool):
                 link=getattr(rcard,ln)
+                description=pr._cmd.shortOpts[f"-{ln}"].help
+                description=f"{rcard.name}的{description}"
                 if link:
-                    result.append(link)
+                    # result.append(link)
+                    result.append(Share(link,title=description,content=link))
                 else:
-                    description=pr.parser.core["ygocard"].shortOpts[f"-{ln}"].help
                     result.append(f"并没有找到{description}……")
         # if pr.getByType("rule",False,bool) and rcard.ocgRule:
         #     result.append(rcard.ocgRule)
@@ -186,7 +189,7 @@ async def ygoocg(pr:ParseResult):
         result=[]
         if pr.getByType("pic",False,bool) and rcard.img:
             result.append(f"[CQ:image,file={rcard.img}]")
-        if pr.args.get("im",False):
+        elif pr.args.get("im",False):
             filename=str2greyPng(resultText,rcard.name)
             result.append(f"[CQ:image,file={filename}]")
         else:
@@ -195,10 +198,12 @@ async def ygoocg(pr:ParseResult):
         return ["找不到卡片的说……"]
     if pr.getByType("wiki",False,bool):
         wikilink=a.getWikiLink(rcard)
+        description=f"{rcard.name}的wiki链接"
         if wikilink:
-            result.append(wikilink)
+            # result.append(wikilink)
+            result.append(Share(wikilink,title=description,content=wikilink))
         else:
-            result.append("并没有找到wiki链接……")
+            result.append(f"并没有找到{description}……")
     return result
 
 # @Events.onCmd("ygoserver")

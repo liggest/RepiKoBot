@@ -11,14 +11,35 @@ class Content(list):
     @classmethod
     def asParts(cls,parts):
         """ 迭代 parts 中的元素，逐个输出 MessagePart 对象 """
-        if not (isinstance(parts,str) or isinstance(parts,dict)) and isinstance(parts,Iterable):
+        if isinstance(parts,str) and "[CQ:" in parts:
+            yield from cls.fromCQ(parts)
+        elif MessagePart.isPart(parts):
+            yield MessagePart.asPart(parts)
+        elif isinstance(parts,Iterable):
             # 非字符串、非字典的可迭代对象
             for part in parts:
                 # 也能处理嵌套列表
                 yield from cls.asParts(part)
-        else:
-            yield MessagePart.asPart(parts)
-                    
+    
+    @classmethod
+    def fromCQ(cls,CQStr:str):
+        parsed=0
+        l=len(CQStr)
+        while parsed<l:
+            idx=CQStr.find("[CQ:",parsed)
+            if idx>=0:
+                if parsed<idx:
+                    yield Text(CQStr[parsed:idx])
+                    parsed=idx
+                eidx=CQStr.find("]",parsed+4)
+                if eidx>=0:
+                    yield MessagePart.fromCQcode(CQStr[idx:eidx+1])
+                    parsed=eidx+1
+                else:
+                    raise ValueError("不完整的CQ码片段",CQStr)
+            else:
+                yield Text(CQStr[parsed:])
+                parsed=l
 
     def __init__(self,*args):
         """ 消息内容 """
@@ -247,6 +268,11 @@ class Content(list):
         return "".join(part.CQcode for part in self) # 文本消息（CQ码已转义）
 
     @property
+    def brief(self:List[MessagePart]):
+        """ 简短文本消息 """
+        return "".join(part.brief for part in self) # 文本消息（CQ码已转义）
+
+    @property
     def parts(self):
         """ 按类型名称记录消息片段 """
         if self._parts is None: # 生成 parts
@@ -472,7 +498,7 @@ class Content(list):
             对列表排序\n
             会重置 parts
         """
-        super().sort()  # 因为 MessagePart 间没法比较，暂时用不了
+        super().sort()  # TODO 因为 MessagePart 间没法比较，暂时用不了
         del self.parts
         # self._reinitPart()
 

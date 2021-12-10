@@ -40,6 +40,7 @@ async def MessageReceiver(backTasks:BackgroundTasks,request:Request):
         if bot.DebugMode and postType!=PostType.Meta: #不打印心跳
             print(rj)
         
+        
         sltr=None
         for s in bot.selectors:
             if s.isAccept(rj):
@@ -47,8 +48,8 @@ async def MessageReceiver(backTasks:BackgroundTasks,request:Request):
                 break
         if sltr:
             msg:BaseData=await sltr.asyncAction(rj,backTasks)
-            print(msg)
-            print(repr(msg.content))
+            # print(msg)
+            # print(repr(msg.content))
             if msg and msg.quickReply: #快速操作
                 print("quickReply",msg.replyJson)
                 return msg.replyJson

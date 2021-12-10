@@ -2,12 +2,17 @@
 # -*- coding: utf-8 -*-
 
 import typing
+import asyncio
 
 from LSparser import *
 # import LSparser
 from repiko.core.constant import EventNames
+from repiko.msg.content import Content
+from repiko.msg.part import MessagePart,Face
 # from repiko.msg.message import Message
 from repiko.msg.data import Message
+
+from repiko.msg.assist import CustomParser
 
 class MCore():
 
@@ -26,6 +31,7 @@ class MCore():
         self.cps:typing.List[CommandParser]=[]
         for coreName in CommandCore.cores:
             cp=CommandParser(coreName)
+            cp._parserCore=CustomParser
             cp.data["mc"]=self
             self.cps.append( cp )
     
@@ -61,11 +67,40 @@ class MCore():
         for cp in self.cps:
             parseResult:ParseResult=await cp.asyncTryParse(msg) # pr.raw=msg
             output=parseResult.output
-            if output:
-                for lst in output: #把parseResult列表里的各个列表拼起来
-                    if lst:
-                        result+=lst
+            if output:  #把parseResult列表里的各个列表拼起来
+                result+=[ v async for v in self.contentGen(output)]
         return result
+
+    # async def AsyncResponseGen(self,msg:Message):
+    #     for cp in self.cps:
+    #         parseResult:ParseResult=await cp.asyncTryParse(msg) # pr.raw=msg
+    #         output=parseResult.output
+    #         if output:
+    #             for val in filter(None,output):
+    #                 if asyncio.iscoroutine(val):
+    #                     val=await val
+    #                 if isinstance(val,Content):
+    #                     yield val
+    #                 else:
+    #                     yield Content(val)
+    
+    async def contentGen(self,val):
+        if not val:
+            return
+        if MessagePart.isPart(val): # 单个 MessagePart
+            yield Content(val)
+        elif isinstance(val,typing.Iterable):
+            if isinstance(val,Content): # 单个 Content
+                yield val
+            # elif MessagePart.isPart(val[0]): # 当做是单个 Content
+            #     yield Content(val)
+            else:
+                for newVal in filter(None,val):  # 可能有多个 Content，迭代每个元素，递归做 contentGen
+                    async for v in self.contentGen(newVal): # 异步生成器没法 yield from
+                        yield v
+        elif asyncio.iscoroutine(val):  # 协程
+            async for v in self.contentGen(await val): # 异步生成器没法 yield from
+                yield v
 
     # def GetAtResponse(self,content):
     #     raw=content
@@ -111,12 +146,12 @@ class MCore():
             return "你们阉太监也不会动人脑子！"
         elif "来一句" in content or "说一句" in content or "来句话" in content:
             return await self.basic.aword(None)
+        elif Face(146) in msg.content:
+            return Face(146)
         else:
             return "不要碰我呀QwQ"
 
 if __name__=="__main__":
-
-    import asyncio
     async def main():
         core=CommandCore.getLast() # 先创建出默认中枢
         mc=MCore(None)

@@ -47,6 +47,9 @@ class MessagePart(dict,metaclass=MessageMeta):
             data=','.join(f"{k}={repr(v)}" for k,v in self.data.items())
         return f"{self.__class__.__name__}({data})"
 
+    def __bool__(self): # 在 data 为空时便返回 False
+        return bool(self.data)
+
     @classmethod
     def __init_subclass__(subcls):
         # 创建子类时，记录子类对应的消息片段类型及其本身
@@ -60,16 +63,35 @@ class MessagePart(dict,metaclass=MessageMeta):
             return cls._subs.get(part["type"],cls)
         return cls
     
-    @classmethod
-    def asPart(cls,part) -> MessagePart:
+    @staticmethod
+    def asPart(part) -> MessagePart:
         """ 将 part 转换为子类对象 """
         if type(part) in (MessagePart,dict):
             return MessagePart(part) # 得到某个 MessagePart 子类
-        if isinstance(part,MessagePart):
+        if isinstance(part,MessagePart): # 已经是某个 MessagePart 子类
             return part
         if isinstance(part,str):
             return Text(part)
         raise ValueError(f"无法将 {repr(part)} 转换为 MessagePart")
+
+    @staticmethod
+    def isPart(part):
+        """ 判断 part 是否可转成消息片段 """
+        return isinstance(part,str) or isinstance(part,dict)
+
+    @classmethod
+    def fromCQcode(cls,CQcode:str) -> MessagePart:
+        CQcode=CQcode.lstrip("[").rstrip("]")
+        partType,*partData=CQcode.split(",")
+        if partType.startswith("CQ:"):
+            partType=partType[3:]
+        part={}
+        part["type"]=partType
+        part["data"]={}
+        for d in partData:
+            key,val=d.split("=",maxsplit=1)
+            part["data"][key]=val
+        return MessagePart(part)
 
     @property
     def type(self):
@@ -93,6 +115,11 @@ class MessagePart(dict,metaclass=MessageMeta):
             if data:
                 return f"[CQ:{self.type},{data}]"    
         return f"[CQ:{self.type}]"
+
+    @property
+    def brief(self):
+        """ 简短文本 """
+        return self.CQcode
 
     def copy(self) -> MessagePart:
         """ 浅拷贝，但额外拷贝 data """
@@ -137,7 +164,6 @@ class Face(MessagePart):
         # Face(123)
         return f"{self.__class__.__name__}({self.id})"
 
-
 class At(MessagePart):
     """ @ """
     partType="at"
@@ -178,6 +204,10 @@ class Share(MessagePart):
                 self.content=content
             if imageUrl:
                 self.image=imageUrl
+    
+    @property
+    def brief(self):
+        return self.url
 
 Link=Share
 
@@ -262,6 +292,10 @@ class Image(MessagePart):
             obj.id=id
         return obj
 
+    @property
+    def brief(self):
+        return "[图片]"
+
 class Record(MessagePart):
     """ 语音 """
     partType="record"
@@ -291,6 +325,10 @@ class Record(MessagePart):
                 self.proxy=int(proxy)
             if not timeout is None:
                 self.timeout=timeout
+    
+    @property
+    def brief(self):
+        return "[语音]"
 
 class Video(MessagePart):
     """ 短视频 """
@@ -310,6 +348,10 @@ class Video(MessagePart):
             if cover:
                 self.cover=dealFile(cover)
 
+    @property
+    def brief(self):
+        return "[视频]"
+
 class Forward(MessagePart):
     """ 合并转发 """
     partType="forward"
@@ -321,6 +363,10 @@ class Forward(MessagePart):
         super().__init__(id,**kw)
         if not self._dictInit:
             self.id=str(id)
+
+    @property
+    def brief(self):
+        return "[合并转发]"
 
 class Music(MessagePart):
     """ 音乐分享（发送） """
@@ -371,6 +417,10 @@ class Music(MessagePart):
         if imageUrl:
             obj.image=imageUrl
         return obj
+
+    @property
+    def brief(self):
+        return "[音乐]"
 
 class Poke(MessagePart):
     """ 戳一戳（发送） """
