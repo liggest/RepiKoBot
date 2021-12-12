@@ -1,10 +1,10 @@
 
 from repiko.core.bot import Bot
-from repiko.core.constant import EventNames
+from repiko.core.constant import EventNames, MessageType
 from repiko.msg.core import MCore
 # from repiko.msg.message import Message
 from repiko.msg.data import Message
-from repiko.msg.part import Share
+from repiko.msg.part import MessagePart,Share,Image
 
 import repiko.module.ygoOurocg_ver4 as ygotest
 from repiko.module.ygoBG import BaiGe
@@ -41,7 +41,7 @@ Command("ygoocg").names("yo","ourocg","oo").opt("-ver",OPT.M,"翻译版本").opt
 Command("translate").names("ts").opt("-from",OPT.M,"源语言").opt("-to",OPT.M,"目标语言").opt("-p",OPT.N,"显示发音")\
     .opt("-d",OPT.N,"检测语言").opt("-donly",OPT.N,"只检测语言")
 Command("luck").names("jrrp").opt("-yci",OPT.N,"根据运值卡查，发送图片")
-Command("ygodraw").names("yd","抽卡").opt("-n",OPT.M,"抽卡数").opt("-im",OPT.N,"以图片发送")\
+Command("ygodraw").names("yd","抽卡").opt("-n",OPT.M,"抽卡数").opt("-im",OPT.N,"以图片发送").opt(["-pic","-p"],OPT.N,"卡图")\
     .opt(["-notoken","-nt","-无衍生物"],OPT.N,"不含衍生物").opt(["-noalias","-na","-无同名卡"],OPT.N,"不含同名卡")\
     .opt(["-main","-主卡组"],OPT.N,"只含主卡组").opt(["-extra","-ex","-额外"],OPT.N,"只含额外")
 Command("logodraw").names("群赛抽卡","决斗都市","yddc","duelcity").opt("-im",OPT.N,"以图片发送")
@@ -289,7 +289,7 @@ def initYGO(core:MCore):
 @Events.onCmd("ygodraw")
 def ygodraw(pr:ParseResult):
     num=pr.getToType("n",0,int)
-    if pr.paramStr.isdigit():
+    if pr.paramStr.isdigit() and not pr["pic"]: # 最多只出1张图
         num+=int(pr.paramStr)
     levels=[]
     if pr["notoken"]:
@@ -312,6 +312,8 @@ def ygodraw(pr:ParseResult):
             c=Card()
             c.fromCDBTuple(ct,conf.setdict,conf.lfdict)
             name=c.name
+            if pr.getByType("pic",False,bool):
+                result.append(Image(BaiGe.imgLink(c.id)))
             resultText=str(c)
         else:
             if num>60:
@@ -320,11 +322,12 @@ def ygodraw(pr:ParseResult):
             ct=cdb.getRandomNames(count=num,shrink=levels)
             name=ct[0]
             resultText="\n".join(ct)
-    if pr.args.get("im",False):
-        filename=str2greyPng(resultText,name)
-        result.append(f"[CQ:image,file={filename}]")
-    else:
-        result.append(resultText)
+    if not pr["pic"]:
+        if pr.args.get("im",False):
+            filename=str2greyPng(resultText,name)
+            result.append(f"[CQ:image,file={filename}]")
+        else:
+            result.append(resultText)
     return result
 
 @Events.onCmd("logodraw")
@@ -332,13 +335,26 @@ def logodraw(pr:ParseResult):
     pr.command="yd"
     pr.args["n"]=20
     pr.args["notoken"]=True
-    result=ygodraw(pr)[0]
+    result=ygodraw(pr)
     msg:Message=pr.raw
-    if msg.mtype=="private":
+    if msg.mtype==MessageType.Private:
         name=msg.getSrcName()
     else:
         name=f"[CQ:at,qq={msg.realSrc}]"
-    return [f"{name}的卡：\n"+result]
+    result[-1]=f"{name}的卡：\n"+result[-1]
+    return result
+
+@Events.onNotCmd()
+def notCmd(pr:ParseResult, cp:CommandParser):
+    msg:Message=pr.raw
+    if msg and msg.content:
+        part:MessagePart=msg.content[-1]
+        text=part.brief
+        if text.endswith(("抽卡！","ドロー！","draw!")):
+            # 以 抽卡！结尾 抽一张卡图
+            pr.args["pic"]=True
+            pr.args["n"]=0
+            pr.output.append(ygodraw(pr))
 
 @Events.onCmd("aword")
 async def aword(pr:ParseResult):

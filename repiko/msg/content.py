@@ -4,6 +4,7 @@ from collections import defaultdict
 from typing import Type,List,Dict,Iterable
 
 from repiko.msg.part import MessagePart,Text
+from repiko.msg.util import isCQcode
 
 class Content(list):
     """ 消息内容 """
@@ -11,7 +12,8 @@ class Content(list):
     @classmethod
     def asParts(cls,parts):
         """ 迭代 parts 中的元素，逐个输出 MessagePart 对象 """
-        if isinstance(parts,str) and "[CQ:" in parts:
+        # if isinstance(parts,str) and "[CQ:" in parts:
+        if isCQcode(parts):
             yield from cls.fromCQ(parts)
         elif MessagePart.isPart(parts):
             yield MessagePart.asPart(parts)
@@ -29,7 +31,7 @@ class Content(list):
             idx=CQStr.find("[CQ:",parsed)
             if idx>=0:
                 if parsed<idx:
-                    yield Text(CQStr[parsed:idx])
+                    yield MessagePart.fromCQcode(CQStr[parsed:idx]) # 文本
                     parsed=idx
                 eidx=CQStr.find("]",parsed+4)
                 if eidx>=0:
@@ -38,7 +40,7 @@ class Content(list):
                 else:
                     raise ValueError("不完整的CQ码片段",CQStr)
             else:
-                yield Text(CQStr[parsed:])
+                yield MessagePart.fromCQcode(CQStr[parsed:])  # 文本
                 parsed=l
 
     def __init__(self,*args):

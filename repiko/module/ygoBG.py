@@ -35,6 +35,10 @@ class BaiGe:
     }
 
     @staticmethod
+    def imgLink(cardId):
+        return f"https://cdn.233.momobako.com/ygopro/pics/{cardId}.jpg"
+
+    @staticmethod
     def dealInt(text:str):
         if text.isdigit():
             return int(text)
@@ -42,11 +46,11 @@ class BaiGe:
             return text
 
     def getHTML(self,url):
-        res=httpx.get(url)
+        res=httpx.get(url,timeout=20)
         return res.text
 
     async def asyncGetHTML(self,url):
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=20) as client:
             res=await client.get(url)
             return res.text
 

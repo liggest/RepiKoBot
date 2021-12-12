@@ -3,7 +3,7 @@ from __future__ import annotations # 让类中定义的方法的返回值标注�
 
 from collections.abc import Iterable
 from repiko.msg.meta import MessageMeta
-from repiko.msg.util import CQescape,CQescapeComma,dealFile
+from repiko.msg.util import CQescape,CQescapeComma,dealFile,CQunescapeComma,CQunescape
 
 class MessagePart(dict,metaclass=MessageMeta):
     """ 消息片段基类 """
@@ -81,17 +81,21 @@ class MessagePart(dict,metaclass=MessageMeta):
 
     @classmethod
     def fromCQcode(cls,CQcode:str) -> MessagePart:
-        CQcode=CQcode.lstrip("[").rstrip("]")
-        partType,*partData=CQcode.split(",")
-        if partType.startswith("CQ:"):
-            partType=partType[3:]
-        part={}
-        part["type"]=partType
-        part["data"]={}
-        for d in partData:
-            key,val=d.split("=",maxsplit=1)
-            part["data"][key]=val
-        return MessagePart(part)
+        if CQcode.startswith("[CQ:"):
+            # CQcode=CQcode.lstrip("[").rstrip("]")
+            CQcode=CQcode[4:-1] # [CQ:...]
+            partType,*partData=CQcode.split(",")
+            # if partType.startswith("CQ:"):
+            # partType=partType[3:]  # 除去 CQ:
+            part={}
+            part["type"]=partType
+            part["data"]={}
+            for d in partData:
+                key,val=d.split("=",maxsplit=1)
+                part["data"][key]=CQunescapeComma(val)
+            return MessagePart(part)
+        else:
+            return Text(CQunescape(CQcode))
 
     @property
     def type(self):

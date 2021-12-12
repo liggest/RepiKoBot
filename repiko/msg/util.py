@@ -17,6 +17,8 @@ _escapeCommaPtn=re.compile(r"[&\[\],]") # 多个逗号
 _unescapePtn=re.compile(r"(&amp;|&#91;|&#93;)")
 _unescapeCommaPtn=re.compile(r"(&amp;|&#91;|&#93;|&#44;)")
 
+_CQcodePtn=re.compile(r"(&amp;|&#91;|&#93;|&#44;|\[CQ:)")
+
 def _escapeSub(m:re.Match) -> str:
     return _escapeMap[m.group()]
 
@@ -39,6 +41,10 @@ def CQunescapeComma(s:str):
     """ 反转义CQ码（带逗号） """
     return re.sub(_unescapeCommaPtn,_unescapeSub,s)
 
+def isCQcode(s):
+    if isinstance(s,str):
+        return re.search(_CQcodePtn,s)
+    return False
 
 def dictSetter(key):
     """ 生成属性的 setter 函数，为字典(self)的指定键 key 赋值 """
