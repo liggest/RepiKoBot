@@ -184,12 +184,13 @@ with CommandCore(name="admin") as core:
 def botStartup(bot:Bot):
     global AdminMode
     AdminMode=getattr(bot,"AdminMode",False)
+    loadBroadcastPreset(bot)
 
 @Events.on(EventNames.ShutDown)
 def BotShutdown(bot:Bot):
     if AdminMode:
         setattr(bot,"AdminMode",AdminMode)
 
-@Events.on(EventNames.MsgCoreInit)
-def coreInit(core:MCore):
-    loadBroadcastPreset(core.bot)
+# @Events.on(EventNames.MsgCoreInit)
+# def coreInit(core:MCore):
+#     loadBroadcastPreset(core.bot)

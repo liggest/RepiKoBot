@@ -46,10 +46,11 @@ class YGORoom:
     @classmethod
     def parseRoom(cls,roomText:str):
         prefix=set()
-        *prefixList,name=roomText.split("#")
+        nameList=roomText.split("#")
+        *prefixList,name=nameList
         if prefixList:
             prefix.update(prefixList[0].split(","))
-            name="#".join(prefixList[1:]+[name])
+            name="#".join(nameList[1:])
         return YGORoom(name,prefix)
 
     @classmethod
@@ -81,6 +82,13 @@ class YGORoom:
             return f"{action}了{name}的房间"
         return f"{action}了房间"
 
+    @classmethod
+    def randomRoomName(cls,cdb:cdbReader):
+        result=[]
+        with cdb:
+            ct=cdb.getRandomNames(count=random.randint(1,4))
+            result=[random.choice(n) for n in ct]
+        return "".join(result)+random.choice(cls.roomSuffix)
 
     def __init__(self,name=None,prefix=None):
         self.prefix=prefix or set()
@@ -89,13 +97,13 @@ class YGORoom:
         self._host=None
         self._port=None
 
-    def randomRoomName(self,cdb:cdbReader):
-        result=[]
-        with cdb:
-            ct=cdb.getRandomNames(count=random.randint(1,4))
-            result=[random.choice(n) for n in ct]
-        self.name="".join(result)+random.choice(self.roomSuffix)
-        return self.name
+    # def randomRoomName(self,cdb:cdbReader):
+    #     result=[]
+    #     with cdb:
+    #         ct=cdb.getRandomNames(count=random.randint(1,4))
+    #         result=[random.choice(n) for n in ct]
+    #     self.name="".join(result)+random.choice(self.roomSuffix)
+    #     return self.name
 
     def togglePrefix(self,code):
         if code in self.prefix:

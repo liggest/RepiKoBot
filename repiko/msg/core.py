@@ -155,11 +155,13 @@ if __name__=="__main__":
     async def main():
         core=CommandCore.getLast() # 先创建出默认中枢
         mc=MCore(None)
+        await core.EM.asyncSend(EventNames.MsgCoreInit,mc)
         ipt=input("请输入信息：")
         while ipt!="-exit":
             # result=mc.GetResponse(ipt,[759851475,1559619324])
-            msg=Message(ipt,dst=0,mtype="private")
-            msg.srcList=[759851475,1559619324]
+            msg=Message.build(ipt,dst=0)
+            msg.realSrc=1559619324
+            msg.src=759851475
             result=await mc.AsyncResponse(msg)
             print(result)
             ipt=input("请输入信息：")
