@@ -1,8 +1,11 @@
 
+from PIL.Image import NONE
 from repiko.core.bot import Bot
-from repiko.core.constant import EventNames
+from repiko.core.constant import EventNames, MessageType
 from repiko.msg.core import MCore
-from repiko.msg.message import Message
+# from repiko.msg.message import Message
+from repiko.msg.data import Message
+from repiko.msg.part import MessagePart,Share,Image,At
 
 import repiko.module.ygoOurocg_ver4 as ygotest
 from repiko.module.ygoBG import BaiGe
@@ -15,11 +18,12 @@ from repiko.module.ygo.card import Card
 from repiko.module.ygo.dataloader import cdbReader,confReader,ShrinkLevel
 from repiko.module.hitokoto import HitokotoRequester
 from repiko.module.str2image import str2greyPng
+from repiko.module.util import redirect,asyncRedirect,CONS
 
 import random
 import datetime
 import os
-import yaml
+# import yaml
 
 from LSparser import *
 from LSparser.command import CommandHelper
@@ -33,15 +37,17 @@ Command("ygocard").names("yc","bg").opt("-im",OPT.N,"以图片发送").opt(["-pi
     .opt("-yugipedia",OPT.N,"Yugipedia链接").opt("-ourocg",OPT.N,"OurOcg链接")\
     .opt(["-script","-lua"],OPT.N,"脚本链接").opt(["-ocgRule","-rule"],OPT.N,"裁定链接").opt(["-url","-link"],OPT.N,"百鸽链接")
     #.opt("-ygorg",OPT.N,"YGOrg链接")
+Command("ycpic").names("ycp","bgpic","bgp")
 
 Command("ygoocg").names("yo","ourocg","oo").opt("-ver",OPT.M,"翻译版本").opt("-wiki",OPT.N,"提供wiki链接").opt("-im",OPT.N,"以图片发送").opt(["-pic","-p"],OPT.N,"卡图")
 # Command("ygoserver").names("ys")
 Command("translate").names("ts").opt("-from",OPT.M,"源语言").opt("-to",OPT.M,"目标语言").opt("-p",OPT.N,"显示发音")\
     .opt("-d",OPT.N,"检测语言").opt("-donly",OPT.N,"只检测语言")
 Command("luck").names("jrrp").opt("-yci",OPT.N,"根据运值卡查，发送图片")
-Command("ygodraw").names("yd","抽卡").opt("-n",OPT.M,"抽卡数").opt("-im",OPT.N,"以图片发送")\
+Command("ygodraw").names("yd").opt("-n",OPT.M,"抽卡数").opt("-im",OPT.N,"以图片发送").opt(["-pic","-p"],OPT.N,"卡图")\
     .opt(["-notoken","-nt","-无衍生物"],OPT.N,"不含衍生物").opt(["-noalias","-na","-无同名卡"],OPT.N,"不含同名卡")\
     .opt(["-main","-主卡组"],OPT.N,"只含主卡组").opt(["-extra","-ex","-额外"],OPT.N,"只含额外")
+Command("ydpic").names("ydp","抽卡")
 Command("logodraw").names("群赛抽卡","决斗都市","yddc","duelcity").opt("-im",OPT.N,"以图片发送")
 Command("aword").names("aw","一句话","一言").opt(["-t","--t"],OPT.M,"句子类型")
 
@@ -150,7 +156,7 @@ async def ygocard(pr:ParseResult):
         result=[]
         if pr.getByType("pic",False,bool) and rcard.img:
             result.append(f"[CQ:image,file={rcard.img}]")
-        if pr.args.get("im",False):
+        elif pr.args.get("im",False):
             filename=str2greyPng(resultText,rcard.name)
             result.append(f"[CQ:image,file={filename}]")
         else:
@@ -158,16 +164,20 @@ async def ygocard(pr:ParseResult):
         for ln in linkNames:
             if pr.getByType(ln,False,bool):
                 link=getattr(rcard,ln)
+                description=pr._cmd.shortOpts[f"-{ln}"].help
+                description=f"{rcard.name}的{description}"
                 if link:
-                    result.append(link)
+                    # result.append(link)
+                    result.append(Share(link,title=description,content=link))
                 else:
-                    description=pr.parser.core["ygocard"].shortOpts[f"-{ln}"].help
                     result.append(f"并没有找到{description}……")
         # if pr.getByType("rule",False,bool) and rcard.ocgRule:
         #     result.append(rcard.ocgRule)
     else:
         return ["找不到卡片的说……"]
     return result
+
+Events.onCmd("ycpic")(asyncRedirect("ygocard",[CONS,"-pic"],ygocard))
 
 @Events.onCmd("ygoocg")
 async def ygoocg(pr:ParseResult):
@@ -185,7 +195,7 @@ async def ygoocg(pr:ParseResult):
         result=[]
         if pr.getByType("pic",False,bool) and rcard.img:
             result.append(f"[CQ:image,file={rcard.img}]")
-        if pr.args.get("im",False):
+        elif pr.args.get("im",False):
             filename=str2greyPng(resultText,rcard.name)
             result.append(f"[CQ:image,file={filename}]")
         else:
@@ -194,10 +204,12 @@ async def ygoocg(pr:ParseResult):
         return ["找不到卡片的说……"]
     if pr.getByType("wiki",False,bool):
         wikilink=a.getWikiLink(rcard)
+        description=f"{rcard.name}的wiki链接"
         if wikilink:
-            result.append(wikilink)
+            # result.append(wikilink)
+            result.append(Share(wikilink,title=description,content=wikilink))
         else:
-            result.append("并没有找到wiki链接……")
+            result.append(f"并没有找到{description}……")
     return result
 
 # @Events.onCmd("ygoserver")
@@ -283,7 +295,7 @@ def initYGO(core:MCore):
 @Events.onCmd("ygodraw")
 def ygodraw(pr:ParseResult):
     num=pr.getToType("n",0,int)
-    if pr.paramStr.isdigit():
+    if pr.paramStr.isdigit() and not pr["pic"]: # 最多只出1张图
         num+=int(pr.paramStr)
     levels=[]
     if pr["notoken"]:
@@ -306,6 +318,8 @@ def ygodraw(pr:ParseResult):
             c=Card()
             c.fromCDBTuple(ct,conf.setdict,conf.lfdict)
             name=c.name
+            if pr.getByType("pic",False,bool):
+                result.append(Image(BaiGe.imgLink(c.id)))
             resultText=str(c)
         else:
             if num>60:
@@ -314,25 +328,44 @@ def ygodraw(pr:ParseResult):
             ct=cdb.getRandomNames(count=num,shrink=levels)
             name=ct[0]
             resultText="\n".join(ct)
-    if pr.args.get("im",False):
-        filename=str2greyPng(resultText,name)
-        result.append(f"[CQ:image,file={filename}]")
-    else:
-        result.append(resultText)
+    if not pr["pic"]:
+        if pr.args.get("im",False):
+            filename=str2greyPng(resultText,name)
+            result.append(f"[CQ:image,file={filename}]")
+        else:
+            result.append(resultText)
     return result
+
+Events.onCmd("ydpic")(redirect("ygodraw",[CONS,"-pic"],ygodraw))
 
 @Events.onCmd("logodraw")
 def logodraw(pr:ParseResult):
     pr.command="yd"
     pr.args["n"]=20
     pr.args["notoken"]=True
-    result=ygodraw(pr)[0]
+    result=ygodraw(pr)
     msg:Message=pr.raw
-    if msg.mtype=="private":
+    if msg.mtype==MessageType.Private:
         name=msg.getSrcName()
     else:
         name=f"[CQ:at,qq={msg.realSrc}]"
-    return [f"{name}的卡：\n"+result]
+    result[-1]=f"{name}的卡：\n"+result[-1]
+    return result
+
+@Events.onNotCmd
+def notCmd(pr:ParseResult, cp:CommandParser):
+    msg:Message=pr.raw
+    if msg and msg.content:
+        part:MessagePart=msg.content[-1]
+        text=part.brief
+        if text.endswith(("!","！")):
+            text=text.strip("！!").lower()
+            if text.endswith(("抽卡","ドロー","draw")):
+            # if text.lower().endswith(("抽卡！","ドロー！","draw!")):
+                # 以 抽卡！结尾 抽一张卡图
+                pr.args["pic"]=True
+                pr.args["n"]=0
+                pr.output.append(ygodraw(pr))
 
 @Events.onCmd("aword")
 async def aword(pr:ParseResult):
@@ -387,12 +420,12 @@ def duel(pr:ParseResult):
     paramStr=pr.paramStr.strip()
 
     if not pr["random"]:
-        key=pr["get"] or (msg.realSrc if pr["me"] else paramStr)
+        key=pr.getByType("get") or (msg.realSrc if pr["me"] else paramStr)
         room=YGORoom.getMemberRoom(key)
     if not room:
-        room=YGORoom(paramStr)
+        room=YGORoom.parseRoom(paramStr)
     if not room.name or pr["random"]:
-        room.randomRoomName(pr.parserData["mc"].data["ygocdb"])
+        room.name=YGORoom.randomRoomName(pr.parserData["mc"].data["ygocdb"])
     if pr.getByType("time",None,bool) or pr["tm0"]: # -tm -> -tm 0 
         pr.args["time"]="0"
     room.args2prefix(pr.args)
@@ -403,7 +436,7 @@ def duel(pr:ParseResult):
             if pr[s]:
                 pr.args["server"]=s
     if pr["server"]: # 只有 -s 的时候才有服务器
-        if not room.hasServer:
+        if isinstance(pr["server"],str) or not room.hasServer: # -s 有值时覆盖 room 记录的服务器
             room.serverName=pr.getToType("server","2333") # server是True的话默认2333
         result.append(room.server)
 
@@ -414,15 +447,18 @@ def duel(pr:ParseResult):
             YGORoom.saveMemberRoom(key,room,srcName)
             if not isinstance(key,str):
                 key=None
-            result.append(YGORoom.hint("记录",key,srcName))
+            name=At(msg.realSrc).CQcode
+            if msg.mtype==MessageType.Private:
+                name=srcName
+            result.append(YGORoom.hint("记录",key,name))
 
     if pr["del"]:
         key=pr.getByType("del",msg.realSrc)
         YGORoom.removeMemberRoom(key)
         if not isinstance(key,str):
-                key=None
+            key=None
         name=f"[CQ:at,qq={key}]"
-        if msg.mtype=="private":
+        if msg.mtype==MessageType.Private:
             name=msg.getSrcName()
         result.append(YGORoom.hint("移除",key,name))
 

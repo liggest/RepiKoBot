@@ -16,8 +16,9 @@ from LSparser import Events,CommandCore
 
 import repiko.core.loader as loader
 from repiko.core.constant import EventNames
-from repiko.msg.message import Message
-from repiko.msg.request import RequestData
+from repiko.msg.data import Message,Request
+# from repiko.msg.message import Message
+# from repiko.msg.request import RequestData
 import repiko.msg.core as msgCore
 # import repiko.msg.admin as admin
 
@@ -156,7 +157,10 @@ class Bot():
 
     async def AsyncPost(self,api,json={},timeout=None):
         url=self.POSTURL+api
-        return await self.aClient.post(url,json=json,headers=self.HEADER,timeout=timeout)
+        async with self.aClient as client:
+            client:httpx.AsyncClient
+            return await client.post(url,json=json,headers=self.HEADER,timeout=timeout)
+        # return await self.aClient.post(url,json=json,headers=self.HEADER,timeout=timeout)
 
     #mt=MsgType
     # def SendMessage(self,mt,qq,msg):
@@ -198,10 +202,10 @@ class Bot():
             msg.content=s
             self.SendMessage(msg)
 
-    async def AsyncSendStrs(self,msg:Message,ml:typing.List[str]):
+    async def AsyncSendStrs(self,msg:Message,ml:list):
         """
             msg 发消息的模板，使用其 mtype 和 dst
-            ml 真正要发的消息字符串列表
+            ml 真正要发的消息内容列表
         """
         if not ml:
             return
@@ -364,7 +368,7 @@ class Bot():
             result.append("plugin")
         return result
 
-    async def ResolveReq(self,req:RequestData):
+    async def ResolveReq(self,req:Request):
         await self.AsyncPost("set_group_add_request",req.sendParam)
 
     # def CopyYGO(self):

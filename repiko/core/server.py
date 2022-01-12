@@ -8,18 +8,21 @@ from fastapi import FastAPI,Request,Depends,BackgroundTasks
 # import typing
 
 from repiko.core.constant import PostType
+from repiko.core.bot import Bot
+from repiko.msg.data import BaseData
 # from repiko.msg.selector import *
 # from repiko.msg.message import Message
 
 app=FastAPI()
 
-bot=None
+bot:Bot=None
 
 @app.on_event("startup")
 async def StartUp():
     global bot
-    import repiko.core.bot as bot_core
-    bot=bot_core.Bot()
+    # import repiko.core.bot as bot_core
+    # bot=bot_core.Bot()
+    bot=Bot()
     await bot.Init()
 
 @app.on_event("shutdown")
@@ -37,16 +40,19 @@ async def MessageReceiver(backTasks:BackgroundTasks,request:Request):
         if bot.DebugMode and postType!=PostType.Meta: #不打印心跳
             print(rj)
         
+        
         sltr=None
         for s in bot.selectors:
-            if s.isAccept(postType):
-                sltr=s 
+            if s.isAccept(rj):
+                sltr=s
                 break
         if sltr:
-            msg=await sltr.asyncAction(rj,backTasks)
-            if msg and msg.quickResponse: #快速操作
-                print("quickResponse",msg.resj)
-                return msg.resj
+            msg:BaseData=await sltr.asyncAction(rj,backTasks)
+            # print(msg)
+            # print(repr(msg.content))
+            if msg and msg.quickReply: #快速操作
+                print("quickReply",msg.replyJson)
+                return msg.replyJson
     return {}
 
 #============#

@@ -1,6 +1,7 @@
 
 from repiko.core.bot import Bot
-from repiko.msg.message import Message
+from repiko.msg.data import Message
+# from repiko.msg.message import Message
 # from repiko.msg.selector import MessageSelector,NoticeSelector,RequestSelector
 from repiko.msg.selector import MessageSelector
 

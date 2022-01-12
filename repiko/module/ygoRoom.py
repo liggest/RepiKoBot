@@ -24,7 +24,7 @@ class YGORoom:
     # intRangeMap={"lp":(1,99999,8000),"time":(0,999,3),"start":(1,40,5),"draw":(0,35,1),"lflist":(1,99999,1),"rule":(1,5,5)} 
     # (下限，上限，默认值) 禁卡表数量一直在变化，故不设上限
 
-    roomSuffix=("坊","村","城","现实","屋","居室","空间","的房","之间")
+    roomSuffix=("坊","村","城","域","道","屋","馆","现实","居室","空间","之间","的房")
 
     @classmethod
     def initDuel(cls,ygodir,servers):
@@ -46,10 +46,11 @@ class YGORoom:
     @classmethod
     def parseRoom(cls,roomText:str):
         prefix=set()
-        *prefixList,name=roomText.split("#")
+        nameList=roomText.split("#")
+        *prefixList,name=nameList
         if prefixList:
             prefix.update(prefixList[0].split(","))
-            name="#".join(prefixList[1:]+[name])
+            name="#".join(nameList[1:])
         return YGORoom(name,prefix)
 
     @classmethod
@@ -81,6 +82,13 @@ class YGORoom:
             return f"{action}了{name}的房间"
         return f"{action}了房间"
 
+    @classmethod
+    def randomRoomName(cls,cdb:cdbReader):
+        result=[]
+        with cdb:
+            ct=cdb.getRandomNames(count=random.randint(1,4))
+            result=[random.choice(n) for n in ct]
+        return "".join(result)+random.choice(cls.roomSuffix)
 
     def __init__(self,name=None,prefix=None):
         self.prefix=prefix or set()
@@ -89,13 +97,13 @@ class YGORoom:
         self._host=None
         self._port=None
 
-    def randomRoomName(self,cdb:cdbReader):
-        result=[]
-        with cdb:
-            ct=cdb.getRandomNames(count=random.randint(1,4))
-            result=[random.choice(n) for n in ct]
-        self.name="".join(result)+random.choice(self.roomSuffix)
-        return self.name
+    # def randomRoomName(self,cdb:cdbReader):
+    #     result=[]
+    #     with cdb:
+    #         ct=cdb.getRandomNames(count=random.randint(1,4))
+    #         result=[random.choice(n) for n in ct]
+    #     self.name="".join(result)+random.choice(self.roomSuffix)
+    #     return self.name
 
     def togglePrefix(self,code):
         if code in self.prefix:

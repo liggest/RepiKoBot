@@ -1,8 +1,8 @@
-
 from repiko.core.bot import Bot
-from repiko.core.constant import PostType,EventNames
-from repiko.msg.message import Message
-from repiko.msg.request import RequestData
+from repiko.core.constant import PostType,EventNames,MessageType
+from repiko.msg.data import BaseData,Message,Request
+# from repiko.msg.message import Message
+# from repiko.msg.request import RequestData
 
 from fastapi import BackgroundTasks
 
@@ -10,20 +10,23 @@ from fastapi import BackgroundTasks
 class BaseSelector:
 
     ptype=PostType.Unknown
-    dataClass=None
+    # dataClass=None
 
     @classmethod
-    def isAccept(cls,pt):
-        return cls.ptype==pt
+    def isAccept(cls,rjson:dict):
+        return cls.ptype==rjson["post_type"]
 
     @classmethod
     def getEventName(cls):
         return EventNames.Receive(cls.ptype)
 
     @classmethod
-    def json2Obj(cls,j):
-        if cls.dataClass:
-            return cls.dataClass.fromJSON(j)
+    def json2Obj(cls,rjson:dict) -> BaseData:
+        dataCls=BaseData._subs.get(cls.ptype)
+        if dataCls:
+            return dataCls(rjson)
+        # if cls.dataClass:
+        #     return cls.dataClass.fromJSON(j)
         return None
 
 
@@ -32,19 +35,19 @@ class BaseSelector:
         self.eventName=self.getEventName()
         self.backTasks=[]
 
-    def action(self,j,backTasks:BackgroundTasks):
+    def action(self,rjson,backTasks:BackgroundTasks):
         self.bot.currentSelector=self
 
-        msg=self.json2Obj(j)
+        msg=self.json2Obj(rjson)
         
         self.bot.EM.send(self.eventName,msg,bot=self.bot)
 
         self.transBackTasks(backTasks)
         return msg
 
-    async def asyncAction(self,j,backTasks:BackgroundTasks):
+    async def asyncAction(self,rjson,backTasks:BackgroundTasks):
         self.bot.currentSelector=self
-        msg=self.json2Obj(j)
+        msg=self.json2Obj(rjson)
         await self.bot.EM.asyncSend(self.eventName,msg,bot=self.bot)
         self.transBackTasks(backTasks)
         return msg
@@ -60,7 +63,7 @@ class BaseSelector:
 class MessageSelector(BaseSelector):
 
     ptype=PostType.Message
-    dataClass=Message
+    # dataClass=Message
 
     # def action(self,j,backTasks:BackgroundTasks):
     #     msg:Message=super().action(j,backTasks)
@@ -82,8 +85,8 @@ class MessageSelector(BaseSelector):
     #         # self.bot.SendStrList(msg.copy(srcAsDst=True),result)
     #     return msg
 
-    async def asyncAction(self,j,backTasks:BackgroundTasks):
-        msg:Message=await super().asyncAction(j,backTasks)
+    async def asyncAction(self,rjson,backTasks:BackgroundTasks):
+        msg:Message=await super().asyncAction(rjson,backTasks)
         # if msg.realSrc in self.bot.AdminQQ: #管理
         #     if msg.content.startswith("-"):
         #         
@@ -93,7 +96,7 @@ class MessageSelector(BaseSelector):
             msg.clearAtMe()
             if msg.hasAtMe and not msg.isReply:
                 responseMsg=await self.bot.mc.AsyncAtResponse(msg)
-                msg.addQuickResponse(responseMsg) # 快速回复
+                msg.addQuickReply(responseMsg) # 快速回复
             result=await self.bot.mc.AsyncResponse(msg)
             backTasks.add_task(self.bot.AsyncSendStrs,msg.copy(srcAsDst=True),result)
         return msg
@@ -101,24 +104,24 @@ class MessageSelector(BaseSelector):
 class NoticeSelector(BaseSelector):
 
     ptype=PostType.Notice
-    dataClass=None
+    # dataClass=None
 
 class RequestSelector(BaseSelector):
 
     ptype=PostType.Request
-    dataClass=RequestData
+    # dataClass=RequestData
 
     def __init__(self,bot:Bot):
         super().__init__(bot)
 
         self.lastRequest=None
 
-    async def asyncAction(self,j,backTasks:BackgroundTasks):
-        req:RequestData=await super().asyncAction(j,backTasks)
+    async def asyncAction(self,rjson,backTasks:BackgroundTasks):
+        req:Request=await super().asyncAction(rjson,backTasks)
         
         if self.bot.AdminQQ:
             qqs=[ qq for qq in self.bot.AdminQQ if not self.bot.IsMe(qq) ]
-            msg=Message(str(req),dst=0,mtype="private")
+            msg=Message.build(str(req),dst=0,mtype=MessageType.Private)
             backTasks.add_task(self.bot.AsyncBroadcast,qqs,msg)
 
         self.lastRequest=req

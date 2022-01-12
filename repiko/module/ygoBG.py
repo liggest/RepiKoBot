@@ -1,6 +1,6 @@
-import json
+# import json
 
-from urllib import parse
+# from urllib import parse
 import httpx
 from bs4 import BeautifulSoup
 from bs4.element import PageElement, Tag
@@ -35,6 +35,10 @@ class BaiGe:
     }
 
     @staticmethod
+    def imgLink(cardId):
+        return f"https://cdn.233.momobako.com/ygopro/pics/{cardId}.jpg"
+
+    @staticmethod
     def dealInt(text:str):
         if text.isdigit():
             return int(text)
@@ -42,13 +46,13 @@ class BaiGe:
             return text
 
     def getHTML(self,url):
-        res=httpx.get(url)
+        res=httpx.get(url,timeout=20)
         return res.text
 
     async def asyncGetHTML(self,url):
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=20) as client:
             res=await client.get(url)
-        return res.text
+            return res.text
 
     def html2Card(self,html,cardPage=False):
         html=BeautifulSoup(html,"lxml")
@@ -159,7 +163,11 @@ class BaiGe:
                         if m:
                             c.linkmark.add(BaiGe.linkmark[m])
                 if c.isP:
-                    marks=data.pop(0).split("/") # 4/4
+                    if data:
+                        marks=data.pop(0).split("/") # 4/4
+                    else:
+                        # 刻度是 0/0 时好像不会展示在网页上
+                        marks=["0","0"]
                     c.Pmark=[ BaiGe.dealInt(m) for m in marks ]
                     desc=f"←{marks[0]} 【灵摆】 {marks[1]}→"+desc
                     if CardType.Normal in c.cardType:
@@ -186,6 +194,30 @@ class BaiGe:
             url=f"{self.link}?search={text}"
         html=await self.asyncGetHTML(url)
         return self.html2Card(html,cardPage=byID)
+
+    def getJSON(self,url):
+        res=httpx.get(url)
+        return res.json()
+
+    async def asyncGetJSON(self,url):
+        async with httpx.AsyncClient() as client:
+            res=await client.get(url)
+            return res.json()
+
+    def json2Card(self,rjson):
+        # TODO
+        pass
+
+    def searchAPI(self,text):
+        url=f"{self.link}api/v0/?search={text}"
+        rjson=self.getJSON(url)
+        return self.json2Card(rjson)
+
+    async def asyncSearchAPI(self,text):
+        url=f"{self.link}api/v0/?search={text}"
+        rjson=await self.asyncGetJSON(url)
+        return self.json2Card(rjson)
+
 
 if __name__ == "__main__":
     
