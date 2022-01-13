@@ -54,8 +54,8 @@ Command("aword").names("aw","一句话","一言").opt(["-t","--t"],OPT.M,"句子
 Command("eat").names("canteen").opt("-r",OPT.N,"重置列表").opt("--l",OPT.M,"添加自定义列表").opt("--ban",OPT.M,"添加排除列表")
 Command("cat").names("猫")
 
-c=Command("duel").names("决斗","duel!","duel！","决斗！","打牌","打牌！","牌","牌！")
-c.opt(["-match","-m","-M","-比赛","-三局"],OPT.N,"比赛模式").opt(["-tag","-t","-T","-双打","-麻将"],OPT.N,"双打")
+c=Command("duel").names("决斗","duel!","duel！","决斗！","打牌","打牌！","牌","牌！","房")
+c.opt(["-match","-m","-M","-比赛","-三局"],OPT.N,"比赛模式").opt(["-tag","-t","-T","-双","-双打","-麻将"],OPT.N,"双打")
 c.opt(["-ot","-OT","-ot混","-OT混"],OPT.N,"OT混").opt(["-tcg","-TCG"],OPT.N,"TCG")
 c.opt(["-lp","-LP","-基本分","-生命","-生命值","-血"],OPT.T,"基本分")
 c.opt(["-time","-tm","-TM","-时间"],OPT.T,"回合时间")
@@ -75,12 +75,14 @@ c.opt(["-me","-ME","-mine","-我","-俺","-老子"],OPT.N,"我的房")
 c.opt(["-set","-盖放"],OPT.T,"记录房").opt(["-get","-发动","-检索","-召唤","-特招"],OPT.M,"得到房")
 c.opt(["-del","-remove","-破坏","-除外","-送去墓地"],OPT.T,"移除房")
 c.opt(["-random","-r","-ran"],OPT.N,"随机房间名")
+Command("duelset").names("setduel","设房","盖牌","盖放牌")
+Command("dueldel").names("delduel","删房","炸牌","破坏牌","除外牌","送墓牌")
 
 @Events.onCmd("hello")
 def hello(_):
     return ["喵哈喽~"]
 
-CommandHelper.lineLimit=12
+CommandHelper.lineLimit=20
 
 @Events.onCmd("help")
 def helpinfo(pr:ParseResult):
@@ -460,9 +462,12 @@ def duel(pr:ParseResult):
         name=f"[CQ:at,qq={key}]"
         if msg.mtype==MessageType.Private:
             name=msg.getSrcName()
-        result.append(YGORoom.hint("移除",key,name))
+        result=[YGORoom.hint("移除",key,name)] # 移除的时候不发送房间
 
     return result
+
+Events.onCmd("duelset")(redirect("duel",[CONS,"-set"],duel))
+Events.onCmd("dueldel")(redirect("duel",[CONS,"-del"],duel))
 
 @Events.on(EventNames.StartUp)
 def botStartUP(bot:Bot):

@@ -1,0 +1,6 @@
+.duelset/.setduel/.盖放牌/.设房
+  .duel 房间 -set 的简写
+例：
+  .duelset 俺的房
+  .duelset 俺的房 -tm 0
+  .duelset 俺的房 -23333

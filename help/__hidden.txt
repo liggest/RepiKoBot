@@ -4,3 +4,8 @@ broadcast
 canteen
 ygoserver
 logodraw
+ycpic
+ydpic
+抽卡！
+duelset
+dueldel

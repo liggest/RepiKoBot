@@ -1,0 +1,6 @@
+.ydpic/.ydp/.抽卡
+  .yd -pic 的简写
+例：
+  .ydp
+  .ydp -ex
+  .抽卡

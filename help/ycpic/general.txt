@@ -1,0 +1,5 @@
+.ycpic/.ycp/.bgp 卡名
+  .yc 卡名 -pic 的简写
+例：
+  .ycp 棉花糖
+  .ycp 马卡龙棉花糖 -wiki

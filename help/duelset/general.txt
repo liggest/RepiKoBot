@@ -1,0 +1,4 @@
+.dueldel/.delduel/.破坏牌/.除外牌/.送墓牌/.删房
+  .duel -del 的简写
+例：
+  .dueldel

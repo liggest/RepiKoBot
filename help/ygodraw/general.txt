@@ -1,7 +1,8 @@
-.ygodraw/.yd/.抽卡
+.ygodraw/.yd
   抽游戏王卡
   从cards.cdb中抽取
   抽取多张时，只列出卡片名称
+  -pic/-p  以卡图形式发送（一张）
   -n 数字  抽卡张数
   -im  以图片形式发送卡片文本
   -main/-主卡组  只抽主卡组
@@ -10,6 +11,7 @@
   -na/-noalias/-无同名卡  不抽同名卡
 例：
   .yd
+  .yd -p
   .yd 5
   .yd -n 42
   .yd -im

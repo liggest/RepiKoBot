@@ -29,5 +29,6 @@ def modifyResult(pr:ParseResult,cmd:str,pattern:list=None):
                 cons.append(p)
         pr._cons=pr._cons[:1]+cons
     pr=pr.parser._parserCore.command2obj(pr,pr.parser)
+    pr.params=[]
     pr=pr.parse()
     return pr
