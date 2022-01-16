@@ -1,4 +1,16 @@
 ===更新===
+部分程序结构更新，稳定性测试中……
+新增 mahjong 指令
+ycp 指令作为 yc -p 的简写
+ydp 指令作为 yd -p 的简写
+duelset 指令作为 duel -set 的简写
+dueldel 指令作为 duel -del 的简写
+“抽卡！”后缀也响应 yd -p，详见 help 抽卡！
+优化了一些帮助文本
+2022-01-16
+===
+
+===更新===
 ygocard指令改为基于百鸽实现，稳定性测试中……
 启用ygoocg指令，对应原来基于ourocg的ygocard
 对duel做了小修改

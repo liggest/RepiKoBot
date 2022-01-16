@@ -4,6 +4,7 @@
 .duel/.决斗/.打牌/.牌  ygo约战开房
 .help  指令帮助
 .luck/.jrrp  查看今日运势(
+.mahjong/.麻将  抽麻将牌
 .roll/.r  投骰子
 .translate/.ts  基于Googletrans的谷歌翻译
 .ygocard/.yc  基于百鸽的卡查
