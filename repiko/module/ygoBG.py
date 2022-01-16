@@ -98,6 +98,8 @@ class BaiGe:
                             child=child.text
                     if isinstance(child,str):
                         desc+=child
+            if not types:
+                return None
             c=Card(types)
             c.name=info[1].h2.text
             extras=info[1].find_all("h3")

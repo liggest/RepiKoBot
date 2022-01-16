@@ -20,6 +20,8 @@ from repiko.module.hitokoto import HitokotoRequester
 from repiko.module.str2image import str2greyPng
 from repiko.module.util import redirect,asyncRedirect,CONS
 
+from repiko.module import 麻将
+
 import random
 import datetime
 import os
@@ -77,6 +79,8 @@ c.opt(["-del","-remove","-破坏","-除外","-送去墓地"],OPT.T,"移除房")
 c.opt(["-random","-r","-ran"],OPT.N,"随机房间名")
 Command("duelset").names("setduel","设房","盖牌","盖放牌")
 Command("dueldel").names("delduel","删房","炸牌","破坏牌","除外牌","送墓牌")
+
+Command("mahjong").names("maj","麻将","麻雀","雀").opt("-n",OPT.M,"张数").opt(["-和","-胡"],OPT.N,"和牌")
 
 @Events.onCmd("hello")
 def hello(_):
@@ -468,6 +472,22 @@ def duel(pr:ParseResult):
 
 Events.onCmd("duelset")(redirect("duel",[CONS,"-set"],duel))
 Events.onCmd("dueldel")(redirect("duel",[CONS,"-del"],duel))
+
+doneKW=["和了","胡了","自摸","ロン","ツモ"]
+
+@Events.onCmd("mahjong")
+def mahjong(pr:ParseResult):
+    text=pr.paramStr
+    pr.args["和"]=pr["和"] or any(k in text for k in doneKW)
+    if pr["和"]:
+        return [麻将.和()]
+    num=pr.getToType("n",14,int)
+    if text.isdigit():
+        num=int(text)
+    num=max(num,1)
+    if num>= len(麻将.山):
+        return [麻将.山]
+    return [麻将.抽(num)]
 
 @Events.on(EventNames.StartUp)
 def botStartUP(bot:Bot):
