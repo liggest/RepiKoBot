@@ -1,4 +1,6 @@
-.dueldel/.delduel/.破坏牌/.除外牌/.送墓牌/.删房
-  .duel -del 的简写
+.duelset/.setduel/.盖放牌/.设房
+  .duel 房间 -set 的简写
 例：
-  .dueldel
+  .duelset 俺的房
+  .duelset 俺的房 -tm 0
+  .duelset 俺的房 -23333
