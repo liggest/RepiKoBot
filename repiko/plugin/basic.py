@@ -45,7 +45,7 @@ Command("ygoocg").names("yo","ourocg","oo").opt("-ver",OPT.M,"翻译版本").opt
 # Command("ygoserver").names("ys")
 Command("translate").names("ts").opt("-from",OPT.M,"源语言").opt("-to",OPT.M,"目标语言").opt("-p",OPT.N,"显示发音")\
     .opt("-d",OPT.N,"检测语言").opt("-donly",OPT.N,"只检测语言")
-Command("luck").names("jrrp").opt("-yci",OPT.N,"根据运值卡查，发送图片")
+Command("luck").names("jrrp").opt("-yc",OPT.N,"根据运值卡查").opt("-yci",OPT.N,"根据运值卡查，发送图片").opt("-ycp",OPT.N,"根据运值卡查，发送卡图")
 Command("ygodraw").names("yd").opt("-n",OPT.M,"抽卡数").opt("-im",OPT.N,"以图片发送").opt(["-pic","-p"],OPT.N,"卡图")\
     .opt(["-notoken","-nt","-无衍生物"],OPT.N,"不含衍生物").opt(["-noalias","-na","-无同名卡"],OPT.N,"不含同名卡")\
     .opt(["-main","-主卡组"],OPT.N,"只含主卡组").opt(["-extra","-ex","-额外"],OPT.N,"只含额外")
@@ -80,7 +80,7 @@ c.opt(["-random","-r","-ran"],OPT.N,"随机房间名")
 Command("duelset").names("setduel","设房","盖牌","盖放牌")
 Command("dueldel").names("delduel","删房","炸牌","破坏牌","除外牌","送墓牌")
 
-Command("mahjong").names("maj","麻将","麻雀","雀").opt("-n",OPT.M,"张数").opt(["-和","-胡"],OPT.N,"和牌")
+Command("mahjong").names("maj","麻将","麻雀","雀").opt("-n",OPT.M,"张数")#.opt(["-和","-胡"],OPT.N,"和牌")
 
 @Events.onCmd("hello")
 def hello(_):
@@ -264,10 +264,12 @@ async def luck(pr:ParseResult):
     result+=luckbar[4]*barbody
     barhead=luck%4
     result+=luckbar[barhead]
-    if pr.args.get("yci",False):
-        pr.args["pic"]="-p" in pr.params or "-pic" in pr.params
+    if pr.args.get("yc") or pr.args.get("yci") or pr.args.get("ycp"):
         pr.params=[f"No.{luck}"]
-        pr.args["im"]=True
+        if pr.args.get("ycp"):
+            pr.args["pic"]=True
+        elif pr.args.get("yci"):
+            pr.args["im"]=True
         return [result]+await ygocard(pr)
     return [result]
 
@@ -476,21 +478,24 @@ def duel(pr:ParseResult):
 Events.onCmd("duelset")(redirect("duel",[CONS,"-set"],duel))
 Events.onCmd("dueldel")(redirect("duel",[CONS,"-del"],duel))
 
-doneKW=["和了","胡了","自摸","ロン","ツモ"]
+# doneKW=["和了","胡了","自摸","ロン","ツモ"]
 
 @Events.onCmd("mahjong")
 def mahjong(pr:ParseResult):
     text=pr.paramStr
-    pr.args["和"]=pr["和"] or any(k in text for k in doneKW)
-    if pr["和"]:
-        return [麻将.和()]
-    num=pr.getToType("n",14,int)
+    # pr.args["和"]=pr["和"] or any(k in text for k in doneKW)
+    #if pr["和"]:
+    #    return [麻将.和()]
+    num=pr.getToType("n",None,int)
     if text.isdigit():
         num=int(text)
-    num=max(num,1)
-    if num>= len(麻将.山):
-        return [麻将.山]
-    return [麻将.抽(num)]
+    if isinstance(num,int):
+        num=max(num,1)
+        if num>= len(麻将.山):
+            return [麻将.山]
+        return [麻将.抽(num)]
+    else:
+        return [麻将.和()]
 
 @Events.on(EventNames.StartUp)
 def botStartUP(bot:Bot):
