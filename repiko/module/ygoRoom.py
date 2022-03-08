@@ -73,6 +73,8 @@ class YGORoom:
     def removeMemberRoom(cls,key):
         if key in cls.memberRooms:
             cls.memberRooms.pop(key)
+            return True
+        return False
 
     @classmethod
     def hint(cls,action="记录",key=None,name=None):

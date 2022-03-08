@@ -60,8 +60,8 @@ c=Command("duel").names("决斗","duel!","duel！","决斗！","打牌","打牌�
 c.opt(["-match","-m","-M","-比赛","-三局"],OPT.N,"比赛模式").opt(["-tag","-t","-T","-双","-双打","-麻将"],OPT.N,"双打")
 c.opt(["-ot","-OT","-ot混","-OT混"],OPT.N,"OT混").opt(["-tcg","-TCG"],OPT.N,"TCG")
 c.opt(["-lp","-LP","-基本分","-生命","-生命值","-血"],OPT.T,"基本分")
-c.opt(["-time","-tm","-TM","-时间"],OPT.T,"回合时间")
-c.opt(["-tm0","-TM0"],OPT.N,"-tm 0 的简写")
+c.opt(["-time","-tm","-TM","-时间","-限时"],OPT.T,"回合时间")
+c.opt(["-tm0","-TM0","-不限时"],OPT.N,"-tm 0 的简写")
 c.opt(["-start","-st","-ST","-起手"],OPT.T,"起手手牌数")
 c.opt(["-draw","-dr","-DR","-抽","-抽卡","-抽牌"],OPT.T,"回合抽牌数")
 c.opt(["-lflist","-lf","-LF","-禁卡表"],OPT.T,"禁限卡表")
@@ -444,7 +444,8 @@ def duel(pr:ParseResult):
     if pr["server"]: # 只有 -s 的时候才有服务器
         if isinstance(pr["server"],str) or not room.hasServer: # -s 有值时覆盖 room 记录的服务器
             room.serverName=pr.getToType("server","2333") # server是True的话默认2333
-        result.append(room.server)
+        if room.server:
+            result.append(room.server)
 
     if pr["set"]:
         key=pr.getByType("set",msg.realSrc) #无值的场合使用QQ号
@@ -460,13 +461,15 @@ def duel(pr:ParseResult):
 
     if pr["del"]:
         key=pr.getByType("del",msg.realSrc)
-        YGORoom.removeMemberRoom(key)
-        if not isinstance(key,str):
-            key=None
-        name=f"[CQ:at,qq={key}]"
-        if msg.mtype==MessageType.Private:
-            name=msg.getSrcName()
-        result=[YGORoom.hint("移除",key,name)] # 移除的时候不发送房间
+        if YGORoom.removeMemberRoom(key):
+            if not isinstance(key,str):
+                key=None
+            name=At(msg.realSrc).CQcode
+            if msg.mtype==MessageType.Private:
+                name=msg.getSrcName()
+            result=[YGORoom.hint("移除",key,name)] # 移除的时候不发送房间
+        else:
+            result=["那个房间…本来就不存在哦…"] # 移除的时候不发送房间
 
     return result
 
