@@ -23,7 +23,7 @@ class MessagePart(dict,metaclass=MessageMeta):
 
     def __init__(self,*args,**kw):
         """ 消息片段 """
-        self._dictInit=bool(args) and not isinstance(args[0],str) and isinstance(args[0],Iterable) 
+        self._dictInit=bool(args) and not isinstance(args[0],(str,bytes)) and isinstance(args[0],Iterable) 
         # 对象是否从字典/列表/元祖等可迭代对象中创建（字符串除外）
         if self._dictInit:
             super().__init__(args[0],**kw)

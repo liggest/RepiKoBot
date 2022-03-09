@@ -1,7 +1,7 @@
 
-from PIL.Image import NONE
 from repiko.core.bot import Bot
 from repiko.core.constant import EventNames, MessageType
+from repiko.msg.content import Content
 from repiko.msg.core import MCore
 # from repiko.msg.message import Message
 from repiko.msg.data import Message
@@ -17,10 +17,12 @@ from repiko.module.google_translatation import gTranslator
 from repiko.module.ygo.card import Card
 from repiko.module.ygo.dataloader import cdbReader,confReader,ShrinkLevel
 from repiko.module.hitokoto import HitokotoRequester
-from repiko.module.str2image import str2greyPng
+from repiko.module.str2image import str2greyPng,getFilePath as getImgPath
 from repiko.module.util import redirect,asyncRedirect,CONS
 
 from repiko.module import 麻将
+from repiko.module.AA import AAMZ
+from repiko.module.AA.image import AA2img
 
 import random
 import datetime
@@ -81,6 +83,8 @@ Command("duelset").names("setduel","设房","盖牌","盖放牌")
 Command("dueldel").names("delduel","删房","炸牌","破坏牌","除外牌","送墓牌")
 
 Command("mahjong").names("maj","麻将","麻雀","雀").opt("-n",OPT.M,"张数")#.opt(["-和","-胡"],OPT.N,"和牌")
+
+Command("AA").names("aa").opt(["-R18","-r18"],OPT.N,"嘿嘿许可")
 
 @Events.onCmd("hello")
 def hello(_):
@@ -496,6 +500,18 @@ def mahjong(pr:ParseResult):
         return [麻将.抽(num)]
     else:
         return [麻将.和()]
+
+@Events.onCmd("AA")
+async def drawAA(pr:ParseResult):
+    if not AAMZ.files:
+        await AAMZ.init()
+    AAtext,file=await AAMZ.randomAA(hasR18=pr["R18"])
+    AAimg=AA2img(AAtext)
+    title=f"{file.dir}/{file.name}"
+    imgTitle=title.strip(" /").replace("/","-")+str(random.randint(0,9)) # 文件名尾部加一位随机数字
+    path=getImgPath(imgTitle,None)
+    AAimg.save(path)
+    return [ Content(title,Image(path)) ]
 
 @Events.on(EventNames.StartUp)
 def botStartUP(bot:Bot):

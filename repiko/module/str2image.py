@@ -25,18 +25,21 @@ def getFileName(title,fileName,suffix=".png"):
     else:
         return fileName+suffix
 
+def getFilePath(title,fileName,suffix=".png"):
+    return imageDir+getFileName(title,fileName,suffix)
+
 def str2greyPng(text,fileName=None):
     lines=text.splitlines()
     title=""
     if lines:
         title=lines[0]
-    fileName=getFileName(title,fileName)
-    fileName=imageDir+fileName
-    if imageExists(fileName):
-        return r"file:///"+os.path.abspath(fileName).lstrip("/")
+    # fileName=getFileName(title,fileName)
+    filePath=getFilePath(title,fileName)
+    if imageExists(filePath):
+        return r"file:///"+os.path.abspath(filePath).lstrip("/")
     img=drawText(title,lines[1:])
-    img.save(fileName)
-    return r"file:///"+os.path.abspath(fileName).lstrip("/")
+    img.save(filePath)
+    return r"file:///"+os.path.abspath(filePath).lstrip("/")
 
 def drawText(title,lines): #这里的lines不包括title
     titleSize=titleFont.getsize(title)
