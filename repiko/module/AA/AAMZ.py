@@ -79,15 +79,15 @@ def chooseContents(file:AAFile,hasR18=False):
     picked=[]
     for c in file.contents:
         cs=c.strip(" \n\r")
+        if "R18" in cs:
+            if not hasR18:
+                break
+            continue
         if cs.startswith("最終更新日"): # 最终更新日 xxx
             continue
         if cs.startswith("【") and cs.endswith("】"): # 【xxx】
             continue
         if not "\n" in cs: # 没有换行
-            continue
-        if "R18" in cs:
-            if not hasR18:
-                break
             continue
         picked.append(c)
 
