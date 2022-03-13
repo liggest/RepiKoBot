@@ -1,7 +1,8 @@
 @
+AA
 admin
 broadcast
-canteen
+eat
 ygoserver
 logodraw
 ycpic

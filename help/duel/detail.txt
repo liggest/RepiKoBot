@@ -4,7 +4,7 @@
   可以记录生成的房间代码，方便之后快捷调出
   由于选项较多，提供快捷帮助：
   .help duel code  房间代码相关选项
-  .help duel set  记录房间相关选项
+  .help duel save  记录房间相关选项
   .help duel server  服务器相关选项
   -233  233服-233
   -2333  233服-2333

@@ -12,8 +12,10 @@
 例：
   .yd
   .yd -p
+  .ydp
+  （.yd -pic 的简写）
   .yd 5
-  .yd -n 42
+  .yd 卡组抽卡 -n 42
   .yd -im
   .yd -ex -n 15
   .yd -notoken -noalias
