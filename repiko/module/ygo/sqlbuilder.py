@@ -72,6 +72,15 @@ class SQLBuilder:
                 text=text[:-len(x)]
         return cls._dealAD(text)
 
+    @staticmethod
+    def _dealADSum(text:str) -> int:
+        if text.isdigit(): 
+            val=int(text)
+            if val<=10000: # 4 位及以下的数，以及特例 10000
+                return val
+        if text=="？" or text=="?":
+            return -4
+
     @classmethod
     def dealAtkDefSum(cls,text:str) -> int:
         text=text.lower()
@@ -80,10 +89,7 @@ class SQLBuilder:
                 text=text[len(x):]
             if text.endswith(x):
                 text=text[:-len(x)]
-        val=cls._dealAD(text)
-        if val==-2:
-            return -4 # 攻守合为 ?
-        return val
+        return cls._dealADSum(text)
 
     @staticmethod
     def _dealMark(text:str) -> int:
@@ -265,11 +271,11 @@ class SQLBuilder:
         return f"d.race & {race.value}!=0"
 
     @_ensureCardType(CardType.Monster)
-    def _attributeSQL(self,attribute:CardAttribute):
+    def _attributeSQL(self,attribute:CardAttribute): # 满足一个属性的就算
         return f"d.attribute & {attribute.value}!=0"
 
     def _cardTypeSQL(self,cardType:CardType):
-        return f"d.type & {cardType.value}!=0"
+        return f"d.type & {cardType.value}={cardType.value}" # 满足所有种类的才算
 
     @_ensureCardType(CardType.Monster)
     def _attackSQL(self,attack):

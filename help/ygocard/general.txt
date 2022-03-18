@@ -1,4 +1,4 @@
-.ygocard/.yc/.bg 卡名
+.ygocard/.yc/.bg
   基于百鸽的卡查
   -pic/-p  以卡图形式发送
   -wiki  附加日文wiki链接

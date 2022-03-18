@@ -28,6 +28,7 @@ from repiko.module.AA.image import AA2img
 import random
 import datetime
 import os
+from typing import List
 # import yaml
 
 from LSparser import *
@@ -577,10 +578,14 @@ def ygocdb(pr:ParseResult):
                 c.fromCDBTuple(ct,conf.setdict,conf.lfdict)
                 if (c.alias or c.id) not in foundSet:
                     found.append(c)
-    foundName=[c.name+"\n" for c in found]
+    foundName:List[str]=[c.name+"\n" for c in found]
     if not foundName:
         return ["找不到卡片的说……"]
+    foundName[-1]=foundName[-1].rstrip()
     page=pr.getToType("page",1,int)
+    if pr["im"]:
+        filename=str2greyPng("".join(foundName),foundName[0].rstrip())
+        return [Image(filename)]
     return [CommandHelper().getPageContent(foundName,page)]
 
 @Events.on(EventNames.StartUp)
