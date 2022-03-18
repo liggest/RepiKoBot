@@ -14,9 +14,6 @@ contentUrl=None
 
 files=[]
 
-# url=r"https://aa.yaruyomi.com/api/matome-zip/comp/file/list"
-# url=r"https://aa.yaruyomi.com/api/events/url"
-# url=r"https://aa.yaruyomi.com/api/matome-zip/file/contents"
 
 clientVar=ContextVar("client",default=None)
 

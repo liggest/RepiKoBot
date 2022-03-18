@@ -1,6 +1,6 @@
-from enum import Enum
+from enum import Enum,IntFlag
 
-class CardType(Enum):
+class CardType(IntFlag):
     Monster=0x1
     Spell=0x2
     Trap=0x4
@@ -30,7 +30,9 @@ class CardType(Enum):
     Link=0x4000000
 
     def __str__(self):
-        return cardType2str[self]
+        if self in cardType2str:
+            return cardType2str[self]
+        return super().__str__()
     
     __repr__=__str__
 
@@ -70,7 +72,7 @@ cardType2str={
 str2cardType=dict( map( reversed,cardType2str.items() ) )
 str2cardType["XYZ"]=CardType.Xyz
 
-class CardAttribute(Enum):
+class CardAttribute(IntFlag):
     Earth=0x01
     Water=0x02
     Fire=0x04
@@ -80,7 +82,9 @@ class CardAttribute(Enum):
     Divine=0x40 #神属性
 
     def __str__(self):
-        return cardAttribute2str[self]
+        if self in cardAttribute2str:
+            return cardAttribute2str[self]
+        return super().__str__()
     
     __repr__=__str__
 
@@ -100,7 +104,7 @@ cardAttribute2str={
 
 str2cardAttribute=dict( map( reversed,cardAttribute2str.items() ) )
 
-class CardRace(Enum):
+class CardRace(IntFlag):
     Warrior=0x1
     Spellcaster=0x2
     Fairy=0x4
@@ -128,7 +132,9 @@ class CardRace(Enum):
     Cyberse=0x1000000
 
     def __str__(self):
-        return cardRace2str[self]
+        if self in cardRace2str:
+            return cardRace2str[self]
+        return super().__str__()
     
     __repr__=__str__
 
@@ -165,8 +171,9 @@ cardRace2str={
 }
 
 str2cardRace=dict( map( reversed,cardRace2str.items() ) )
+str2cardRace["爬虫"]=CardRace.Reptile
 
-class LinkMark(Enum):
+class LinkMark(IntFlag):
     BottomLeft=0x001
     Bottom=0x002
     BottomRight=0x004
@@ -177,23 +184,24 @@ class LinkMark(Enum):
     Top=0x080
     TopRight=0x100
 
-    def toNumber(self):
+    def toNumber(self): # 1-9
         binstr=bin(self.value)[2:]
         return len(binstr)
 
     def __str__(self):
         return linkMark2str[ self.toNumber()-1 ]
 
-    __repr__=__str__
+    # __repr__=__str__
 
     @staticmethod
     def fromNumber(num,withmid=False):
         if withmid:
             if num>4:
                 num=num-1
-        return number2linkMark[num-1]
+        # return number2linkMark[num-1]
+        return list(LinkMark)[num-1]
 
-number2linkMark=[lm for lm in LinkMark]
+# number2linkMark=[lm for lm in LinkMark]
 # linkMark2str=[" ◣"," ↓ ","◢ ","←","   ","→"," ◤"," ↑ ","◥ "]
 linkMark2str=["↙","⬇","↘","⬅","    ","➡","↖","⬆","↗"] # "⏺"
 

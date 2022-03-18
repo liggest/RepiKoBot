@@ -16,6 +16,7 @@ class Card():
 
         self.category=set() #效果种类
         
+        self.alias=None # 作为同名卡在数据库中的实际卡号
         self.isRD=False
 
         # 一系列链接
@@ -78,7 +79,7 @@ class Card():
             else:
                 self.cardType.add(t)
     
-    def checkAndFill(self,text,filltext,default=""):
+    def checkAndFill(self,text,filltext:str,default=""):
         if not text is None:
             return filltext.format( text )
         return default
@@ -139,6 +140,7 @@ class Card():
         elif t[3]==2:
             self.ot="TCG专有卡"
         if t[4]!=0:
+            self.alias=self.id
             self.id=t[4]
         if setdict:
             setval=t[5]
@@ -215,3 +217,5 @@ class Card():
 
 if __name__ == "__main__":
     print(CardType.Token)
+    print(list(CardType))
+    print(CardType.Xyz | CardType.Pendulum)

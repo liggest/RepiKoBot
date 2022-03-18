@@ -16,6 +16,7 @@ from repiko.module.calculator import Calculator
 from repiko.module.google_translatation import gTranslator
 from repiko.module.ygo.card import Card
 from repiko.module.ygo.dataloader import cdbReader,confReader,ShrinkLevel
+from repiko.module.ygo.sqlbuilder import SQLBuilder
 from repiko.module.hitokoto import HitokotoRequester
 from repiko.module.str2image import str2greyPng,getFilePath as getImgPath
 from repiko.module.util import redirect,asyncRedirect,CONS
@@ -36,7 +37,7 @@ Command("-hello")
 Command("help").names("?","？").opt("-p",OPT.M,"页数")# .opt("-im",OPT.N,"以图片发送")
 Command("calculate").names("cal").opt("-show",OPT.N,"显示计算过程")
 Command("roll").names("r").opt("-act",OPT.M,"要投骰子的行动")
-Command("ygocard").names("yc","bg").opt("-im",OPT.N,"以图片发送").opt(["-pic","-p"],OPT.N,"卡图")\
+Command("ygocard").names("yc","bg","卡查","查卡").opt("-im",OPT.N,"以图片发送").opt(["-pic","-p"],OPT.N,"卡图")\
     .opt("-database",OPT.N,"数据库链接").opt("-QA",OPT.N,"Q&A链接").opt("-wiki",OPT.N,"wiki链接")\
     .opt("-yugipedia",OPT.N,"Yugipedia链接").opt("-ourocg",OPT.N,"OurOcg链接")\
     .opt(["-script","-lua"],OPT.N,"脚本链接").opt(["-ocgRule","-rule"],OPT.N,"裁定链接").opt(["-url","-link"],OPT.N,"百鸽链接")
@@ -85,6 +86,26 @@ Command("dueldel").names("delduel","删房","炸牌","破坏牌","除外牌","�
 Command("mahjong").names("maj","麻将","麻雀","雀").opt("-n",OPT.M,"张数")#.opt(["-和","-胡"],OPT.N,"和牌")
 
 Command("AA").names("aa").opt(["-R18","-r18"],OPT.N,"嘿嘿许可")
+
+def toLS(*args):
+    for x in args:
+        yield f"--{x}"
+        yield f"-{x}"
+
+Command("ygocdb").names("ycdb","cdb").opt("-im",OPT.N,"以图片发送")\
+    .opt([*toLS("race","种族","族")],OPT.M,"种族")\
+    .opt([*toLS("attr","属性")],OPT.M,"属性")\
+    .opt([*toLS("type","t","种类","类型")],OPT.M,"卡片类型")\
+    .opt([*toLS("level","lv","LV","Lv","l","L","等级","星")],OPT.M,"等级")\
+    .opt([*toLS("rank","r","R","阶级","阶")],OPT.M,"阶级")\
+    .opt([*toLS("link","LINK","Link","连接","链接")],OPT.M,"连接标识")\
+    .opt([*toLS("P","刻度","灵摆")],OPT.M,"灵摆刻度")\
+    .opt([*toLS("atk","ATK","Atk","攻击力","攻击","打点","攻")],OPT.M,"攻击力")\
+    .opt([*toLS("def","DEF","Def","守备力","防御力","守备","防御","守","防")],OPT.M,"守备力")\
+    .opt([*toLS("atk+def","a+d","攻守和","攻防和","攻加守","攻加防","攻守","攻防","魂")],OPT.M,"攻守和")\
+    .opt([*toLS("id","Id","ID","卡号","卡密")],OPT.M,"卡片密码")\
+    .opt(["-atk=def","-a=d","-攻守相同","-攻守相等","-等攻守","-等攻防","-同攻守","-同攻防","-攻防相同","-攻防相等","-机巧"],OPT.N,"是否攻守相同")\
+    .opt(["-page","-p"],OPT.M,"页数")
 
 @Events.onCmd("hello")
 def hello(_):
@@ -512,6 +533,55 @@ async def drawAA(pr:ParseResult):
     path=getImgPath(imgTitle,None)
     AAimg.save(path)
     return [ Content(title,Image(path)) ]
+
+def asGen(val):
+    if isinstance(val,(list,tuple)):
+        yield from val
+    elif not val is None:
+        yield val
+
+builderMap={
+    "race":"race","attr":"attribute","type":"cardType","level":"level","rank":"rank","link":"link","P":"Pmark","atk":"attack","def":"defence","atk+def":"atkDefSum","id":"id"
+}
+
+@Events.onCmd("ygocdb")
+def ygocdb(pr:ParseResult):
+    cdb:cdbReader=pr.parserData["mc"].data["ygocdb"]
+    conf:confReader=pr.parserData["mc"].data["ygoconf"]
+    builder=SQLBuilder()
+    paramStr=pr.paramStr
+    if paramStr.strip():
+        builder.keyword(*pr.params)
+    for k,v in builderMap.items():
+        val=pr[k]
+        if val:
+            getattr(builder,v)(*asGen(val))
+    if pr["atk=def"]:
+        builder.atkEqDef()
+    if not builder.materials:
+        return ["空气怎么查啊！"]
+    foundSet=set()
+    found=[]
+    with cdb:
+        directSearch=cdb.getCardsByName(paramStr)
+        if directSearch:
+            for ct in directSearch:
+                c=Card()
+                c.fromCDBTuple(ct,conf.setdict,conf.lfdict)
+                foundSet.add(c.alias or c.id)
+                found.append(c)
+        builderSearch=cdb.getCardsByBuilder(builder,num=100)
+        if builderSearch:
+            for ct in builderSearch:
+                c=Card()
+                c.fromCDBTuple(ct,conf.setdict,conf.lfdict)
+                if (c.alias or c.id) not in foundSet:
+                    found.append(c)
+    foundName=[c.name+"\n" for c in found]
+    if not foundName:
+        return ["找不到卡片的说……"]
+    page=pr.getToType("page",1,int)
+    return [CommandHelper().getPageContent(foundName,page)]
 
 @Events.on(EventNames.StartUp)
 def botStartUP(bot:Bot):

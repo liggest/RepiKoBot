@@ -1,8 +1,9 @@
-import functools
+# import functools
 import sqlite3
-import os
+# import os
 from enum import Enum
 import typing
+from .sqlbuilder import SQLBuilder
 
 class ShrinkLevel(str,Enum):
     #TODO flag
@@ -71,20 +72,23 @@ class cdbReader():
             raise Exception("no cdb connection")
 
     @staticmethod
-    def listOfSQL(lens): # lens=3 -> (?,?,?)
-        return "(" + ",".join(["?"]*lens) + ")"
+    def listOfSQL(num:int): # lens=3 -> (?,?,?)
+        return "(" + ",".join(["?"]*num) + ")"
 
     @staticmethod
     def unique(lst): # [111,111,222] -> [111,222]
         return list( set(lst) )
 
-    def getCardByID(self,id): #id是整数
+    def getCardByID(self,id:int): #id是整数
         self.cursor.execute("SELECT t.name,t.DESC,d.* FROM texts t INNER JOIN datas d ON t.id=d.id WHERE t.id=?",(id,))
-        return self.cursor.fetchall()[0]
+        # return self.cursor.fetchall()[0]
+        return self.cursor.fetchone()
 
     def getCardsByIDs(self,*ids): #ids是元祖、列表之类的
         sql="SELECT t.name,t.DESC,d.* FROM texts t INNER JOIN datas d ON t.id=d.id WHERE t.id IN "
         sql+=cdbReader.listOfSQL(len(ids))
+        # print(sql)
+        # print(ids)
         self.cursor.execute(sql,tuple(ids) )
         return self.cursor.fetchall()
 
@@ -92,6 +96,11 @@ class cdbReader():
         self.cursor.execute("SELECT id FROM texts WHERE name=?",(name,))
         ids=self.cursor.fetchall()
         return [x[0] for x in ids]
+
+    def getCardsByName(self,name):
+        ids=self.getIDsByName(name)
+        if ids:
+            return self.getCardsByIDs(*ids)
 
     def getCardCount(self,shrink=0): #full 0 全部 1 无衍生物 2 无同名卡无衍生物
         level=ShrinkLevel.fromInt(shrink)
@@ -115,6 +124,18 @@ class cdbReader():
 
     def getCardsByInput(self,ipt):
         pass
+
+    def getCardsByBuilder(self,builder:SQLBuilder,num=50):
+        tail=f"ORDER BY d.level & 15 DESC,d.type LIMIT {num}" # 15=>0b1111
+        sql=builder.resolve()
+        sql=f"{sql} {tail}"
+        # print(sql)
+        # print(builder.params)
+        if builder.params:
+            self.cursor.execute(sql,tuple(builder.params))
+        else:
+            self.cursor.execute(sql)
+        return self.cursor.fetchall()
 
     def getYDCards(self):
         self.cursor.execute("SELECT id FROM datas WHERE type & 0x48060C0=0 ORDER BY RANDOM() limit 60")
@@ -161,13 +182,13 @@ class confReader():
 if __name__ == "__main__":
 
     conf=confReader()
-    conf.loadLFlist("lflist.conf")
-    conf.loadSets("strings.conf")
+    conf.loadLFlist("./ygo/lflist.conf")
+    conf.loadSets("./ygo/strings.conf")
     #print(conf.lfname)
     #print(conf.lfdict)
     #print(conf.setdict)
     cdb=cdbReader()
-    cdb.connect("cards.cdb")
+    cdb.connect("./ygo/cards.cdb")
     ipt=""
     #result=cdb.getCardsByIDs([1861629, 1861630])
     #print(result)
@@ -180,8 +201,10 @@ if __name__ == "__main__":
         #except:
         #    print("不好使")
     '''
-    ids=cdb.getRandomIDs()
-    cts=cdb.getCardsByIDs(*ids)
+    ct=cdb.getCardByID(9999)
+    print(ct)
+    # ids=cdb.getRandomIDs()
+    # cts=cdb.getCardsByIDs(*ids)
     #c=Card()
     #c.fromCDBTuple(cts[0],conf.setdict,conf.lfdict)
     #print( c )
