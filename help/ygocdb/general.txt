@@ -1,5 +1,5 @@
 .ygocdb/.ycdb/.cdb
-  基于 cards.cdb 的卡查
+  基于 cards.cdb 的游戏王卡查
 例：
   .ycdb 解码语者
   .ycdb 机巧 -同攻守

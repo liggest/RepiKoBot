@@ -101,8 +101,8 @@ class Card():
         if len(self.set)>0: #卡片种类
             result+="系列 "+" ".join(self.set)+"\n"
         if self.isMonster:
-            result+=self.checkAndFill(self.race,"{}族")
-            result+=self.checkAndFill(self.attribute,"  {}属性")
+            result+=self.checkAndFill(str(self.race),"{}族")
+            result+=self.checkAndFill(str(self.attribute),"  {}属性")
             if self.isXyz:
                 result+=self.checkAndFill(self.rank,"  {}阶\n")
             if self.isLink:

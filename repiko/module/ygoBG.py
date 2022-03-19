@@ -104,7 +104,7 @@ class BaiGe:
             c.name=info[1].h2.text
             extras=info[1].find_all("h3")
             # print(extras)
-            c.id=extras.pop().text
+            c.id=extras.pop().findChild("span").text
             
             if len(extras)<2:
                 if extras[-1].text.isascii():

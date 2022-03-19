@@ -1,5 +1,4 @@
 @
-AA
 admin
 broadcast
 eat

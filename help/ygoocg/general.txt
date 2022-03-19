@@ -1,5 +1,5 @@
 .ygoocg/.yo/.ourocg/.oo 卡名
-  基于OurOcg的卡查
+  基于OurOcg的游戏王卡查
   -pic/-p  以卡图形式发送
   -ver cn/nw  切换翻译版本为NW（默认）或CN
   -wiki  提供日文wiki链接
