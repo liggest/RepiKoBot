@@ -1,19 +1,19 @@
 admin:
-  adminQQ:
+  adminQQ: # 管理者 QQ
   - 10086
-broadcast:
-  update: # 群号
-    group:
+broadcast: # broadcast 指令相关，可忽略
+  update: 
+    group: # 群号
     - 10086
     - 10086
-system:
+system: # bot 相关
   name: RepiKo
   myQQ: 10086
-  postURL: http://host:port/
-  secret: post_secret
-ygo:
-  ygoPath: /path/to/ygoroot/
-  servers:
+  postURL: http://host:port/ # 请求目标的 URL
+  secret: post_secret # 那边配置的密钥
+ygo: # ygo 相关指令的相关设置
+  ygoPath: /path/to/ygoroot/ # ygopro 路径
+  servers: # 服务器列表
     "233": ["s1.ygo233.com",233]
     编年史: ["duelstart.com",2333]
     2pick: ["2pick.mycard.moe",765]

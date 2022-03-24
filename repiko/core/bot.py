@@ -59,7 +59,7 @@ class Bot():
             await self._aClient.aclose()
 
     #读取配置文件
-    def LoadConfig(self,path=r"config/config.yaml") -> dict:
+    def LoadConfig(self,path=r"config/config.yaml") -> typing.Dict[str,typing.Dict]:
         if not os.path.exists(path):
             return None
         with open(path,encoding="utf-8") as f:
@@ -78,8 +78,8 @@ class Bot():
         self.POSTURL=self.config["system"]["postURL"]
         print("bot的命根子："+self.POSTURL)
         # self.AdminQQ=[int(x.strip()) for x in self.config["admin"]["adminQQ"].split(",")]
-        self.AdminQQ:typing.List[int]=self.config["admin"]["adminQQ"]
-        self.SECRET=str.encode(self.config["system"]["secret"])
+        self.AdminQQ:typing.List[int]=self.config["admin"].get("adminQQ",[])
+        self.SECRET=str.encode(self.config["system"].get("secret",""))
         # self.broadcastGroup={}
         # for k,v in self.config["broadcast"].items():
         #     # self.broadcastGroup[k]=[int(x.strip()) for x in v.split(",")]
