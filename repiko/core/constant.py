@@ -75,13 +75,22 @@ class EventNames:
     """ 各种 bot 事件名 """
 
     StartUp="bot-StartUp"
-    """ bot 启动 \n f(bot:Bot) -> None """
+    """ bot 启动 \n (bot:Bot) -> None """
     ShutDown="bot-ShutDown"
-    """ bot 关闭 \n f(bot:Bot) -> None """
+    """ bot 关闭 \n (bot:Bot) -> None """
     MsgCoreInit="msgcore-Init"
-    """ msg.core 初始化 \n f(core:MCore) -> None """
+    """ msg.core 初始化 \n (core:MCore) -> None """
 
     @staticmethod
     def Receive(pt:PostType):
-        """  收到 pt 事件 \n\n (msg:Message,bot:Bot=bot) -> None """
+        """  收到 pt 事件 \n\n (msg:Message,bot:Bot) -> None """
         return f"receive-{pt.name}"
+
+    AtMe="msg-AtMe"
+    """ 收到 @bot 的消息 \n (msg:Message,bot:Bot) -> None """
+    ReplyMe="msg-ReplyMe"
+    """ 收到回复 bot 的消息 \n (msg:Message,bot:Bot) -> None """
+    # PokeMe="msg-PokeMe"
+    # """ 收到戳 bot 的消息 \n (msg:Message,bot:Bot) -> None """
+    # WithDraw="notice-WithDraw"
+    # """ 收到撤回消息 \n (nti:Notice,bot:Bot) -> None """

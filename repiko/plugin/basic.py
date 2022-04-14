@@ -6,6 +6,7 @@ from repiko.msg.core import MCore
 # from repiko.msg.message import Message
 from repiko.msg.data import Message
 from repiko.msg.part import MessagePart,Share,Image,At
+from repiko.msg.util import CQunescapeComma
 
 import repiko.module.ygoOurocg_ver4 as ygotest
 from repiko.module.ygoBG import BaiGe
@@ -18,16 +19,17 @@ from repiko.module.ygo.card import Card
 from repiko.module.ygo.dataloader import cdbReader,confReader,ShrinkLevel
 from repiko.module.ygo.sqlbuilder import SQLBuilder
 from repiko.module.hitokoto import HitokotoRequester
-from repiko.module.str2image import str2greyPng,getFilePath as getImgPath
+from repiko.module.str2image import str2greyPng,getFilePath as getImgPath,initFont as initNormalFont
 from repiko.module.util import redirect,asyncRedirect,CONS
 
 from repiko.module import 麻将
 from repiko.module.AA import AAMZ
-from repiko.module.AA.image import AA2img
+from repiko.module.AA.image import AA2img,initFont as initAAFont
 
 import random
 import datetime
 import os
+import re
 from typing import List
 # import yaml
 
@@ -127,7 +129,7 @@ def helpinfo(pr:ParseResult):
     page=pr.getToType("p",1,int)
     result=h.getHelp(pr.params,page)
     if result:
-        return [result]
+        return [CQunescapeComma(result)]
     return ["是没见过的帮助呢"]
 
 @Events.onCmd("calculate")
@@ -523,6 +525,12 @@ def mahjong(pr:ParseResult):
     else:
         return [麻将.和()]
 
+def initFont(bot:Bot):
+    paths=bot.config.get("font")
+    if paths:
+        initNormalFont(paths.get("normal"))
+        initAAFont(paths.get("AA"))
+
 @Events.onCmd("AA")
 async def drawAA(pr:ParseResult):
     if not AAMZ.files:
@@ -588,9 +596,22 @@ def ygocdb(pr:ParseResult):
         return [Image(filename)]
     return [CommandHelper().getPageContent(foundName,page)]
 
+itemSplitter=re.compile(r"[\/、\\，\,\|;]") # \ / 、 , ， | ;
+
+Command("choose").names("choice","选择","选","抽","挑","帮我决定")
+
+@Events.onCmd("choose")
+def choose(pr:ParseResult):
+    if not pr.params:
+        return [random.choice(["听天由命","顺其自然","无中生有","空气","　"])]
+    if len(pr.params)==1:
+        return [random.choice(itemSplitter.split(pr.paramStr))]
+    return [random.choice([item for item in pr.params if item!="\n"])]
+
 @Events.on(EventNames.StartUp)
 def botStartUP(bot:Bot):
     copyYGO(bot)
+    initFont(bot)
 
 @Events.on(EventNames.MsgCoreInit)
 def coreInit(core:MCore):

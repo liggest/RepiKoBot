@@ -4,17 +4,26 @@ import os
 
 marginSize=(20,20)
 standardWidth=640
-titleFont=ImageFont.truetype(r"font/PingFang Regular.ttf",24) #总之需要一个字体
+# titleFont=ImageFont.truetype(r"font/PingFang Regular.ttf",24) #总之需要一个字体
+titleFont:ImageFont.FreeTypeFont=None
 titleSpacing=3
 titleXY=(marginSize[0]//2,marginSize[1]//2)
-font=ImageFont.truetype(r"font/PingFang Regular.ttf",16)
+# font=ImageFont.truetype(r"font/PingFang Regular.ttf",16)
+font:ImageFont.FreeTypeFont=None
 spacing=2
-lineHeight=font.getsize("A")[1]
+lineHeight:int=None
 imageDir=r"image/"
 if not os.path.exists(imageDir):
     os.makedirs(imageDir)
 
-def getFileName(title,fileName,suffix=".png"):
+def initFont(path:str):
+    global titleFont,font,lineHeight
+    titleFont=ImageFont.truetype(path,24) #总之需要一个字体
+    font=ImageFont.truetype(path,16)
+    lineHeight=font.getsize("A")[1]
+
+
+def getFileName(title:str,fileName,suffix=".png"):
     if fileName is None:
         if title.strip()=="":
             fileName="noName"
@@ -28,7 +37,7 @@ def getFileName(title,fileName,suffix=".png"):
 def getFilePath(title,fileName,suffix=".png"):
     return imageDir+getFileName(title,fileName,suffix)
 
-def str2greyPng(text,fileName=None):
+def str2greyPng(text:str,fileName=None):
     lines=text.splitlines()
     title=""
     if lines:
@@ -42,6 +51,8 @@ def str2greyPng(text,fileName=None):
     return r"file:///"+os.path.abspath(filePath).lstrip("/")
 
 def drawText(title,lines): #这里的lines不包括title
+    if not titleFont or not font:
+        raise ValueError("还没有字体！")
     titleSize=titleFont.getsize(title)
     maxWidth=max(standardWidth,titleSize[0])
     height=titleSize[1]+titleSpacing
@@ -63,6 +74,8 @@ def drawText(title,lines): #这里的lines不包括title
     return img
 
 def splitLine(line,maxWidth):
+    if not font:
+        raise ValueError("还没有字体！")
     lineSize=list(font.getsize(line))
     lineSize[1]=lineHeight
     if lineSize[0]<=maxWidth:

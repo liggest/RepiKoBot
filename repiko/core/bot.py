@@ -15,7 +15,7 @@ import time
 from LSparser import Events,CommandCore
 
 import repiko.core.loader as loader
-from repiko.core.constant import EventNames
+from repiko.core.constant import EventNames,MessageType
 from repiko.msg.data import Message,Request
 # from repiko.msg.message import Message
 # from repiko.msg.request import RequestData
@@ -253,16 +253,17 @@ class Bot():
                     self.SendMessage(msg)
 
     async def AsyncBroadcast(self,qqs:typing.Union[list,dict],msg:Message):
-        if isinstance(qqs,list):
-            for qq in qqs:
-                msg.dst=qq
-                await self.AsyncSend(msg)
-        else:
+        if isinstance(qqs,dict):
             for mt in qqs.keys():
                 msg.mtype=mt
                 for qq in qqs[mt]:
                     msg.dst=qq
                     await self.AsyncSend(msg)
+        else:
+            for qq in qqs:
+                msg.dst=qq
+                await self.AsyncSend(msg)
+            
 
     # #rj=requestJSON
     # def GetReceiveQQ(self,rj,mt):
@@ -369,7 +370,40 @@ class Bot():
         return result
 
     async def ResolveReq(self,req:Request):
-        await self.AsyncPost("set_group_add_request",req.sendParam)
+        if req.isGroupReq:
+            await self.AsyncPost("set_group_add_request",req.sendParam)
+        elif req.isFriendReq:
+            await self.AsyncPost("set_friend_add_request",req.sendParam)
+
+    async def GetMsg(self,msgID:int,mtype=MessageType.Private):
+        # TODO
+        res=await self.AsyncPost("get_msg",{"message_id":msgID})
+        rj:dict=res.json()
+        # print("rj")
+        # print(rj)
+        if rj.get("status")=="failed":
+            return None
+        rj=rj["data"]
+        return Message(
+            rj,
+            post_type="message",
+            message_type=mtype,
+            user_id=rj.get("sender",{}).get("user_id",0),
+            self_id=self.MYQQ
+        )
+    
+    async def DeleteMsg(self,msgID:int):
+        await self.AsyncPost("delete_msg",{"message_id":msgID})
+
+    async def GroupMemberInfo(self,group:int,qq:int,cache=True) -> dict:
+        param={
+            "group_id":group,
+            "user_id":qq,
+            "no_cache":not cache
+        }
+        res=await self.AsyncPost("get_group_member_info",param)
+        rj:dict=res.json()
+        return rj.get("data",{})
 
     # def CopyYGO(self):
     #     cplist=["cards.cdb","lflist.conf","strings.conf"]

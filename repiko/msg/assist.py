@@ -1,8 +1,9 @@
 from typing import Iterable, Text
 
-from LSparser.command import ParserCore
+from LSparser.command import ParserCore,ParseResult
 
-from repiko.msg.part import MessagePart,Text
+from repiko.msg.part import At, MessagePart,Text
+from repiko.msg.content import Content
 from repiko.msg.data import Message
 
 # class TupleStr(tuple):
@@ -87,11 +88,20 @@ class CustomParser(ParserCore):
     @classmethod
     def getCommand(cls,t,pr,parser):
         if isinstance(t,Message):
-            pr=cls.getCommandStr(str(t),pr,parser)
+            if t.isReply:
+                pr=cls.getCommandStr(str(t.noReplyContent),pr,parser) # 除去 Reply
+            else:
+                pr=cls.getCommandStr(str(t),pr,parser)
             # print(pr._cons)
         else:
             pr=super().getCommand(t,pr,parser)
         return pr
+
+    @classmethod
+    def isCommand(cls,t,cp):
+        pr=ParseResult(parser=cp)
+        pr=cls.getCommand(t,pr,cp)
+        return pr.isCommand()
 
     # @staticmethod
     # def tryYieldCurrent(current:list,strEnd=True):

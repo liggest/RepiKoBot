@@ -440,13 +440,14 @@ class Content(list):
             return super().pop(idx)
         # self._updatePart(lambda x: x-1 if x>idx else x)  # 所有在弹出片段后的片段下标-1
         part:MessagePart=super().pop(idx)
-        typedParts=self.parts[part.partType]
-        oldi=0
-        while not (typedParts[oldi] is part):
-            oldi+=1
-        typedParts.pop(oldi)
-        if not typedParts:
-            del self.parts[part.partType]
+        if self._parts:
+            typedParts=self.parts[part.partType]
+            oldi=0
+            while not (typedParts[oldi] is part):
+                oldi+=1
+            typedParts.pop(oldi)
+            if not typedParts:
+                del self.parts[part.partType]
         return part
 
     def remove(self,val:MessagePart):
@@ -459,10 +460,11 @@ class Content(list):
         #     # self._reinitPart()
         # else:
         super().remove(val)
-        typedParts=self.parts[val.partType]
-        typedParts.remove(val)
-        if not typedParts:
-            del self.parts[val.partType]
+        if self._parts:
+            typedParts=self.parts[val.partType]
+            typedParts.remove(val)
+            if not typedParts:
+                del self.parts[val.partType]
 
     def removeAll(self,val:MessagePart) -> int:
         """
@@ -490,8 +492,9 @@ class Content(list):
 
     def reverse(self):
         super().reverse()
-        for parts in self.parts.values():
-            parts.reverse()
+        if self._parts:
+            for parts in self.parts.values():
+                parts.reverse()
         # l=len(self)-1
         # self._updatePart(lambda x: l-x) # 元素的下标 x 变为 l-x
 

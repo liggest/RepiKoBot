@@ -1,5 +1,5 @@
 from repiko.core.bot import Bot
-from repiko.core.constant import PostType,EventNames,MessageType
+from repiko.core.constant import PostType,EventNames
 from repiko.msg.data import BaseData,Message,Request
 # from repiko.msg.message import Message
 # from repiko.msg.request import RequestData
@@ -39,6 +39,7 @@ class BaseSelector:
         self.bot.currentSelector=self
 
         msg=self.json2Obj(rjson)
+        msg.selector=self
         
         self.bot.EM.send(self.eventName,msg,bot=self.bot)
 
@@ -48,6 +49,7 @@ class BaseSelector:
     async def asyncAction(self,rjson,backTasks:BackgroundTasks):
         self.bot.currentSelector=self
         msg=self.json2Obj(rjson)
+        msg.selector=self
         await self.bot.EM.asyncSend(self.eventName,msg,bot=self.bot)
         self.transBackTasks(backTasks)
         return msg
@@ -93,10 +95,16 @@ class MessageSelector(BaseSelector):
         #         adminr=self.bot.ac.GetAdminResponse(msg.content)
         #         backTasks.add_task(self.bot.AsyncSendStrs,msg.copy(srcAsDst=True),adminr)
         if not self.bot.IsMe(msg.realSrc): #如果不是自己发的，响应消息
-            msg.clearAtMe()
-            if msg.hasAtMe and not msg.isReply:
+            # print(repr(msg))
+            await msg.clearAtMe()
+            if msg.isReply and msg.hasReplyMe:
+                responseMsg=await self.bot.mc.AsyncReplyResponse(msg)
+                if responseMsg:
+                    msg.addQuickReply(responseMsg,atSender=False,replySender=True) # 快速回复消息
+            elif msg.hasAtMe:
                 responseMsg=await self.bot.mc.AsyncAtResponse(msg)
-                msg.addQuickReply(responseMsg) # 快速回复
+                if responseMsg:
+                    msg.addQuickReply(responseMsg) # 快速回复 带@
             result=await self.bot.mc.AsyncResponse(msg)
             backTasks.add_task(self.bot.AsyncSendStrs,msg.copy(srcAsDst=True),result)
         return msg
@@ -119,10 +127,10 @@ class RequestSelector(BaseSelector):
     async def asyncAction(self,rjson,backTasks:BackgroundTasks):
         req:Request=await super().asyncAction(rjson,backTasks)
         
-        if self.bot.AdminQQ:
-            qqs=[ qq for qq in self.bot.AdminQQ if not self.bot.IsMe(qq) ]
-            msg=Message.build(str(req),dst=0,mtype=MessageType.Private)
-            backTasks.add_task(self.bot.AsyncBroadcast,qqs,msg)
+        # if self.bot.AdminQQ:
+        #     qqs=[ qq for qq in self.bot.AdminQQ if not self.bot.IsMe(qq) ]
+        #     msg=Message.build(str(req),dst=0,mtype=MessageType.Private)
+        #     backTasks.add_task(self.bot.AsyncBroadcast,qqs,msg)
 
         self.lastRequest=req
 

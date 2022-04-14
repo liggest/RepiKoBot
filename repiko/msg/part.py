@@ -140,6 +140,7 @@ class Text(MessagePart):
     """ 纯文本内容 """
 
     def __init__(self,*texts:str,**kw):
+        """ 文本 """
         super().__init__(*texts,**kw)
         if not self._dictInit:          # 不从字典创建
             self.text="\n".join(texts)
@@ -160,6 +161,7 @@ class Face(MessagePart):
     """ 表情ID """
 
     def __init__(self,id:str,**kw):
+        """ 表情 """
         super().__init__(id,**kw)
         if not self._dictInit:
             self.id=str(id)
@@ -178,6 +180,7 @@ class At(MessagePart):
     """ 群内找不到QQ号时生效的名称 """
 
     def __init__(self,qq:str,name:str=None,**kw):
+        """ @ """
         super().__init__(qq,name,**kw)
         if not self._dictInit:
             self.qq=str(qq)
@@ -198,6 +201,7 @@ class Share(MessagePart):
     """ 图片 url """
 
     def __init__(self,url:str,title:str="",content:str=None,imageUrl:str=None,**kw):
+        """ 链接分享 """
         super().__init__(url,title,content,imageUrl,**kw)
         if not self._dictInit:
             self.url=url
@@ -232,6 +236,7 @@ class Reply(MessagePart):
     """ 自定义回复 - 起始消息序号 """
 
     def __init__(self,msgID:int,**kw):
+        """ 回复 """
         super().__init__(msgID,**kw)
         if not self._dictInit:
             self.id=int(msgID)
@@ -280,6 +285,7 @@ class Image(MessagePart):
     """ 秀图特效 id """
 
     def __init__(self,file,type:str=None,cache:bool=None,**kw):
+        """ 图片 """
         super().__init__(file,type,cache,**kw)
         if not self._dictInit:
             self.file=dealFile(file)
@@ -318,6 +324,7 @@ class Record(MessagePart):
     """ 通过网络发送 - 下载超时 """
 
     def __init__(self,file,magic:bool=None,cache:bool=None,proxy:bool=None,timeout:int=None,**kw):
+        """ 语音 """
         super().__init__(file,magic,cache,proxy,timeout,**kw)
         if not self._dictInit:
             self.file=dealFile(file)
@@ -346,6 +353,7 @@ class Video(MessagePart):
     """ 通过网络发送 - 下载线程数 \n\n 2 或 3 """
 
     def __init__(self,file,cover=None,**kw):
+        """ 短视频 """
         super().__init__(file,cover,**kw)
         if not self._dictInit:
             self.file=dealFile(file)
@@ -364,6 +372,7 @@ class Forward(MessagePart):
     """ 合并转发 id """
 
     def __init__(self,id:str,**kw):
+        """ 合并转发 """
         super().__init__(id,**kw)
         if not self._dictInit:
             self.id=str(id)
@@ -403,6 +412,7 @@ class Music(MessagePart):
 
 
     def __init__(self,id:str,src:str="qq",**kw):
+        """ 音乐分享（发送） """
         super().__init__(id,src,**kw)
         if not self._dictInit:
             self.id=str(id)
@@ -434,6 +444,7 @@ class Poke(MessagePart):
     """ 待戳人 """
 
     def __init__(self,qq:int,**kw):
+        """ 戳一戳（发送） """
         super().__init__(qq,**kw)
         if not self._dictInit:
             self.qq=int(qq)
@@ -445,6 +456,7 @@ class TTS(MessagePart):
     text:str
 
     def __init__(self,text:str,**kw):
+        """ 文本转语音 """
         super().__init__(text,**kw)
         if not self._dictInit:
             self.text=text

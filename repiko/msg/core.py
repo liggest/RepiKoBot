@@ -14,6 +14,8 @@ from repiko.msg.data import Message
 
 from repiko.msg.assist import CustomParser
 
+import random
+
 class MCore():
 
     ModeText={False:"OFF",True:"ON"}
@@ -64,12 +66,28 @@ class MCore():
 
     async def AsyncResponse(self,msg:Message):
         result=[]
+        msg=await self.AsyncPreprocess(msg)
         for cp in self.cps:
             parseResult:ParseResult=await cp.asyncTryParse(msg) # pr.raw=msg
             output=parseResult.output
             if output:  #把parseResult列表里的各个列表拼起来
                 result+=[ v async for v in self.contentGen(output)]
         return result
+
+    async def AsyncPreprocess(self,msg:Message):
+        if msg.isReply:
+            hasCmd=any([CustomParser.isCommand(msg,cp) for cp in self.cps]) #能否匹配指令
+            if hasCmd:
+                replyMsg:Message=await msg.replyMsg
+                if replyMsg:
+                    # print(repr(replyMsg))
+                    await replyMsg.clearAtMe()
+                    replyMsg=await self.AsyncPreprocess(replyMsg)
+                    msg.content.append(" ")
+                    msg.content+=replyMsg.content
+        # print(msg)
+        return msg
+
 
     # async def AsyncResponseGen(self,msg:Message):
     #     for cp in self.cps:
@@ -126,30 +144,18 @@ class MCore():
     #         return "不要碰我呀QwQ"
 
     async def AsyncAtResponse(self,msg:Message):
-        raw=msg
-        if not isinstance(msg,str):
-            # content=str(msg)
-            content=msg.content.plainText
-        if "是不是" in content:
-            return "围观群众：是啊是啊"
-        elif "生气了" in content:
-            return "没有哦"
-        elif "草" in content or "艹" in content:
-            return msg.content
-        elif "嘤" in content:
-            return "我一拳打死一个嘤嘤怪"
-        elif "哥" in content or "弟" in content:
-            return "欧尼酱~"
-        elif "姐" in content or "妹" in content:
-            return "欧内酱~"
-        elif content.strip()=="弱人工智能" or content.strip()=="鶸人工智能":
-            return "你们阉太监也不会动人脑子！"
-        elif "来一句" in content or "说一句" in content or "来句话" in content:
-            return await self.basic.aword(None)
-        elif Face(146) in msg.content:
-            return Face(146)
-        else:
-            return "不要碰我呀QwQ"
+        responses=await self.bot.EM.asyncSend(EventNames.AtMe,msg,self.bot)
+        responses=[ v async for v in self.contentGen(responses)]
+        if responses:
+            # 暂时从所有回复中随机选一个
+            return random.choice(responses)
+
+    async def AsyncReplyResponse(self,msg:Message):
+        responses=await self.bot.EM.asyncSend(EventNames.ReplyMe,msg,self.bot)
+        responses=[ v async for v in self.contentGen(responses)]
+        if responses:
+            # 暂时从所有回复中随机选一个
+            return random.choice(responses)
 
 if __name__=="__main__":
     async def main():

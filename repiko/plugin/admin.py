@@ -1,7 +1,8 @@
 from repiko.core.bot import Bot
-from repiko.core.constant import EventNames
-from repiko.msg.core import MCore
-from repiko.msg.data import Message
+from repiko.core.constant import EventNames,MessageType
+# from repiko.msg.core import MCore
+from repiko.msg.data import Message,Request
+from repiko.msg.selector import RequestSelector
 # from repiko.msg.message import Message
 
 from LSparser import *
@@ -42,8 +43,9 @@ def fillQQs(qq:typing.Union[typing.List[str],dict,str,None],qqs:dict,key="group"
     return qqs
 
 AdminMode=False
-ModeText={False:"OFF",True:"ON"}
-ModeVal ={"OFF":False,"ON":True}
+# ModeText={False:"OFF",True:"ON"}
+ModeText=["OFF","ON"] # False:OFF True:ON
+# ModeVal ={"OFF":False,"ON":True}
 
 with CommandCore(name="admin") as core:
     core.commandPrefix=["-","!","！"]
@@ -89,8 +91,8 @@ with CommandCore(name="admin") as core:
             pr.params.append( ModeText[not AdminMode] ) # 无参数时默认切换 AdminMode
         sub:str=pr.params[0]
         subUp=sub.upper()
-        if subUp in ModeVal: # ON/OFF
-            AdminMode=ModeVal[subUp] # True/False
+        if subUp in ModeText: # ON/OFF
+            AdminMode= subUp==ModeText[True] # True/False
             return ["Admin Mode:"+ModeText[AdminMode]]
         else:
             cmd=f"!{pr.paramStr}"
@@ -179,6 +181,14 @@ with CommandCore(name="admin") as core:
             msgc.content="什么都没有重载！？"
         await bot.AsyncSend(msgc)
         return []
+
+@Events.on(RequestSelector.getEventName()) # 这种事件需要在默认的 CommandCore 上
+async def request(req:Request,bot:Bot):
+    if bot.AdminQQ: # 把请求信息推给管理员
+        qqs=filter(lambda qq: not bot.IsMe(qq),bot.AdminQQ)
+        # qqs=[ qq for qq in self.bot.AdminQQ if not self.bot.IsMe(qq) ]
+        msg=Message.build(str(req),dst=0,mtype=MessageType.Private)
+        bot.AddBackTask(bot.AsyncBroadcast,qqs,msg)
 
 @Events.on(EventNames.StartUp)
 def botStartup(bot:Bot):

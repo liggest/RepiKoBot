@@ -23,15 +23,16 @@ import random
     
 @Events.on(MessageSelector.getEventName())
 async def repi(msg:Message,bot:Bot):
-    #复读 2%几率复读1次 2‰几率复读3次
+    #复读 1%几率复读1次 1/10000 几率复读3次
     # print("msg",bot.currentSelector)
     if not msg or not bot:
         return
     factor=random.randint(1,1000)
-    if factor>=500 and factor<520:
+    if factor>=500 and factor<510:
         bot.AddBackTask(bot.AsyncSend,msg.copy(srcAsDst=True))
-    elif factor==1 or factor==1000:
-        bot.AddBackTask(bot.AsyncSendMany,[msg.copy(srcAsDst=True)]*3)
+    elif factor==1:
+        if random.randint(1,10)==1:
+            bot.AddBackTask(bot.AsyncSendMany,[msg.copy(srcAsDst=True)]*3)
 
 # @Events.on(NoticeSelector.getEventName())
 # async def notice(msg:Message,bot:Bot):

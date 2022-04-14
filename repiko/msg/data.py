@@ -4,9 +4,13 @@ from __future__ import annotations
 from collections.abc import Iterable
 
 from repiko.core.constant import MessageType,RequestType,NoticeType,MetaEventType
-from repiko.msg.part import At,Reply
+from repiko.msg.part import At,Reply,Text
 from repiko.msg.content import Content
 from repiko.msg.util import dictSetter
+
+import typing
+if typing.TYPE_CHECKING:
+    from repiko.msg.selector import BaseSelector
 
 class BaseData(dict):
     """ 数据（事件）类基类 """
@@ -57,6 +61,8 @@ class BaseData(dict):
         self._content=None
         self._src=0
         self._dst=0
+        self.selector:BaseSelector=None
+        # self.context=None
 
     def addQuickReply(self):
         """ 添加快速响应 """
@@ -67,6 +73,12 @@ class BaseData(dict):
         """ 快速响应的 Json """
         return {}
     
+    @property
+    def time(self) -> int:
+        return self["time"]
+
+    time=time.setter(dictSetter("time"))
+
     @property
     def postType(self) -> str:
         return self["post_type"]
@@ -159,18 +171,24 @@ class Message(BaseData):
         """ 消息数据 \n\n 默认从 字典/JSON 创建 """
         super().__init__(*args, **kw)
         if self._dictInit:
-            self._src:int=self[self.dtypeMap[self.mtype]] # "private" => self["user_id"]    "group" => self["group_id"]
+            self._src:int=self.get(self.dtypeMap[self.mtype],self._src) # 没有的话就还是默认值 0
+            # "private" => self["user_id"]    "group" => self["group_id"]
             self["message"]=Content(self["message"])
         else:
             self.content=Content()
         self._hasAtMe=None
+        self._hasReplyMe=None
+        self._replyMsg=None
 
     def __str__(self):
         return str(self.content)
 
     @property
     def content(self):
-        return self.get("message") or self._content
+        ctnt=self.get("message")
+        if ctnt is not None:
+            return ctnt
+        return self._content
 
     @content.setter
     def content(self,val:Content):
@@ -192,10 +210,12 @@ class Message(BaseData):
 
     id=id.setter(dictSetter("message_id"))
     
-    def addQuickReply(self,reply:Content,atSender=True):
+    def addQuickReply(self,reply:Content,atSender=True,replySender=False):
         if not isinstance(reply,Content):
             reply=Content(reply)
         super().addQuickReply()
+        if replySender:
+            reply=self.replyHead+reply
         self._replyJson={}
         self._replyJson["reply"]=reply
         if self.mtype==MessageType.Group:
@@ -210,6 +230,39 @@ class Message(BaseData):
     @property
     def sendParam(self):
         return {"message":self.content,self.dtypeMap[self.mtype]:self.dst} # "user_id"/"group_id" : self.dst
+
+    @property
+    def replyHead(self):
+        """ 回复消息头部 """
+        if self.mtype==MessageType.Group:
+            if int(self.id)!=0 and self.realSrc!=0:
+                return Content(Reply(self.id),At(self.realSrc),Text(" "))
+        elif self.mtype==MessageType.Private and int(self.id)!=0:
+            return Content(Reply(self.id))
+        return Content()
+
+    @property
+    def noReplyContent(self):
+        """ 没有回复头部的一个新 Content 对象 """
+        if self.isReply:
+            if self.mtype==MessageType.Group:
+                conlen=len(self.content)
+                if conlen>2 and (isinstance(self.content[1],At) or self.content[1]==Text(" ")):
+                    if conlen>3 and self.content[2]==Text(" "):
+                        return Content(self.content[3:]) # Reply => At => " "
+                    return Content(self.content[2:]) # Reply => " " / Reply => At   At 可能被清除掉了
+            return Content(self.content[1:]) # Reply
+        return Content(self.content) # 不是深拷贝
+
+    @property
+    async def replyMsg(self):
+        """ 回复消息对象\n\n需 await """
+        if not self._replyMsg:
+            if self.isReply:
+            # if self.content and isinstance(self.content[0],Reply):
+                reply:Reply=self.content[0]
+                self._replyMsg=await self.selector.bot.GetMsg(reply.id,self.mtype)
+        return self._replyMsg
 
     def copy(self,srcAsDst=False):
         """
@@ -229,8 +282,20 @@ class Message(BaseData):
     def isMe(self):
         return self.dst == self.realSrc # 接收者和发送者是同一位，说明是收到了自己的发言
 
-    def clearAtMe(self):
+    async def clearAtMe(self):
         at=At(self.dst)
+        if self.isReply:
+        # if self.content and isinstance(self.content[0],Reply):
+            # 群回复格式 Reply => At => " "
+            if self.mtype==MessageType.Group and self.content[1:3]==[at,Text(" ")]:
+                self._hasReplyMe=True
+                # print(repr(self))
+                # print(repr(await self.replyMsg))
+            elif self.mtype==MessageType.Private:
+                replyMsg:Message=await self.replyMsg
+                # print(repr(self))
+                # print(repr(replyMsg))
+                self._hasReplyMe=replyMsg and replyMsg.isMe
         count=self.content.removeAll(at)
         self._hasAtMe=bool(count)
 
@@ -246,13 +311,23 @@ class Message(BaseData):
         """
             消息是否是个回复
         """
-        return Reply in self.content
+        # return Reply in self.content
+        return self.content and isinstance(self.content[0],Reply)
+
+    @property
+    def hasReplyMe(self) -> bool:
+        """
+            消息内容中是否有回复到bot
+        """
+        return self._hasReplyMe
 
     def getSrcName(self):
+        """ 发送者昵称 """
         return self.get("sender",{}).get("nickname")
     
     def getSrcCard(self):
-        return self.get("sender",{}).get("card")
+        """ 发送者群名片 """
+        return self.get("sender",{}).get("card",self.getSrcName())
 
 
 class Request(BaseData):

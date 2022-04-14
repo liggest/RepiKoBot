@@ -1,5 +1,6 @@
 .ydpic/.ydp/.抽卡
-  .yd -pic 的简写
+  抽游戏王卡
+  .yd -pic 的简写，发送卡图
 例：
   .ydp
   .ydp -ex
