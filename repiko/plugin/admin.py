@@ -4,6 +4,8 @@ from repiko.core.constant import EventNames,MessageType
 from repiko.msg.data import Message,Request
 from repiko.msg.selector import RequestSelector
 # from repiko.msg.message import Message
+from repiko.msg.content import Content
+from repiko.msg.util import CQunescapeComma
 
 from LSparser import *
 
@@ -181,6 +183,14 @@ with CommandCore(name="admin") as core:
             msgc.content="什么都没有重载！？"
         await bot.AsyncSend(msgc)
         return []
+
+    Command("-cq")
+    @Events.onCmd("cq")
+    def cqcode(pr:ParseResult):
+        content=CQunescapeComma(pr.paramStr)
+        # print(content)
+        return [Content(content)]
+
 
 @Events.on(RequestSelector.getEventName()) # 这种事件需要在默认的 CommandCore 上
 async def request(req:Request,bot:Bot):

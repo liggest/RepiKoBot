@@ -179,6 +179,7 @@ class Message(BaseData):
         self._hasAtMe=None
         self._hasReplyMe=None
         self._replyMsg=None
+        self._replyDeleted=False
 
     def __str__(self):
         return str(self.content)
@@ -320,6 +321,15 @@ class Message(BaseData):
             消息内容中是否有回复到bot
         """
         return self._hasReplyMe
+
+    @property
+    def replyDeleted(self) -> bool:
+        """ 本消息所回复的消息是否已被撤回 \n\n 本消息非回复消息时为 True """
+        return not self.isReply or self._replyDeleted
+
+    @replyDeleted.setter
+    def replyDeleted(self,val:bool):
+        self._replyDeleted=val
 
     def getSrcName(self):
         """ 发送者昵称 """

@@ -1,4 +1,4 @@
-from LSparser import Events
+from LSparser import Events,Command,ParseResult,OPT
 
 from repiko.core.bot import Bot
 from repiko.core.constant import EventNames,MessageType
@@ -31,29 +31,43 @@ async def atMe(msg:Message,bot:Bot):
     else:
         return "不要碰我呀QwQ"
 
-scaredWords=[Face(55),Face(146),"多嘴","住口","住嘴","撤回"]
+scaredWords=[Face(55),Face(146),"多嘴","住口","住嘴","撤回"] # 撤回关键字
+
+Command("withdraw")\
+    .opt(["-all","-both"],OPT.Not,"能撤回的话都撤回")
+
+@Events.onCmd("withdraw")
+async def withdraw(pr:ParseResult): # TODO 私聊暂不可用
+    msg:Message=pr.raw
+    if not (msg.isReply and msg.hasReplyMe):
+        return ["回复我来让我撤回哦~"]
+    await runaway(msg,msg.selector.bot,deleteBoth=pr["all"])
 
 async def delayedDelete(bot:Bot,msgID:int,second:int=8):
     await asyncio.sleep(second)
     await bot.DeleteMsg(msgID)
 
+async def runaway(msg:Message,bot:Bot,deleteBoth=False):
+    if msg.replyDeleted:
+        print("已经撤回过了")
+        return
+    reply:Reply=msg.content[0]
+    await bot.DeleteMsg(reply.id)
+    msg.replyDeleted=True
+    if deleteBoth and msg.mtype==MessageType.Group:
+        # print("也删这个")
+        meInGroup=await bot.GroupMemberInfo(msg.src,bot.MYQQ)
+        # print(meInGroup)
+        myRole=meInGroup.get("role",None)
+        if myRole=="owner" or myRole=="admin":
+            bot.AddBackTask(delayedDelete,bot,msg.id)
+
 @Events.on(EventNames.ReplyMe)
 async def replyMe(msg:Message,bot:Bot):
     content=msg.content
-    reply:Reply=content[0]
+    # reply:Reply=content[0]
     for word in scaredWords:
         if word in content:
-            # deleteMine=asyncio.create_task(bot.DeleteMsg(reply.id))
-            await bot.DeleteMsg(reply.id)
-            if msg.mtype==MessageType.Group:
-                meInGroup=await bot.GroupMemberInfo(msg.src,bot.MYQQ)
-                # print(meInGroup)
-                myRole=meInGroup.get("role",None)
-                if myRole=="owner" or myRole=="admin":
-                    bot.AddBackTask(delayedDelete,bot,msg.id)
-                    # await asyncio.sleep(10)
-                    # await bot.DeleteMsg(msg.id)
-                    # print("应该撤回？")
-            # await deleteMine
+            await runaway(msg,bot,deleteBoth=True) # 能撤回的话都撤回
             break
 
