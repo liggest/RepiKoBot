@@ -5,8 +5,8 @@ from repiko.msg.content import Content
 from repiko.msg.core import MCore
 # from repiko.msg.message import Message
 from repiko.msg.data import Message
-from repiko.msg.part import MessagePart,Share,Image,At
-from repiko.msg.util import CQunescapeComma
+from repiko.msg.part import MessagePart,Share,Image,At,Text
+from repiko.msg.util import CQunescapeComma,CQescapeComma
 
 import repiko.module.ygoOurocg_ver4 as ygotest
 from repiko.module.ygoBG import BaiGe
@@ -596,7 +596,7 @@ def ygocdb(pr:ParseResult):
         return [Image(filename)]
     return [CommandHelper().getPageContent(foundName,page)]
 
-itemSplitter=re.compile(r"[\/、\\，\,\|;]") # \ / 、 , ， | ;
+itemSplitter=re.compile(r"[\/、\\，\,\|;；]") # \ / 、 , ， | ; ；
 
 Command("choose").names("choice","选择","选","抽","挑","帮我决定")
 
@@ -604,9 +604,23 @@ Command("choose").names("choice","选择","选","抽","挑","帮我决定")
 def choose(pr:ParseResult):
     if not pr.params:
         return [random.choice(["听天由命","顺其自然","无中生有","空气","　"])]
-    if len(pr.params)==1:
-        return [random.choice(itemSplitter.split(pr.paramStr))]
-    return [random.choice([item for item in pr.params if item!="\n"])]
+    params=[item for item in pr.params if item!="\n"]
+    if len(params)==1:
+        paramList=[]
+        partNum=0
+        partList=[]
+        for part in Content(pr.paramStr):
+            if isinstance(part,Text):
+                paramList.append(part.CQcode)
+            else:
+                paramList.append(f"{{{partNum}}}")
+                partNum+=1
+                partList.append(part.CQcode)
+        paramStr="".join(paramList)
+        # print(paramStr)
+        # print(random.choice(itemSplitter.split(paramStr)).format(*partList))
+        return [random.choice(itemSplitter.split(paramStr)).format(*partList)]
+    return [random.choice(params)]
 
 @Events.on(EventNames.StartUp)
 def botStartUP(bot:Bot):

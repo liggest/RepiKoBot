@@ -1,6 +1,7 @@
 .AA/.aa  基于 AAMZ 随机抽取 AA
 .aword/.aw/.一言  基于一言的短句分享
 .calculate/.cal  带括号四则运算
+.choose/.选/.帮我决定  从给出的选项中挑一个
 .cat/.猫  猫猫
 .duel/.决斗/.打牌/.牌  ygo 约战开房
 .help  指令帮助
