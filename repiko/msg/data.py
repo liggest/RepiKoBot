@@ -288,7 +288,7 @@ class Message(BaseData):
         if self.isReply:
         # if self.content and isinstance(self.content[0],Reply):
             # 群回复格式 Reply => At => " "
-            if self.mtype==MessageType.Group and self.content[1:3]==[at,Text(" ")]:
+            if self.mtype==MessageType.Group and len(self.content) >2 and self.content[1]==at:
                 self._hasReplyMe=True
                 # print(repr(self))
                 # print(repr(await self.replyMsg))
@@ -313,7 +313,7 @@ class Message(BaseData):
             消息是否是个回复
         """
         # return Reply in self.content
-        return self.content and isinstance(self.content[0],Reply)
+        return (self.content and isinstance(self.content[0],Reply)) or Reply in self.content
 
     @property
     def hasReplyMe(self) -> bool:

@@ -67,6 +67,8 @@ class MCore():
     async def AsyncResponse(self,msg:Message):
         result=[]
         msg=await self.AsyncPreprocess(msg)
+        # print(msg)
+        # print(repr(msg))
         for cp in self.cps:
             parseResult:ParseResult=await cp.asyncTryParse(msg) # pr.raw=msg
             output=parseResult.output
@@ -76,7 +78,7 @@ class MCore():
 
     async def AsyncPreprocess(self,msg:Message):
         if msg.isReply:
-            hasCmd=any([CustomParser.isCommand(msg,cp) for cp in self.cps]) #能否匹配指令
+            hasCmd=any(CustomParser.isCommand(msg,cp) for cp in self.cps) #能否匹配指令
             if hasCmd:
                 replyMsg:Message=await msg.replyMsg
                 if replyMsg:
