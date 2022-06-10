@@ -5,7 +5,8 @@ from repiko.msg.content import Content
 from repiko.msg.core import MCore
 # from repiko.msg.message import Message
 from repiko.msg.data import Message
-from repiko.msg.part import MessagePart,Share,Image,At,Text
+# from repiko.msg.part import MessagePart,Share,Image,At,Text
+from repiko.msg.part import MessagePart,Image,At,Text
 from repiko.msg.util import CQunescapeComma,CQescapeComma
 
 import repiko.module.ygoOurocg_ver4 as ygotest
@@ -20,7 +21,7 @@ from repiko.module.ygo.dataloader import cdbReader,confReader,ShrinkLevel
 from repiko.module.ygo.sqlbuilder import SQLBuilder
 from repiko.module.hitokoto import HitokotoRequester
 from repiko.module.str2image import str2greyPng,getFilePath as getImgPath,initFont as initNormalFont
-from repiko.module.util import redirect,asyncRedirect,CONS
+from repiko.module.util import redirect,asyncRedirect,CONS,Share
 
 from repiko.module import 麻将
 from repiko.module.AA import AAMZ
@@ -202,7 +203,7 @@ async def ygocard(pr:ParseResult):
                 description=f"{rcard.name}的{description}"
                 if link:
                     # result.append(link)
-                    result.append(Share(link,title=description,content=link))
+                    result.append(Share(link,title=description,content=link).to(pr))
                 else:
                     result.append(f"并没有找到{description}……")
         # if pr.getByType("rule",False,bool) and rcard.ocgRule:
@@ -241,7 +242,7 @@ async def ygoocg(pr:ParseResult):
         description=f"{rcard.name}的wiki链接"
         if wikilink:
             # result.append(wikilink)
-            result.append(Share(wikilink,title=description,content=wikilink))
+            result.append(Share(wikilink,title=description,content=wikilink).to(pr))
         else:
             result.append(f"并没有找到{description}……")
     return result

@@ -1,7 +1,7 @@
 
 from __future__ import annotations # 让类中定义的方法的返回值标注可以为类本身
 
-from collections.abc import Iterable
+from typing import Iterable
 from repiko.msg.meta import MessageMeta
 from repiko.msg.util import CQescape,CQescapeComma,dealFile,CQunescapeComma,CQunescape
 

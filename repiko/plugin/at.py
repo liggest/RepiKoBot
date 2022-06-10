@@ -31,10 +31,10 @@ async def atMe(msg:Message,bot:Bot):
     else:
         return "不要碰我呀QwQ"
 
-scaredWords=[Face(55),Face(146),"多嘴","住口","住嘴","撤回"] # 撤回关键字
+scaredWords=[Face(55),Face(146),"多嘴","住口","住嘴","💣"] # 撤回关键字
 
-Command("withdraw")\
-    .opt(["-all","-both"],OPT.Not,"能撤回的话都撤回")
+Command("withdraw").names("撤回")\
+    .opt(["-all","-both"],OPT.Not,"能撤回的话回复也撤回")
 
 @Events.onCmd("withdraw")
 async def withdraw(pr:ParseResult): # TODO 私聊暂不可用
@@ -60,7 +60,8 @@ async def runaway(msg:Message,bot:Bot,deleteBoth=False):
         # print(meInGroup)
         myRole=meInGroup.get("role",None)
         if myRole=="owner" or myRole=="admin":
-            bot.AddBackTask(delayedDelete,bot,msg.id)
+            asyncio.create_task(delayedDelete(bot,msg.id))
+            # bot.AddBackTask(delayedDelete,bot,msg.id)
 
 @Events.on(EventNames.ReplyMe)
 async def replyMe(msg:Message,bot:Bot):

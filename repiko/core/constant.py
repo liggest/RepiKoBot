@@ -94,3 +94,8 @@ class EventNames:
     # """ 收到戳 bot 的消息 \n (msg:Message,bot:Bot) -> None """
     # WithDraw="notice-WithDraw"
     # """ 收到撤回消息 \n (nti:Notice,bot:Bot) -> None """
+
+    @staticmethod
+    def Config(path:str):
+        """  从 path 加载配置时 \n\n (config: dict | list ,bot:Bot) -> None """
+        return f"config-{path}"
