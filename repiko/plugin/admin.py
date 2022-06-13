@@ -237,8 +237,8 @@ with CommandCore(name="admin") as core:
                 result+=f"{k}: {', '.join(strQQ)}\n"
                 num+=len(v)
             result+=f"和 {num} 个人{action}了"
-            print(bot.BanQQ)
-            print(bot.BanGroup)
+            # print(bot.BanQQ)
+            # print(bot.BanGroup)
             return [result]
         return ["我不知道要和谁{action}"]
 
