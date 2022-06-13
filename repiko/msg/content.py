@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
+from itertools import zip_longest
 from typing import Type,List,Dict,Iterable
 
 from repiko.msg.part import MessagePart,Text
@@ -137,19 +138,42 @@ class Content(list):
         val=[*self.asParts(val)] # MessagePart对象构成的列表
         if self._hasPart(idx):
             idx:Type[MessagePart]
+            toDel=None
             if typeIdx is None:         # 支持 Content()[Text]=[...]
                 gen=( i for i,part in enumerate(self) if isinstance(part,idx) ) # 所有idx类别的消息片段的下标
-                for i,newPart in zip(gen,val):
-                    super().__setitem__(i,newPart) # self[i] 替换为 val 中的新值
+                lasti=-1
+                for i,newPart in zip_longest(gen,val):
+                    # print(i,newPart)
+                    if newPart is None:
+                        toDel=[i,*gen]
+                        break
+                    if i is None:
+                        lasti+=1
+                        super().insert(lasti,newPart)
+                    else:
+                        super().__setitem__(i,newPart) # self[i] 替换为 val 中的新值
+                        lasti=i
             else:                       # 支持 Content()[Text,::]=[...]
                 old=self.parts[idx.partType][typeIdx]
                 if isinstance(old,MessagePart): # 单个元素变成列表
                     old=[old]
                 i=0
-                for oldPart,newPart in zip(old,val):
-                    while not (self[i] is oldPart):
+                toDel=[]
+                for oldPart,newPart in zip_longest(old,val):
+                    if oldPart is not None:
+                        while not (self[i] is oldPart):
+                            i+=1
+                        if newPart is None:
+                            toDel.append(i)
+                        else:
+                            super().__setitem__(i,newPart)
+                    else:
                         i+=1
-                    super().__setitem__(i,newPart)
+                        super().insert(i,newPart)
+            if toDel:
+                for i in reversed(toDel):
+                    # print("del",i)
+                    super().__delitem__(i)
         # if isinstance(idx,slice) and self._hasPart(idx.start):
         #     if not idx.stop:    # self[Text]=[...] 替换全部 Text
         #         [super().__setitem__(i,v) for i,v in zip(self.parts[idx.start.partType],val)]

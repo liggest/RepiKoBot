@@ -25,7 +25,7 @@ def loadBroadcastPreset(bot:Bot):
             broadcastPreset[k]=v
     broadcastPreset["admin"]={ "private":[ q for q in bot.AdminQQ if not bot.IsMe(q) ] }
 
-def fillQQs(qq:typing.Union[typing.List[str],dict,str,None],qqs:dict,key="group"):
+def fillQQs(qq:typing.Union[typing.List[str],dict,str,None],qqs:dict,key=MessageType.Group):
     if qq:
         if isinstance(qq,str): 
             if qq.isdigit(): #单个qq号
@@ -116,8 +116,8 @@ with CommandCore(name="admin") as core:
             if content.strip()=="update":
                 content=bot.update
         qqs={}
-        qqs=fillQQs(pr["qq"],qqs,"private")
-        qqs=fillQQs(pr["group"],qqs,"group")
+        qqs=fillQQs(pr["qq"],qqs,MessageType.Private)
+        qqs=fillQQs(pr["group"],qqs,MessageType.Group)
         presetName=pr["preset"]
         if presetName:
             if isinstance(presetName,str):
@@ -190,6 +190,55 @@ with CommandCore(name="admin") as core:
         content=CQunescapeComma(pr.paramStr)
         # print(content)
         return [Content(content)]
+
+    Command("-ban").names("绝交","不理").opt(["-qq","--qq","-q","--q"],OPT.M,"qq号").opt(["-group","--group","-g","--g"],OPT.M,"群号").opt(["--preset","-preset","-p","--p"],OPT.M,"预设发送集合")
+    Command("-unban").names("和好","理").opt(["-qq","--qq","-q","--q"],OPT.M,"qq号").opt(["-group","--group","-g","--g"],OPT.M,"群号").opt(["--preset","-preset","-p","--p"],OPT.M,"预设发送集合")
+
+    @Events.onCmd("ban")
+    @Events.onCmd("unban")
+    async def ban(pr:ParseResult):
+        msg:Message=pr.raw
+        bot:Bot=msg.selector.bot
+        isBan=pr._cmd.name=="ban"
+        action="绝交" if isBan else "和好"
+        # content=None
+        # if pr.params:
+        #     content=pr.paramStr
+        #     if content.strip()=="update":
+        #         content=bot.update
+        qqs={}
+        qqs=fillQQs(pr["qq"],qqs,MessageType.Private)
+        qqs=fillQQs(pr["group"],qqs,MessageType.Group)
+        presetName=pr["preset"]
+        if presetName:
+            if isinstance(presetName,str):
+                presetName=[presetName]
+            for psn in presetName:
+                ps=broadcastPreset.get(psn)
+                if ps:
+                    qqs=fillQQs(ps,qqs)
+        if qqs:
+            # if content:
+            #     await bot.AsyncBroadcast(qqs,Message.build(content))
+            num=0
+            result=""
+            for k,v in qqs.items():
+                strQQ=[ str(qq) for qq in v ]
+                if k==MessageType.Private:
+                    if isBan:
+                        bot.BanQQ.update(strQQ)
+                    else:
+                        bot.BanQQ.difference_update(strQQ)
+                elif k==MessageType.Group:
+                    if isBan:
+                        bot.BanGroup.update(strQQ)
+                    else:
+                        bot.BanGroup.difference_update(strQQ)
+                result+=f"{k}: {', '.join(strQQ)}\n"
+                num+=len(v)
+            result+=f"和 {num} 个人{action}了"
+            return [result]
+        return ["我不知道要和谁{action}"]
 
 
 @Events.on(RequestSelector.getEventName()) # 这种事件需要在默认的 CommandCore 上

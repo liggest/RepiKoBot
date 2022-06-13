@@ -35,7 +35,7 @@ class MessagePart(dict,metaclass=MessageMeta):
             if self._dictInit:
                 self["data"]={}
             else:
-                self["data"]=dict(**kw) # 不从字典中创建对象，则 kw 作为 data 里的键值对
+                self["data"]={**kw} # 不从字典中创建对象，则 kw 作为 data 里的键值对
 
     def __str__(self) -> str:
         return self.CQcode

@@ -80,6 +80,8 @@ class Bot():
         # self.AdminQQ=[int(x.strip()) for x in self.config["admin"]["adminQQ"].split(",")]
         self.AdminQQ:typing.List[int]=self.config["admin"].get("adminQQ",[])
         self.SECRET=str.encode(self.config["system"].get("secret",""))
+        self.BanQQ=set()
+        self.BanGroup=set()
         # self.broadcastGroup={}
         # for k,v in self.config["broadcast"].items():
         #     # self.broadcastGroup[k]=[int(x.strip()) for x in v.split(",")]
