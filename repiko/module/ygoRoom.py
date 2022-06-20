@@ -139,14 +139,17 @@ class YGORoom:
         if self.serverName.startswith("233"):
             host,port=self.servers.get("233",noserver)
             port=int(f"2{'3'*self.serverName.count('3')}")
-        elif self.serverName.endswith("编年史"):
+        elif self.serverName.endswith("编年史") or self.serverName.lower()=="dc":
             host,port=self.servers.get("编年史",noserver)
         elif self.serverName=="2pick" or self.serverName=="轮抽":
             host,port=self.servers.get("2pick",noserver)
         elif self.serverName.startswith("复读") or self.serverName.lower()=="repiko":
             host,port=self.servers.get("repiko",noserver)
         else:
-            host,port=noserver
+            if self.serverName:
+                host,port=self.servers.get(self.serverName,noserver)
+            else:
+                host,port=noserver
         self._host,self._port=host,port
 
     @property

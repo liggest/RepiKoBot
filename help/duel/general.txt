@@ -8,12 +8,10 @@
       => TM0,T#房
   .duel 房 -麻将 -时间 0  
       => TM0,T#房（同上一条）
-  .duel 俺的房 -set  
+  .duelset 俺的房  
       => 记录了房间【俺的房】
-  .duel -me  
+  .duel
       => 俺的房
-  .duel  
-      => 记录后同上一条
   .duel -23333  
       => 23333端口
   .duel -s 编年史  

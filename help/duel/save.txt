@@ -4,13 +4,17 @@
   -del/-remove/-破坏/-除外/-送去墓地 名称  移除房，无名称则移除“我的房”
   -random/-r/-ran  随机房间名，忽视 -me 和 -get
 例：
-  .duel -set  =>（记录“我的房”）
+  .duel 我的房 -set  =>（记录“我的房”）
+  .duelset 我的房  => 同上
   .duel -me
   ！决斗 -老子
   .duel 划水 -t -tm 0 -盖放 划水房
   .duel -get 划水房
   .duel -检索 划水房
+  .duel -get @群友  =>（获得群友记录的房）
+  .duel @群友  => 同上
   .duel -del  =>（移除“我的房”）
+  .dueldel  => 同上
   .duel -除外 划水房
   .duel -r
   .duel  =>（什么都不提供，若存在“我的房”，则 -me，否则 -r）

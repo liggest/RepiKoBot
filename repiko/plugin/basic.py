@@ -51,14 +51,16 @@ Command("ycpic").names("ycp","bgpic","bgp")
 Command("ygoocg").names("yo","ourocg","oo").opt("-ver",OPT.M,"翻译版本").opt("-wiki",OPT.N,"提供wiki链接").opt("-im",OPT.N,"以图片发送").opt(["-pic","-p"],OPT.N,"卡图")
 # Command("ygoserver").names("ys")
 Command("translate").names("ts").opt("-from",OPT.M,"源语言").opt("-to",OPT.M,"目标语言").opt("-p",OPT.N,"显示发音")\
-    .opt("-d",OPT.N,"检测语言").opt("-donly",OPT.N,"只检测语言")
+    .opt("-d",OPT.N,"检测语言").opt("-donly",OPT.N,"只检测语言")\
+    .opt("-en",OPT.N,"翻译到英语").opt("-ja",OPT.N,"翻译到日语").opt("-ru",OPT.N,"翻译到俄语").opt("-de",OPT.N,"翻译到德语")\
+    .opt("-es",OPT.N,"翻译到西语")
 Command("luck").names("jrrp").opt("-yc",OPT.N,"根据运值卡查").opt("-yci",OPT.N,"根据运值卡查，发送图片").opt("-ycp",OPT.N,"根据运值卡查，发送卡图")
 Command("ygodraw").names("yd").opt("-n",OPT.M,"抽卡数").opt("-im",OPT.N,"以图片发送").opt(["-pic","-p"],OPT.N,"卡图")\
     .opt(["-notoken","-nt","-无衍生物"],OPT.N,"不含衍生物").opt(["-noalias","-na","-无同名卡"],OPT.N,"不含同名卡")\
     .opt(["-main","-主卡组"],OPT.N,"只含主卡组").opt(["-extra","-ex","-额外"],OPT.N,"只含额外")
 Command("ydpic").names("ydp","抽卡")
 Command("logodraw").names("群赛抽卡","决斗都市","yddc","duelcity").opt("-im",OPT.N,"以图片发送")
-Command("aword").names("aw","一句话","一言").opt(["-t","--t"],OPT.M,"句子类型")
+Command("aword").names("aw","一句话","一言","hitokoto","htkt").opt(["-t","--t"],OPT.M,"句子类型")
 
 Command("eat").names("canteen").opt("-r",OPT.N,"重置列表").opt("--l",OPT.M,"添加自定义列表").opt("--ban",OPT.M,"添加排除列表")
 Command("cat").names("猫")
@@ -78,7 +80,7 @@ c.opt(["-nocheck","-nc","-NC","-不检查","-不检查卡组"],OPT.N,"不检查�
 c.opt(["-noshuffle","-ns","-NS","-不洗牌"],OPT.N,"不洗牌")
 c.opt(["-ai","-AI","-人机"],OPT.N,"人机")
 c.opt(["-rule","-mr","-MR","-规则"],OPT.T,"大师规则")
-c.opt(["-server","-s","-服","-服务器"],OPT.M,"服务器")
+c.opt(["-server","-s","-服","-服务器"],OPT.T,"服务器")
 c.opt(["-233"],OPT.N,"233服-233").opt(["-2333"],OPT.N,"233服-2333").opt(["-23333"],OPT.N,"233服-23333")
 c.opt(["-me","-ME","-mine","-我","-俺","-老子"],OPT.N,"我的房")
 c.opt(["-set","-盖放"],OPT.T,"记录房").opt(["-get","-发动","-检索","-召唤","-特招"],OPT.M,"得到房")
@@ -86,6 +88,7 @@ c.opt(["-del","-remove","-破坏","-除外","-送去墓地"],OPT.T,"移除房")
 c.opt(["-random","-r","-ran"],OPT.N,"随机房间名")
 Command("duelset").names("setduel","设房","盖牌","盖放牌")
 Command("dueldel").names("delduel","删房","炸牌","破坏牌","除外牌","送墓牌")
+Command("server").names("srv","服务器","服").opt("-l",OPT.N,"列出所有")
 
 Command("mahjong").names("maj","麻将","麻雀","雀").opt("-n",OPT.M,"张数")#.opt(["-和","-胡"],OPT.N,"和牌")
 
@@ -265,7 +268,12 @@ def translate(pr:ParseResult):
     if donly:
         return a.detectonly(text)
     fromlan=pr.getByType("from","auto")
-    tolan=pr.getByType("to","cn")
+    tolan="cn"
+    for lang in ("en","ja","ru","de","es"):
+        if pr.getByType(lang,False,bool):
+            tolan=lang
+            break
+    tolan=pr.getByType("to",tolan)
     poun=pr.getByType("p",False,bool)
     dtct=pr.getByType("d",False,bool)
     return a.trans(text,fromlan=fromlan,tolan=tolan,poun=poun,detect=dtct or donly)
@@ -454,16 +462,28 @@ def duel(pr:ParseResult):
     result=[]
     room=None
     pr.args["me"]=pr.args.get("me") or not pr.params
+    isMe=pr["me"]
     paramStr=pr.paramStr.strip()
 
     if not pr["random"]:
-        key=pr.getByType("get") or (msg.realSrc if pr["me"] else paramStr)
+        key=pr.getByType("get") or (msg.realSrc if pr["me"] else paramStr) # -get key | -me | .duel key
         room=YGORoom.getMemberRoom(key)
+        if not room and isinstance(key,str): # 没找到的话尝试处理 @
+            keyContent=Content(key)
+            if len(keyContent)==1:
+                cqkey=keyContent[0]
+                if isinstance(cqkey,At) and cqkey.qq.isdigit(): # -get @xx | .duel @xx
+                    key=int(cqkey.qq) # 得到 @ 对象的 qq
+                    isMe=isMe or key==msg.realSrc
+                    room=YGORoom.getMemberRoom(key) # 再试着用 qq 找
     if not room:
         room=YGORoom.parseRoom(paramStr)
-    if not room.name or pr["random"]:
+    noRoom=not room.name
+    if isMe and noRoom and not pr["get"]:
+        result.append("""看样子还没有记录自己的房间？\n这里是一个随机房间哦\n可以使用 .duelset xxx 记录自己的房间""")
+    if noRoom or pr["random"]:
         room.name=YGORoom.randomRoomName(pr.parserData["mc"].data["ygocdb"])
-    if pr.getByType("time",None,bool) or pr["tm0"]: # -tm -> -tm 0 
+    if pr.getByType("time",None,bool) or pr["tm0"] or noRoom: # -tm -> -tm 0  没房间的时候默认也建一个 TM0 的
         pr.args["time"]="0"
     room.args2prefix(pr.args)
     result.append(room.full)
@@ -474,7 +494,7 @@ def duel(pr:ParseResult):
                 pr.args["server"]=s
     if pr["server"]: # 只有 -s 的时候才有服务器
         if isinstance(pr["server"],str) or not room.hasServer: # -s 有值时覆盖 room 记录的服务器
-            room.serverName=pr.getToType("server","2333") # server是True的话默认2333
+            room.serverName=pr.getByType("server","2333") # server是True的话默认2333
         if room.server:
             result.append(room.server)
 
@@ -506,6 +526,27 @@ def duel(pr:ParseResult):
 
 Events.onCmd("duelset")(redirect("duel",[CONS,"-set"],duel))
 Events.onCmd("dueldel")(redirect("duel",[CONS,"-del"],duel))
+
+@Events.onCmd("server")
+def server(pr:ParseResult):
+    if pr["l"]:
+        if YGORoom.servers:
+            srvlist=("  ".join([name,srv[0],str(srv[1])]) for name,srv in YGORoom.servers.items()) # 服务器名  地址  端口
+            return ["\n".join(srvlist)]
+        else:
+            return ["竟然没有任何服务器信息！？"]
+    result=[]
+    room=YGORoom()
+    if not pr.params:
+        pr.params.append("2333")
+    for name in pr.params:
+        room.serverName=name
+        if room.server:
+            result.append(room.server)
+            room._host,room._port=None,None # 重置内部信息
+    if result:
+        return result
+    return ["没找到对应的服务器…"]
 
 # doneKW=["和了","胡了","自摸","ロン","ツモ"]
 
