@@ -83,6 +83,25 @@ from repiko.msg.data import Message
 #             )
 #         )
 
+# class MimicStr(str):
+
+#     @classmethod
+#     def flattenGen(cls,obj):
+#         if isinstance(obj,MessagePart):
+#             yield obj.CQcode
+#         if isinstance(obj,Iterable):
+#             for o in obj:
+#                 yield from cls.flattenGen(o)
+#         else:
+#             yield obj
+
+#     def __new__(cls,obj):
+#         pass
+
+#     def __init__(self):
+#         if not hasattr(self,"inner"):
+#             self.inner=()
+
 class CustomParser(ParserCore):
 
     @classmethod

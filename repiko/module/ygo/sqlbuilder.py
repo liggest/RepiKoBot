@@ -1,4 +1,4 @@
-from .constant import *
+from ygo.constant import *
 
 class SQLBuilder:
 

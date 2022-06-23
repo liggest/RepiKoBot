@@ -3,7 +3,7 @@ import sqlite3
 # import os
 from enum import Enum
 import typing
-from .sqlbuilder import SQLBuilder
+from ygo.sqlbuilder import SQLBuilder
 
 class ShrinkLevel(str,Enum):
     #TODO flag

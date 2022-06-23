@@ -7,7 +7,7 @@ from repiko.msg.core import MCore
 from repiko.msg.data import Message
 # from repiko.msg.part import MessagePart,Share,Image,At,Text
 from repiko.msg.part import MessagePart,Image,At,Text
-from repiko.msg.util import CQunescapeComma,CQescapeComma
+from repiko.msg.util import CQunescapeComma,CQunescape
 
 import repiko.module.ygoOurocg_ver4 as ygotest
 from repiko.module.ygoBG import BaiGe
@@ -26,12 +26,14 @@ from repiko.module.util import redirect,asyncRedirect,CONS,Share
 from repiko.module import 麻将
 from repiko.module.AA import AAMZ
 from repiko.module.AA.image import AA2img,initFont as initAAFont
+from repiko.module.tex import initFont as initTexFont,atext2img,LatexError
 
 import random
 import datetime
 import os
 import re
 from typing import List
+from pathlib import Path
 # import yaml
 
 from LSparser import *
@@ -65,27 +67,28 @@ Command("aword").names("aw","一句话","一言","hitokoto","htkt").opt(["-t","-
 Command("eat").names("canteen").opt("-r",OPT.N,"重置列表").opt("--l",OPT.M,"添加自定义列表").opt("--ban",OPT.M,"添加排除列表")
 Command("cat").names("猫")
 
-c=Command("duel").names("决斗","duel!","duel！","决斗！","打牌","打牌！","牌","牌！","房")
-c.opt(["-match","-m","-M","-比赛","-三局"],OPT.N,"比赛模式").opt(["-tag","-t","-T","-双","-双打","-麻将"],OPT.N,"双打")
-c.opt(["-ot","-OT","-ot混","-OT混"],OPT.N,"OT混").opt(["-tcg","-TCG"],OPT.N,"TCG")
-c.opt(["-lp","-LP","-基本分","-生命","-生命值","-血"],OPT.T,"基本分")
-c.opt(["-time","-tm","-TM","-时间","-限时"],OPT.T,"回合时间")
-c.opt(["-tm0","-TM0","-不限时"],OPT.N,"-tm 0 的简写")
-c.opt(["-start","-st","-ST","-起手"],OPT.T,"起手手牌数")
-c.opt(["-draw","-dr","-DR","-抽","-抽卡","-抽牌"],OPT.T,"回合抽牌数")
-c.opt(["-lflist","-lf","-LF","-禁卡表"],OPT.T,"禁限卡表")
-c.opt(["-nolflist","-nf","-NF","-nolf","-NOLF","-无禁卡表","-无禁卡","-无禁限","-无限制"],OPT.N,"无禁限卡表")
-c.opt(["-nounique","-nu","-NU","-无独有"],OPT.N,"无独有卡")
-c.opt(["-nocheck","-nc","-NC","-不检查","-不检查卡组"],OPT.N,"不检查卡组")
-c.opt(["-noshuffle","-ns","-NS","-不洗牌"],OPT.N,"不洗牌")
-c.opt(["-ai","-AI","-人机"],OPT.N,"人机")
-c.opt(["-rule","-mr","-MR","-规则"],OPT.T,"大师规则")
-c.opt(["-server","-s","-服","-服务器"],OPT.T,"服务器")
-c.opt(["-233"],OPT.N,"233服-233").opt(["-2333"],OPT.N,"233服-2333").opt(["-23333"],OPT.N,"233服-23333")
-c.opt(["-me","-ME","-mine","-我","-俺","-老子"],OPT.N,"我的房")
-c.opt(["-set","-盖放"],OPT.T,"记录房").opt(["-get","-发动","-检索","-召唤","-特招"],OPT.M,"得到房")
-c.opt(["-del","-remove","-破坏","-除外","-送去墓地"],OPT.T,"移除房")
-c.opt(["-random","-r","-ran"],OPT.N,"随机房间名")
+(Command("duel").names("决斗","duel!","duel！","决斗！","打牌","打牌！","牌","牌！","房")
+    .opt(["-match","-m","-M","-比赛","-三局"],OPT.N,"比赛模式").opt(["-tag","-t","-T","-双","-双打","-麻将"],OPT.N,"双打")
+    .opt(["-ot","-OT","-ot混","-OT混"],OPT.N,"OT混").opt(["-tcg","-TCG"],OPT.N,"TCG")
+    .opt(["-lp","-LP","-基本分","-生命","-生命值","-血"],OPT.T,"基本分")
+    .opt(["-time","-tm","-TM","-时间","-限时"],OPT.T,"回合时间")
+    .opt(["-tm0","-TM0","-不限时"],OPT.N,"-tm 0 的简写")
+    .opt(["-start","-st","-ST","-起手"],OPT.T,"起手手牌数")
+    .opt(["-draw","-dr","-DR","-抽","-抽卡","-抽牌"],OPT.T,"回合抽牌数")
+    .opt(["-lflist","-lf","-LF","-禁卡表"],OPT.T,"禁限卡表")
+    .opt(["-nolflist","-nf","-NF","-nolf","-NOLF","-无禁卡表","-无禁卡","-无禁限","-无限制"],OPT.N,"无禁限卡表")
+    .opt(["-nounique","-nu","-NU","-无独有"],OPT.N,"无独有卡")
+    .opt(["-nocheck","-nc","-NC","-不检查","-不检查卡组"],OPT.N,"不检查卡组")
+    .opt(["-noshuffle","-ns","-NS","-不洗牌"],OPT.N,"不洗牌")
+    .opt(["-ai","-AI","-人机"],OPT.N,"人机")
+    .opt(["-rule","-mr","-MR","-规则"],OPT.T,"大师规则")
+    .opt(["-server","-s","-服","-服务器"],OPT.T,"服务器")
+    .opt(["-233"],OPT.N,"233服-233").opt(["-2333"],OPT.N,"233服-2333").opt(["-23333"],OPT.N,"233服-23333")
+    .opt(["-me","-ME","-mine","-我","-俺","-老子"],OPT.N,"我的房")
+    .opt(["-set","-盖放"],OPT.T,"记录房").opt(["-get","-发动","-检索","-召唤","-特招"],OPT.M,"得到房")
+    .opt(["-del","-remove","-破坏","-除外","-送去墓地"],OPT.T,"移除房")
+    .opt(["-random","-r","-ran"],OPT.N,"随机房间名")
+)
 Command("duelset").names("setduel","设房","盖牌","盖放牌")
 Command("dueldel").names("delduel","删房","炸牌","破坏牌","除外牌","送墓牌")
 Command("server").names("srv","服务器","服").opt("-l",OPT.N,"列出所有")
@@ -99,21 +102,21 @@ def toLS(*args):
         yield f"--{x}"
         yield f"-{x}"
 
-Command("ygocdb").names("ycdb","cdb").opt("-im",OPT.N,"以图片发送")\
-    .opt([*toLS("race","种族","族")],OPT.M,"种族")\
-    .opt([*toLS("attr","属性")],OPT.M,"属性")\
-    .opt([*toLS("type","t","种类","类型")],OPT.M,"卡片类型")\
-    .opt([*toLS("level","lv","LV","Lv","l","L","等级","星")],OPT.M,"等级")\
-    .opt([*toLS("rank","r","R","阶级","阶")],OPT.M,"阶级")\
-    .opt([*toLS("link","LINK","Link","连接","链接")],OPT.M,"连接标识")\
-    .opt([*toLS("P","刻度","灵摆")],OPT.M,"灵摆刻度")\
-    .opt([*toLS("atk","ATK","Atk","攻击力","攻击","打点","攻")],OPT.M,"攻击力")\
-    .opt([*toLS("def","DEF","Def","守备力","防御力","守备","防御","守","防")],OPT.M,"守备力")\
-    .opt([*toLS("atk+def","a+d","攻守和","攻防和","攻加守","攻加防","攻守","攻防","魂")],OPT.M,"攻守和")\
-    .opt([*toLS("id","Id","ID","卡号","卡密")],OPT.M,"卡片密码")\
-    .opt(["-atk=def","-a=d","-攻守相同","-攻守相等","-等攻守","-等攻防","-同攻守","-同攻防","-攻防相同","-攻防相等","-机巧"],OPT.N,"是否攻守相同")\
+(Command("ygocdb").names("ycdb","cdb").opt("-im",OPT.N,"以图片发送")
+    .opt([*toLS("race","种族","族")],OPT.M,"种族")
+    .opt([*toLS("attr","属性")],OPT.M,"属性")
+    .opt([*toLS("type","t","种类","类型")],OPT.M,"卡片类型")
+    .opt([*toLS("level","lv","LV","Lv","l","L","等级","星")],OPT.M,"等级")
+    .opt([*toLS("rank","r","R","阶级","阶")],OPT.M,"阶级")
+    .opt([*toLS("link","LINK","Link","连接","链接")],OPT.M,"连接标识")
+    .opt([*toLS("P","刻度","灵摆")],OPT.M,"灵摆刻度")
+    .opt([*toLS("atk","ATK","Atk","攻击力","攻击","打点","攻")],OPT.M,"攻击力")
+    .opt([*toLS("def","DEF","Def","守备力","防御力","守备","防御","守","防")],OPT.M,"守备力")
+    .opt([*toLS("atk+def","a+d","攻守和","攻防和","攻加守","攻加防","攻守","攻防","魂")],OPT.M,"攻守和")
+    .opt([*toLS("id","Id","ID","卡号","卡密")],OPT.M,"卡片密码")
+    .opt(["-atk=def","-a=d","-攻守相同","-攻守相等","-等攻守","-等攻防","-同攻守","-同攻防","-攻防相同","-攻防相等","-机巧"],OPT.N,"是否攻守相同")
     .opt(["-page","-p"],OPT.M,"页数")
-
+)
 @Events.onCmd("hello")
 def hello(_):
     return ["喵哈喽~"]
@@ -570,8 +573,10 @@ def mahjong(pr:ParseResult):
 def initFont(bot:Bot):
     paths=bot.config.get("font")
     if paths:
-        initNormalFont(paths.get("normal"))
+        normal=paths.get("normal")
+        initNormalFont(normal)
         initAAFont(paths.get("AA"))
+        initTexFont(Path(normal).stem.split()[0],paths.get("normal"))
 
 @Events.onCmd("AA")
 async def drawAA(pr:ParseResult):
@@ -663,6 +668,21 @@ def choose(pr:ParseResult):
         # print(random.choice(itemSplitter.split(paramStr)).format(*partList))
         return [random.choice(itemSplitter.split(paramStr)).format(*partList)]
     return [random.choice(params)]
+
+Command("tex").names("TEX","Tex","TeX")
+@Events.onCmd("tex")
+async def tex(pr:ParseResult):
+    if not pr.params:
+        return ["没有公式，texy啦!"]
+    msg:Message=pr.raw
+    content=Content(pr.paramStr)
+    return [Image(await atext2img(CQunescape(content.plainText)))]
+
+@Events.onCmd.error("tex")
+def texError(pr:ParseResult,e:Exception):
+    if isinstance(e,LatexError):
+        return [" ".join(e.args)]
+    raise e
 
 @Events.on(EventNames.StartUp)
 def botStartUP(bot:Bot):

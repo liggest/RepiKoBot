@@ -1,5 +1,5 @@
 
-from .constant import *
+from ygo.constant import *
 
 class Card():
     def __init__(self,types=tuple() ):
