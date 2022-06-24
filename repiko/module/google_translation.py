@@ -116,7 +116,7 @@ class gTranslator():
     'he': "希伯来语",#'Hebrew'
     'auto':"未知语言"
     }
-    def cnchange(self,code):
+    def cnchange(self,code:str):
         code=code.lower()
         if code=="cn" or code=="zh":
             return "zh-CN"
@@ -150,40 +150,49 @@ class gTranslator():
         return [dr]
 
 
-    def trans(self,text,fromlan="auto",tolan="en",poun=False,detect=False):
+    def trans(self,text,fromlan="auto",tolan="zh-CN",poun=False,showDetect=False):
         result=[]
         rt=None
         fromlan=self.cnchange(fromlan)
         tolan=self.cnchange(tolan)
-        if detect:
-            d=self.detectlan(text)
+        d=self.detectlan(text) # 总检测一下语言
+        if fromlan=="auto" and not d is None:
+            fromlan:str=d.lang
+            if fromlan.lower()==tolan.lower():
+                if fromlan.startswith("zh"): # 如果从中文翻译，默认到英文
+                    tolan="en"
+                else:
+                    tolan="zh-CN" # 否则到中文
+        if showDetect:
             dr=self.dresult(d)
             result.append(dr)
-            if fromlan=="auto" and not d is None:
-                fromlan=d.lang
-        
         try:
             rt=self.translator.translate(text,dest=tolan,src=fromlan)
         except:
             pass
         if not rt is None:
             fromlan=rt.src
-            result.append("尝试从 %s 翻译为 %s..."%(self.lan[fromlan],self.lan[tolan]))
+            # result.append("尝试从 %s 翻译为 %s..."%(self.lan[fromlan],self.lan[tolan]))
+            result.append(f"尝试：{self.lan[fromlan]}→{self.lan[tolan]}…")
             result.append(rt.text)
             #print(rt.extra_data)
             if poun:
                 result.append("发音：%s"%(rt.pronunciation))
         else:
-            result.append("尝试从 %s 翻译为 %s..."%(self.lan[fromlan],self.lan[tolan]))
+            # result.append("尝试从 %s 翻译为 %s..."%(self.lan[fromlan],self.lan[tolan]))
+            result.append(f"尝试：{self.lan[fromlan]}→{self.lan[tolan]}…")
             result.append("结果什么都没翻译出来嘛！")
         return result
 
 if __name__=="__main__":
     a=gTranslator()
-    # print(a.detectlan("我很高兴"))
+    print(a.detectlan("我很高兴"))
     # print(a.dresult(a.detectlan("Nice to meet you...")))
     # print(a.detectlan("おはようございます!"))
     # print(a.trans("おはようございます!"))
-    # print(a.trans("ありがとうございます!",poun=True))
-    # print(a.trans("お疲れ様です!",fromlan="cn",poun=True,detect=True))
+    print(a.trans("ありがとうございます!",poun=True))
+    print(a.trans("Nice to meet you..."))
+    print(a.trans("好啊"))
+    print(a.trans("お疲れ様です!",fromlan="cn",poun=True,showDetect=True))
+    
 

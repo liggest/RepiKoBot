@@ -48,7 +48,7 @@ name = "cairocffi"
 version = "1.3.0"
 description = "cffi-based cairo bindings for Python"
 category = "main"
-optional = false
+optional = true
 python-versions = ">=3.7"
 
 [package.dependencies]
@@ -72,7 +72,7 @@ name = "cffi"
 version = "1.15.0"
 description = "Foreign Function Interface for Python calling C code."
 category = "main"
-optional = false
+optional = true
 python-versions = "*"
 
 [package.dependencies]
@@ -425,7 +425,7 @@ name = "pycairo"
 version = "1.21.0"
 description = "Python interface for cairo"
 category = "main"
-optional = false
+optional = true
 python-versions = ">=3.7"
 
 [[package]]
@@ -433,7 +433,7 @@ name = "pycparser"
 version = "2.21"
 description = "C parser in Python"
 category = "main"
-optional = false
+optional = true
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 
 [[package]]
@@ -529,7 +529,7 @@ name = "rlpycairo"
 version = "0.0.7"
 description = "Plugin backend renderer for reportlab.graphics.renderPM"
 category = "main"
-optional = false
+optional = true
 python-versions = ">=2.7, >=3.6, <4"
 
 [package.dependencies]
@@ -701,7 +701,7 @@ python-versions = ">=3.7"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "ec7ef11a39008bfdb5f33cd4ef76ef7ccf78bd576df3e36d3e7086e261a728d5"
+content-hash = "ef5c3a3bceb56f74948b45d179e9128655578f1d6ea13758da33733e62169c71"
 
 [metadata.files]
 aiofiles = [

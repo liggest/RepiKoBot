@@ -2,6 +2,9 @@
  一个基于 OneBot 的复读机
 
 ## 安装
+ 
+> #### 可选前置
+> - 安装 [cairo](https://www.cairographics.org/download/)
 
 - 安装 [poetry](https://python-poetry.org/)
 - `poetry install`
@@ -10,7 +13,7 @@
 > - 原地复制 `config` 目录下的 `config!.yaml`
 > - 重命名为 `config.yaml` 并修改其内容
 > - 安装 ygopro 或从[仓库](https://github.com/mycard/ygopro/tree/server)获取相关文件
-> - 新建 `font` 目录并放入喜欢的字体
+> - 新建 `font` 目录并放入喜欢的字体（对应修改`config.yaml`）
 > - 通过某些手段使程序正常运行（逃
 
 ## 运行

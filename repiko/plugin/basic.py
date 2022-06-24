@@ -15,7 +15,7 @@ from repiko.module.ygoRoom import YGORoom
 from repiko.module.calculator import Calculator
 # from repiko.module.ygoServerRequest import ygoServerRequester
 # from repiko.module.helper import Helper
-from repiko.module.google_translatation import gTranslator
+from repiko.module.google_translation import gTranslator
 from repiko.module.ygo.card import Card
 from repiko.module.ygo.dataloader import cdbReader,confReader,ShrinkLevel
 from repiko.module.ygo.sqlbuilder import SQLBuilder
@@ -52,10 +52,11 @@ Command("ycpic").names("ycp","bgpic","bgp")
 
 Command("ygoocg").names("yo","ourocg","oo").opt("-ver",OPT.M,"翻译版本").opt("-wiki",OPT.N,"提供wiki链接").opt("-im",OPT.N,"以图片发送").opt(["-pic","-p"],OPT.N,"卡图")
 # Command("ygoserver").names("ys")
-Command("translate").names("ts").opt("-from",OPT.M,"源语言").opt("-to",OPT.M,"目标语言").opt("-p",OPT.N,"显示发音")\
-    .opt("-d",OPT.N,"检测语言").opt("-donly",OPT.N,"只检测语言")\
-    .opt("-en",OPT.N,"翻译到英语").opt("-ja",OPT.N,"翻译到日语").opt("-ru",OPT.N,"翻译到俄语").opt("-de",OPT.N,"翻译到德语")\
+(Command("translate").names("ts").opt("-from",OPT.M,"源语言").opt("-to",OPT.M,"目标语言").opt("-p",OPT.N,"显示发音")
+    .opt("-d",OPT.N,"检测语言").opt("-donly",OPT.N,"只检测语言")
+    .opt("-en",OPT.N,"翻译到英语").opt("-ja",OPT.N,"翻译到日语").opt("-ru",OPT.N,"翻译到俄语").opt("-de",OPT.N,"翻译到德语")
     .opt("-es",OPT.N,"翻译到西语")
+)
 Command("luck").names("jrrp").opt("-yc",OPT.N,"根据运值卡查").opt("-yci",OPT.N,"根据运值卡查，发送图片").opt("-ycp",OPT.N,"根据运值卡查，发送卡图")
 Command("ygodraw").names("yd").opt("-n",OPT.M,"抽卡数").opt("-im",OPT.N,"以图片发送").opt(["-pic","-p"],OPT.N,"卡图")\
     .opt(["-notoken","-nt","-无衍生物"],OPT.N,"不含衍生物").opt(["-noalias","-na","-无同名卡"],OPT.N,"不含同名卡")\
@@ -279,7 +280,7 @@ def translate(pr:ParseResult):
     tolan=pr.getByType("to",tolan)
     poun=pr.getByType("p",False,bool)
     dtct=pr.getByType("d",False,bool)
-    return a.trans(text,fromlan=fromlan,tolan=tolan,poun=poun,detect=dtct or donly)
+    return a.trans(text,fromlan=fromlan,tolan=tolan,poun=poun,showDetect=dtct)
 
 def initLuck(core:MCore):
     core.data["luckbar"]=["","一","二","三","亖"]
@@ -292,6 +293,8 @@ async def luck(pr:ParseResult):
     qq=str(msg.realSrc)
     random.seed( today+"-"+qq ) #20xx-xx-xx-xxxxxxxxxx
     luck=random.randint(0,100) #实际上有101种可能
+    if luck==100 and random.randint(1,10)==10:
+        luck=1000 # 1000%!!!
     random.seed()
     name=f"[CQ:at,qq={qq}]"
     if msg.mtype=="private":
@@ -300,6 +303,8 @@ async def luck(pr:ParseResult):
         result=f"{name}的今日运势为 {luck} \n"
     else:
         result=f"今日运势为 {luck} \n"
+    if luck==1000:
+        result=f"{result.strip()}！！！ \n"
     barbody=luck//4
     result+=luckbar[4]*barbody
     barhead=luck%4

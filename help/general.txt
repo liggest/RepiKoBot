@@ -8,6 +8,7 @@
 .luck/.jrrp  查看今日运势(
 .mahjong/.麻将  抽麻将牌
 .roll/.r  投骰子
+.tex 基于知乎的公式渲染
 .translate/.ts  基于 Googletrans 的谷歌翻译
 .ygocard/.yc  基于百鸽的游戏王卡查
 .ygocdb/.ycdb  基于 cards.cdb 的游戏王卡查
