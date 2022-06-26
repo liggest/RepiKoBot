@@ -578,10 +578,10 @@ def mahjong(pr:ParseResult):
 def initFont(bot:Bot):
     paths=bot.config.get("font")
     if paths:
-        normal=paths.get("normal")
-        initNormalFont(normal)
+        initNormalFont(paths.get("normal"))
         initAAFont(paths.get("AA"))
-        initTexFont(Path(normal).stem.split()[0],paths.get("normal"))
+        tex=paths.get("tex")
+        initTexFont(Path(tex).stem.split()[0],tex)
 
 @Events.onCmd("AA")
 async def drawAA(pr:ParseResult):

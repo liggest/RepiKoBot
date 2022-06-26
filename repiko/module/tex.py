@@ -16,6 +16,10 @@ try:
 except:
     HASrlPyCairo=False
 
+from reportlab import rl_config
+rl_config.autoGenerateTTFMissingTTFName=True 
+# reportlab 注册字体时好像用到了这个属性，明明 rl_settings 里面有…但改那边的却没用
+
 
 # from cairosvg import svg2png
 # import PIL.Image as PILImage
