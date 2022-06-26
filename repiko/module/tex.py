@@ -16,8 +16,8 @@ try:
 except:
     HASrlPyCairo=False
 
-from reportlab import rl_config
-rl_config.autoGenerateTTFMissingTTFName=True 
+# from reportlab import rl_config
+# rl_config.autoGenerateTTFMissingTTFName=True 
 # reportlab 注册字体时好像用到了这个属性，明明 rl_settings 里面有…但改那边的却没用
 
 
@@ -84,9 +84,9 @@ def reviseSVG(svgText:str):
             break
     # fontFamily=f"font-family: {fontName}, monospace;"
     if HASrlPyCairo:
-        fontFamily=f"font-family: {fontName}, monospace;"
+        fontStyle=f"font-family: {fontName}, monospace; font-size: {fontSize-1}px;"
     else:
-        fontFamily=f"font-family: {fontName};"
+        fontStyle=f"font-family: {fontName}; font-size: {fontSize-1}px;" # 字号也稍微小一点，好像只影响中文
     for node in svg.find_all(attrs={"font-family":"monospace"}):
         node:Tag
         s=node.string
@@ -95,7 +95,7 @@ def reviseSVG(svgText:str):
         if not s.isascii():
             del node["font-family"]
             style=node.get("style","")
-            node["style"]=f"{fontFamily} {style}"
+            node["style"]=f"{fontStyle} {style}"
 
     # def removeXlinks(node:Tag):
     #     xlinks=[attr for attr in node.attrs if attr.startswith(("xlink","xmlns"))]
@@ -142,7 +142,11 @@ if __name__ == "__main__":
             return byts.getvalue()
 
     async def main():
-        initFont("MyFont",str([*Path("font").glob("*.ttf")][-1]))
+        fontPaths=[*Path("font").glob("*.tt?")]
+        for i,path in enumerate(fontPaths):
+            print(f"{i}. {path}")
+        path=fontPaths[int(input("选："))]
+        initFont(path.stem.split()[0],str(path))
         texStr=input("tex:")
         while texStr:
             await atext2img(texStr)
