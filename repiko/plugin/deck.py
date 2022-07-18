@@ -152,7 +152,7 @@ def initDeck(bot:Bot):
     global ygopath,deckpath
     ygopath=Path(bot.config["ygo"]["ygoPath"])
     deckpath=ygopath / "deck" / "random"
-    deckpath.mkdir(774,parents=True,exist_ok=True)
+    deckpath.mkdir(0o774,parents=True,exist_ok=True)
     print(f"确保 {deckpath} 存在")
 
 @Events.on(EventNames.StartUp)
