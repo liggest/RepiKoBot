@@ -1,5 +1,6 @@
 from PIL import Image,ImageDraw,ImageFont
 import os
+import typing
 # import textwrap
 
 marginSize=(20,20)
@@ -37,14 +38,17 @@ def getFileName(title:str,fileName,suffix=".png"):
 def getFilePath(title,fileName,suffix=".png"):
     return imageDir+getFileName(title,fileName,suffix)
 
-def str2greyPng(text:str,fileName=None):
-    lines=text.splitlines()
+def str2greyPng(text:typing.Union[str,typing.Iterable],fileName=None,overwrite=False):
+    if isinstance(text,str):
+        lines=text.splitlines()
+    elif isinstance(text,typing.Iterable):
+        lines=[*map(str,text)]
     title=""
     if lines:
         title=lines[0]
     # fileName=getFileName(title,fileName)
     filePath=getFilePath(title,fileName)
-    if imageExists(filePath):
+    if imageExists(filePath) and not overwrite:
         return r"file:///"+os.path.abspath(filePath).lstrip("/")
     img=drawText(title,lines[1:])
     img.save(filePath)

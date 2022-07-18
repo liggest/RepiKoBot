@@ -43,14 +43,16 @@ Command("-hello")
 Command("help").names("?","？").opt("-p",OPT.M,"页数")# .opt("-im",OPT.N,"以图片发送")
 Command("calculate").names("cal").opt("-show",OPT.N,"显示计算过程")
 Command("roll").names("r").opt("-act",OPT.M,"要投骰子的行动")
-Command("ygocard").names("yc","bg","卡查","查卡").opt("-im",OPT.N,"以图片发送").opt(["-pic","-p"],OPT.N,"卡图")\
-    .opt("-database",OPT.N,"数据库链接").opt("-QA",OPT.N,"Q&A链接").opt("-wiki",OPT.N,"wiki链接")\
-    .opt("-yugipedia",OPT.N,"Yugipedia链接").opt("-ourocg",OPT.N,"OurOcg链接")\
+(Command("ygocard").names("yc","bg","卡查","查卡").opt("-im",OPT.N,"以图片发送").opt(["-pic","-p"],OPT.N,"卡图")
+    .opt("-database",OPT.N,"数据库链接").opt("-QA",OPT.N,"Q&A链接").opt("-wiki",OPT.N,"wiki链接")
+    .opt("-yugipedia",OPT.N,"Yugipedia链接").opt("-ourocg",OPT.N,"OurOcg链接")
     .opt(["-script","-lua"],OPT.N,"脚本链接").opt(["-ocgRule","-rule"],OPT.N,"裁定链接").opt(["-url","-link"],OPT.N,"百鸽链接")
     #.opt("-ygorg",OPT.N,"YGOrg链接")
+    .opt("-reload",OPT.N,"重载图片")
+)
 Command("ycpic").names("ycp","bgpic","bgp")
 
-Command("ygoocg").names("yo","ourocg","oo").opt("-ver",OPT.M,"翻译版本").opt("-wiki",OPT.N,"提供wiki链接").opt("-im",OPT.N,"以图片发送").opt(["-pic","-p"],OPT.N,"卡图")
+Command("ygoocg").names("yo","ourocg").opt("-ver",OPT.M,"翻译版本").opt("-wiki",OPT.N,"提供wiki链接").opt("-im",OPT.N,"以图片发送").opt(["-pic","-p"],OPT.N,"卡图").opt("-reload",OPT.N,"重载图片")
 # Command("ygoserver").names("ys")
 (Command("translate").names("ts").opt("-from",OPT.M,"源语言").opt("-to",OPT.M,"目标语言").opt("-p",OPT.N,"显示发音")
     .opt("-d",OPT.N,"检测语言").opt("-donly",OPT.N,"只检测语言")
@@ -58,9 +60,11 @@ Command("ygoocg").names("yo","ourocg","oo").opt("-ver",OPT.M,"翻译版本").opt
     .opt("-es",OPT.N,"翻译到西语")
 )
 Command("luck").names("jrrp").opt("-yc",OPT.N,"根据运值卡查").opt("-yci",OPT.N,"根据运值卡查，发送图片").opt("-ycp",OPT.N,"根据运值卡查，发送卡图")
-Command("ygodraw").names("yd").opt("-n",OPT.M,"抽卡数").opt("-im",OPT.N,"以图片发送").opt(["-pic","-p"],OPT.N,"卡图")\
-    .opt(["-notoken","-nt","-无衍生物"],OPT.N,"不含衍生物").opt(["-noalias","-na","-无同名卡"],OPT.N,"不含同名卡")\
+(Command("ygodraw").names("yd").opt("-n",OPT.M,"抽卡数").opt("-im",OPT.N,"以图片发送").opt(["-pic","-p"],OPT.N,"卡图")
+    .opt(["-notoken","-nt","-无衍生物"],OPT.N,"不含衍生物").opt(["-noalias","-na","-无同名卡"],OPT.N,"不含同名卡")
     .opt(["-main","-主卡组"],OPT.N,"只含主卡组").opt(["-extra","-ex","-额外"],OPT.N,"只含额外")
+    .opt("-reload",OPT.N,"重载图片")
+)
 Command("ydpic").names("ydp","抽卡")
 Command("logodraw").names("群赛抽卡","决斗都市","yddc","duelcity").opt("-im",OPT.N,"以图片发送")
 Command("aword").names("aw","一句话","一言","hitokoto","htkt").opt(["-t","--t"],OPT.M,"句子类型")
@@ -197,10 +201,12 @@ async def ygocard(pr:ParseResult):
         resultText=str(rcard)
         result=[]
         if pr.getByType("pic",False,bool) and rcard.img:
-            result.append(f"[CQ:image,file={rcard.img}]")
+            result.append(Image(rcard.img) if not pr["reload"] else Image(rcard.img,cache=False)) 
+            #f"[CQ:image,file={rcard.img}]"
         elif pr.args.get("im",False):
             filename=str2greyPng(resultText,rcard.name)
-            result.append(f"[CQ:image,file={filename}]")
+            result.append(Image(filename) if not pr["reload"] else Image(filename,cache=False)) 
+            # f"[CQ:image,file={filename}]"
         else:
             result.append(resultText)
         for ln in linkNames:
@@ -231,15 +237,15 @@ async def ygoocg(pr:ParseResult):
     ver=pr.args.get("ver",False)
     if ver:
         a.SetTranslateEdition(ver)
-    rcard=await a.AsyncSearchByName( pr.paramStr )
+    rcard:Card=await a.AsyncSearchByName( pr.paramStr )
     if rcard:
         resultText=str(rcard)
         result=[]
         if pr.getByType("pic",False,bool) and rcard.img:
-            result.append(f"[CQ:image,file={rcard.img}]")
+            result.append(Image(rcard.img) if not pr["reload"] else Image(rcard.img,cache=False)) 
         elif pr.args.get("im",False):
             filename=str2greyPng(resultText,rcard.name)
-            result.append(f"[CQ:image,file={filename}]")
+            result.append(Image(filename) if not pr["reload"] else Image(filename,cache=False)) 
         else:
             result.append(resultText)
     else:
@@ -372,7 +378,7 @@ def ygodraw(pr:ParseResult):
             c.fromCDBTuple(ct,conf.setdict,conf.lfdict)
             name=c.name
             if pr.getByType("pic",False,bool):
-                result.append(Image(BaiGe.imgLink(c.id)))
+                result.append(Image(BaiGe.imgLink(c.id)) if not pr["reload"] else Image(BaiGe.imgLink(c.id),cache=False))
             resultText=str(c)
         else:
             if num>60:
@@ -384,7 +390,7 @@ def ygodraw(pr:ParseResult):
     if not pr["pic"]:
         if pr.args.get("im",False):
             filename=str2greyPng(resultText,name)
-            result.append(f"[CQ:image,file={filename}]")
+            result.append(Image(filename) if not pr["reload"] else Image(filename,cache=False))
         else:
             result.append(resultText)
     return result

@@ -10,6 +10,7 @@
   -ourocg 附加OurOcg链接
   -script/-lua 附加脚本链接
   -rule 附加裁定链接
+  -reload 和 -pic 或 -im 一起使用，重载卡图
 例：
   .yc 解码语者
   .yc 地狱扭蛋 -wiki

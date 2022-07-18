@@ -1,9 +1,10 @@
-.ygoocg/.yo/.ourocg/.oo 卡名
+.ygoocg/.yo/.ourocg 卡名
   基于OurOcg的游戏王卡查
   -pic/-p  以卡图形式发送
   -ver cn/nw  切换翻译版本为NW（默认）或CN
   -wiki  提供日文wiki链接
   -im  以图片形式发送卡片文本
+  -reload 和 -pic 或 -im 一起使用，重载卡图
 例：
   .yo 解码语者
   .yo 蓝眼白龙 -ver cn

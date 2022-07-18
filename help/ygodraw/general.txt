@@ -9,6 +9,7 @@
   -ex/-额外  只抽额外
   -nt/-notoken/-无衍生物  不抽衍生物
   -na/-noalias/-无同名卡  不抽同名卡
+  -reload 和 -pic 或 -im 一起使用，重载卡图
 例：
   .yd
   .yd -p

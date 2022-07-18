@@ -11,6 +11,7 @@ import importlib
 import os
 import typing
 import time
+from pathlib import Path
 
 from LSparser import Events,CommandCore
 
@@ -406,6 +407,54 @@ class Bot():
         res=await self.AsyncPost("get_group_member_info",param)
         rj:dict=res.json()
         return rj.get("data",{})
+
+    async def GroupFileInfo(self,group:int,path:typing.Union[str,Path]) -> typing.Union[None,dict]:
+        if not isinstance(path,Path):
+            path=Path(path)
+        root=await self.GroupRootFolder(group)
+        files=root["files"]
+        folders=root["folders"]
+        for current in reversed(path.parents):
+            if current==Path(".") or current==Path("/"):
+                continue
+            hasCurrent=False
+            for f in folders:
+                if f["folder_name"]==current.name:
+                    hasCurrent=True
+                    sub=await self.GroupSubFolder(group,f["folder_id"])
+                    files=sub["files"]
+                    folders=sub["folders"]
+                    break
+            if not hasCurrent:
+                return None
+        if files:
+            for f in files:
+                if f["file_name"]==path.name:
+                    return f
+        if folders:
+            for f in folders:
+                if f["folder_name"]==path.name:
+                    return f
+        return None
+
+    async def GroupRootFolder(self,group:int):
+        param={ "group_id":group }
+        rj:dict=(await self.AsyncPost("get_group_root_files",param)).json()
+        return rj.get("data",{})
+    
+    async def GroupSubFolder(self,group:int,folderID:int):
+        param={ "group_id":group,"folder_id":folderID }
+        rj:dict=(await self.AsyncPost("get_group_files_by_folder",param)).json()
+        return rj.get("data",{})
+
+    async def GroupFileLink(self,group:int,file:dict) -> str:
+        param={
+            "group_id":group,
+            "file_id":file["file_id"],
+            "busid":file["busid"]
+        }
+        rj:dict=(await self.AsyncPost("get_group_file_url",param)).json()
+        return rj.get("data",{"url":""})["url"]
 
     # def CopyYGO(self):
     #     cplist=["cards.cdb","lflist.conf","strings.conf"]
