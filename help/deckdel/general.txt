@@ -1,0 +1,6 @@
+.deckdel/.deldeck/.删除卡组
+  删除服务器中已有的卡组
+  需要提供卡组名称
+例：
+  .deckdel 强力卡组A.ydk 强力卡组B.ydk
+  .deldeck 强力卡组A 强力卡组B

@@ -1,0 +1,10 @@
+.decks/.listdeck/.decklist/.卡组列表
+  展示服务器里的卡组名称
+  可以添加搜索关键字
+  其他指令见 .help deckset 和 .help deckdel
+  -n 数量  展示的数量（默认50）
+例：
+  .decks
+  .decks -n 100
+  .decks 乱组
+  .decks 圣刻 异色 真红
