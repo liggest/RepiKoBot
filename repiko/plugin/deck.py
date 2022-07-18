@@ -19,7 +19,7 @@ ygopath:Path=None
 deckpath:Path=None
 deckext=".ydk"
 
-Command("decks")
+Command("decks").names("listdeck","decklist","卡组列表").opt("-n",OPT.M,"展示数量")
 Command("deckset").names("setdeck","设置卡组").opt("-me",OPT.N,"自己的卡组")
 Command("deckdel").names("deldeck","删除卡组")
 
@@ -117,15 +117,29 @@ def checkDeck(deckfile:Path):
     if len(main)<40:
         return False
     return True
-        
+
+deckPicLimit=50
+
 @Events.onCmd("decks")
 def decks(pr:ParseResult):
-    params=[para for para in pr.params if str(para).strip()]
+    params=[param for param in pr.params if str(param).strip()]
     files=(Path(file.name) for file in deckpath.iterdir())
     if params:
-        files=filter(lambda file: file.suffix.endswith(deckext) and any(filter(file.match,params)),files)
+        files=filter(lambda file: file.suffix.endswith(deckext) 
+        and any(filter(
+                    lambda param:file.match(param) or param in file.name
+                ,params)
+            )
+        ,files)
     else:
         files=filter(lambda file: file.suffix.endswith(deckext),files)
+    n=pr.getToType("n",None,int)
+    if not n:
+        files=itertools.islice(files,deckPicLimit)
+    else:
+        n=max(n,1)
+        files=itertools.islice(files,n)
+    files=map(lambda x: f"{x[0]+1}、{x[1]}"  ,enumerate(files))
     path=str2greyPng(itertools.chain(("卡组列表",),files),None,overwrite=True)
     return [Image(path,cache=False)]
 
