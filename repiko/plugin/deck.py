@@ -20,7 +20,7 @@ deckpath:Path=None
 deckext=".ydk"
 
 Command("decks")
-Command("deckset").names("setdeck","设置卡组")
+Command("deckset").names("setdeck","设置卡组").opt("-me",OPT.N,"自己的卡组")
 Command("deckdel").names("deldeck","删除卡组")
 
 @Events.onCmd("deckset")
@@ -35,9 +35,9 @@ async def deckset(pr:ParseResult):
     # path="/".join([para for para in pr.params if str(para).strip()])
     # path=Path(path)
     # gFile=await bot.GroupFileInfo(msg.src,path)
-    asyncio.create_task(downloadTask(bot,msg.src,paths))
+    asyncio.create_task(downloadTask(bot,msg.src,paths,msg.realSrc if pr["me"] else False ))
 
-async def downloadTask(bot:Bot,group:int,paths:typing.List[Path]):
+async def downloadTask(bot:Bot,group:int,paths:typing.List[Path],me:int=False):
     result=[]
     for path in paths:
         file=await bot.GroupFileInfo(group,path)
@@ -47,7 +47,8 @@ async def downloadTask(bot:Bot,group:int,paths:typing.List[Path]):
         if not file:
             result.append(f"没找到 {path.as_posix()} … 真的在群里吗？")
         elif "file_id" in file:
-            result.append(await downloadFile(bot,group,file,path))
+            if not me or str(file["uploader"])==str(me):
+                result.append(await downloadFile(bot,group,file,path))
         elif "folder_id" in file:
             folder=await bot.GroupSubFolder(group,file["folder_id"])
             if not folder:
@@ -55,7 +56,8 @@ async def downloadTask(bot:Bot,group:int,paths:typing.List[Path]):
             else:
                 files=folder["files"]
                 for file in files:
-                    result.append(await downloadFile(bot,group,file,path/file["file_name"]))
+                    if not me or str(file["uploader"])==str(me):
+                        result.append(await downloadFile(bot,group,file,path/file["file_name"]))
     if result:
         await bot.AsyncSend(Message.build("\n".join(result),group,MessageType.Group))
     
