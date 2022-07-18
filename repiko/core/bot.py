@@ -427,6 +427,8 @@ class Bot():
                     break
             if not hasCurrent:
                 return None
+        if not path.name:
+            return root # 直接返回 root 外部需要额外判断
         if files:
             for f in files:
                 if f["file_name"]==path.name:

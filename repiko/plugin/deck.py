@@ -49,18 +49,20 @@ async def downloadTask(bot:Bot,group:int,paths:typing.List[Path],me:int=False):
         elif "file_id" in file:
             if not me or str(file["uploader"])==str(me):
                 result.append(await downloadFile(bot,group,file,path))
-        elif "folder_id" in file:
-            folder=await bot.GroupSubFolder(group,file["folder_id"])
-            if not folder:
-                result.append(f"没找到 {path.as_posix()} 目录… 真的在群里吗？")
+        elif "folder_id" in file or "files" in file: # 包括 root{files,folders}的情况
+            folder=file
+            if "folder_id" in file:
+                folder=await bot.GroupSubFolder(group,file["folder_id"])
+                if not folder:
+                    result.append(f"没找到 {path.as_posix()} 目录… 真的在群里吗？")
+                    continue
+            files=folder["files"]
+            if not files:
+                result.append(f"{path.as_posix()} 目录里没有文件啊！？")
             else:
-                files=folder["files"]
-                if not files:
-                    result.append(f"{path.as_posix()} 目录里没有文件啊！？")
-                else:
-                    for file in files:
-                        if not me or str(file["uploader"])==str(me):
-                            result.append(await downloadFile(bot,group,file,path/file["file_name"]))
+                for file in files:
+                    if not me or str(file["uploader"])==str(me):
+                        result.append(await downloadFile(bot,group,file,path/file["file_name"]))
     if result:
         await bot.AsyncSend(Message.build("\n".join(result),group,MessageType.Group))
     
