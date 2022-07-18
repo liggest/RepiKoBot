@@ -41,7 +41,7 @@ async def downloadTask(bot:Bot,group:int,paths:typing.List[Path],me:int=False):
     result=[]
     for path in paths:
         file=await bot.GroupFileInfo(group,path)
-        if not file and not path.suffix:
+        if not file and not path.suffix and path.name:
             path=path.with_suffix(deckext)
             file=await bot.GroupFileInfo(group,path)
         if not file:
@@ -55,9 +55,12 @@ async def downloadTask(bot:Bot,group:int,paths:typing.List[Path],me:int=False):
                 result.append(f"没找到 {path.as_posix()} 目录… 真的在群里吗？")
             else:
                 files=folder["files"]
-                for file in files:
-                    if not me or str(file["uploader"])==str(me):
-                        result.append(await downloadFile(bot,group,file,path/file["file_name"]))
+                if not files:
+                    result.append(f"{path.as_posix()} 目录里没有文件啊！？")
+                else:
+                    for file in files:
+                        if not me or str(file["uploader"])==str(me):
+                            result.append(await downloadFile(bot,group,file,path/file["file_name"]))
     if result:
         await bot.AsyncSend(Message.build("\n".join(result),group,MessageType.Group))
     
