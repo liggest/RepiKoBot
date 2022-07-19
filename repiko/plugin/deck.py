@@ -1,6 +1,5 @@
 import asyncio
 import typing
-from unittest import result
 import httpx
 import itertools
 from collections import deque
@@ -78,6 +77,7 @@ async def downloadFile(bot:Bot,group:int,file:dict,path:Path):
         async with httpx.AsyncClient() as client:
             res=await client.get(fileLink)
             deckfile:Path=deckpath / file["file_name"]
+            deckfile=deckfile.with_name(deckfile.name.replace(" ","_"))
             uploader=await bot.GroupMemberInfo(group,file["uploader"])
             if uploader and uploader.get("card"):
                 deckfile=deckpath / f"{deckfile.stem}_by_{uploader['card']}{deckfile.suffix}"
@@ -126,10 +126,10 @@ def decks(pr:ParseResult):
     files=(Path(file.name) for file in deckpath.iterdir())
     if params:
         files=filter(lambda file: file.suffix.endswith(deckext) 
-        and any(filter(
-                    lambda param:file.match(param) or param in file.name
-                ,params)
-            )
+            and any(filter(
+                        lambda param:file.match(param) or param in file.name
+                    ,params)
+                )
         ,files)
     else:
         files=filter(lambda file: file.suffix.endswith(deckext),files)
@@ -148,22 +148,37 @@ async def deckdel(pr:ParseResult):
     msg:Message=pr.raw
     bot:Bot=msg.selector.bot
     result=[]
-    for path in pr.params:
+    paramStr=" ".join(filter(str.strip,pr.params))
+    deleted=False
+    isLast=False
+    for path in itertools.chain(pr.params,(paramStr,)):
         if not str(path).strip():
             continue
+        isLast=path is paramStr # 如果没删任何文件，把所有参数拼起来当做一个文件名再试一次
+        if isLast and deleted:
+            break
         name=Path(path).with_suffix(deckext)
         path=deckpath / name.name
         if path.is_file():
             path.unlink()
         else:
-            name=name.with_name(f"{name.stem}_by_{msg.getSrcCard()}{name.suffix}")
+            card=msg.getSrcCard()
+            if msg.mtype==MessageType.Group and not card:
+                uploader=await bot.GroupMemberInfo(msg.src,msg.realSrc)
+                if uploader and uploader.get("card"):
+                    card=uploader['card']
+            name=name.with_name(f"{name.stem}_by_{card}{name.suffix}")
             path=deckpath / name.name
             if path.is_file():
                 path.unlink()
             else:
                 result.append(f"删除 {name.name} 失败…或许根本没有这个卡组？")
                 continue
+        if isLast:
+            # 之前都没找到，最后一次找到了，把之前的记录都清除
+            result.clear()
         result.append(f"删除 {name.name}…")
+        deleted=True
     if result:
         return ["\n".join(result)]
     else:
