@@ -604,7 +604,7 @@ async def drawAA(pr:ParseResult):
 def asGen(val):
     if isinstance(val,(list,tuple)):
         yield from val
-    elif not val is None:
+    elif isinstance(val,str):
         yield val
 
 builderMap={
@@ -621,7 +621,7 @@ def ygocdb(pr:ParseResult):
         builder.keyword(*pr.params)
     for k,v in builderMap.items():
         val=pr[k]
-        if val and isinstance(val,str):
+        if val:
             getattr(builder,v)(*asGen(val))
     if pr["atk=def"]:
         builder.atkEqDef()
