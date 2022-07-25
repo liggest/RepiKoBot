@@ -621,7 +621,7 @@ def ygocdb(pr:ParseResult):
         builder.keyword(*pr.params)
     for k,v in builderMap.items():
         val=pr[k]
-        if val:
+        if val and isinstance(val,str):
             getattr(builder,v)(*asGen(val))
     if pr["atk=def"]:
         builder.atkEqDef()

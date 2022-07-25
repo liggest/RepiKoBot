@@ -2,6 +2,7 @@ import asyncio
 import typing
 import httpx
 import itertools
+import shutil
 from collections import deque
 from pathlib import Path
 
@@ -16,6 +17,7 @@ from repiko.module.str2image import str2greyPng
 
 ygopath:Path=None
 deckpath:Path=None
+reviewpath:Path=None
 deckext=".ydk"
 
 Command("decks").names("listdeck","decklist","卡组列表").opt("-n",OPT.M,"展示数量")
@@ -63,13 +65,14 @@ async def downloadTask(bot:Bot,group:int,paths:typing.List[Path],me:int=False):
                     if not me or str(file["uploader"])==str(me):
                         result.append(await downloadFile(bot,group,file,path/file["file_name"]))
     if result:
-        await bot.AsyncSend(Message.build("\n".join(result),group,MessageType.Group))
+        await bot.AsyncSend(Message.build("\n".join(filter(None,result)),group,MessageType.Group))
     
 
 async def downloadFile(bot:Bot,group:int,file:dict,path:Path):
     name:str=file["file_name"]
     if not name.endswith(deckext):
-        return f"{path.as_posix()} 非卡组文件，已忽略"
+        # return f"{path.as_posix()} 非卡组文件，已忽略"
+        return None
     fileLink=await bot.GroupFileLink(group,file)
     if not fileLink:
         return f"没找到 {path.as_posix()} … 真的在群里吗？"
@@ -78,11 +81,9 @@ async def downloadFile(bot:Bot,group:int,file:dict,path:Path):
             res=await client.get(fileLink)
             deckfile:Path=deckpath / file["file_name"]
             deckfile=deckfile.with_name(deckfile.name.replace(" ","_"))
-            uploader=await bot.GroupMemberInfo(group,file["uploader"])
-            if uploader and uploader.get("card"):
-                deckfile=deckpath / f"{deckfile.stem}_by_{uploader['card']}{deckfile.suffix}"
-            else:
-                deckfile=deckpath / f"{deckfile.stem}_by_{file['uploader_name']}{deckfile.suffix}"
+            card=file['uploader_name']
+            card=await memberCard(bot,group,file["uploader"],file['uploader_name'])
+            deckfile=deckpath / f"{deckfile.stem}_by_{card}{deckfile.suffix}"
             with open(deckfile,"wb") as f:
                 f.write(res.content)
         if not checkDeck(deckfile):
@@ -91,6 +92,15 @@ async def downloadFile(bot:Bot,group:int,file:dict,path:Path):
         return f"耶！已下载 {path.as_posix()}"
     except:
         return f"下载 {path.as_posix()} 失败！？明明就差一点了……"
+
+async def memberCard(bot:Bot,group:int,qq:int,default:str):
+    member=await bot.GroupMemberInfo(group,qq)
+    if member:
+        if member.get("card"):
+            return member["card"]
+        elif member.get("nickname"):
+            return member["nickname"]
+    return default
 
 def checkDeck(deckfile:Path):
     main=deque(maxlen=60)
@@ -155,22 +165,22 @@ async def deckdel(pr:ParseResult):
         if not str(path).strip():
             continue
         isLast=path is paramStr # 如果没删任何文件，把所有参数拼起来当做一个文件名再试一次
-        if isLast and deleted:
+        if isLast and (deleted or len(result)==1): # 已经有删过的了，或者只有一个参数，就不处理拼接的了
             break
         name=Path(path).with_suffix(deckext)
         path=deckpath / name.name
         if path.is_file():
-            path.unlink()
+            # path.unlink()
+            shutil.move(path,reviewpath / name.name) # 移到待检查文件夹
         else:
             card=msg.getSrcCard()
             if msg.mtype==MessageType.Group and not card:
-                uploader=await bot.GroupMemberInfo(msg.src,msg.realSrc)
-                if uploader and uploader.get("card"):
-                    card=uploader['card']
+                card=await memberCard(bot,msg.src,msg.realSrc,card)
             name=name.with_name(f"{name.stem}_by_{card}{name.suffix}")
             path=deckpath / name.name
             if path.is_file():
-                path.unlink()
+                # path.unlink()
+                shutil.move(path,reviewpath / name.name)
             else:
                 result.append(f"删除 {name.name} 失败…或许根本没有这个卡组？")
                 continue
@@ -185,11 +195,13 @@ async def deckdel(pr:ParseResult):
         return ["倒是指定一些卡组文件呀！"]
 
 def initDeck(bot:Bot):
-    global ygopath,deckpath
+    global ygopath,deckpath,reviewpath
     ygopath=Path(bot.config["ygo"]["ygoPath"])
     deckpath=ygopath / "deck" / "random"
     deckpath.mkdir(0o774,parents=True,exist_ok=True)
-    print(f"确保 {deckpath} 存在")
+    reviewpath=ygopath / "deck" / "review"
+    reviewpath.mkdir(0o774,parents=True,exist_ok=True)
+    print(f"确保 {deckpath}、{reviewpath} 存在")
 
 @Events.on(EventNames.StartUp)
 def botStartUP(bot:Bot):

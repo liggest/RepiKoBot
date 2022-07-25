@@ -19,6 +19,7 @@ class SQLBuilder:
 
     @staticmethod
     def _upperFirst(text:str):
+        # 用 str.capitalize 会导致其余字母都变小写 cardType => Cardtype
         return text[:1].upper()+text[1:]
 
     @staticmethod
@@ -41,9 +42,16 @@ class SQLBuilder:
     def dealCardType(text:str) -> CardType:
         if text.endswith("卡"):
             text=text[:-1]
-        if (text.endswith("怪兽") and text!="怪兽") or (text.endswith("魔法") and text!="魔法") or (text.endswith("陷阱") and text!="陷阱"):
+        base=text[-2:]
+        baseType=None
+        # if (text.endswith("怪兽") and text!="怪兽") or (text.endswith("魔法") and text!="魔法") or (text.endswith("陷阱") and text!="陷阱"):
+        if base in ("怪兽","魔法","陷阱") and text!=base:
             text=text[:-2]
-        return str2cardType.get(text)
+            baseType=str2cardType.get(base)
+        textType=str2cardType.get(text)
+        if baseType is not None and textType is not None:
+            textType|=baseType
+        return textType
 
     @staticmethod
     def _dealAD(text:str) -> int:
@@ -150,7 +158,6 @@ class SQLBuilder:
         for i in args:
             if isinstance(i,str): #不是 str 的话就不会检查数据
                 i=getattr(self,f"deal{self._upperFirst(name)}")(i) # name="race" => self.dealRace(i)
-                # 用 str.capitalize 会导致其余字母都变小写 cardType => Cardtype
                 if i is None:
                     continue
             if not items:
@@ -391,5 +398,6 @@ if __name__ == "__main__":
     # b.attack(3000,"6900","99999").defence("19.3","?","3000").id("40","10000",5000).level("0星","10星","L6",13)
     # b.name("异色眼","攻守和0")
     b.name("魂","炎").race("水").race()
+    b.cardType("永续陷阱")
     print(b)
     print(b.params)
