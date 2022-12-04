@@ -1,4 +1,5 @@
 from PIL import Image,ImageDraw,ImageFont
+from pathlib import Path
 
 imsize=(20,20)
 # font=ImageFont.truetype(r"font/MS PGothic.ttf",16)
@@ -6,6 +7,8 @@ font:ImageFont.FreeTypeFont=None
 
 def initFont(path:str):
     global font
+    if not (path and Path(path).exists()):
+        return print(f"字体 {path} 未找到！")
     font=ImageFont.truetype(path,16) #总之需要一个字体
 
 def AA2img(AAtext:str):
