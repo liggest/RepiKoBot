@@ -64,7 +64,8 @@ class BaiGe:
             return None
         cards=[]
         for div in divs:
-            info:List[Tag]=div.find_all("div",limit=3)
+            div:Tag
+            info:List[Tag]=div.find_all("div",limit=3,recursive=False)
             if cardPage:
                 info[2]=info[2].parent
             types=None
