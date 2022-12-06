@@ -1,10 +1,16 @@
 admin:
   adminQQ: # 管理者 QQ
   - 10086
+  - 10086
 
 broadcast: # broadcast 指令相关，可忽略
   update: 
     group: # 群号
+    - 10086
+    - 10086
+  bot:
+    private:
+    - 10086
     - 10086
     - 10086
 
@@ -15,8 +21,9 @@ system: # bot 相关
   secret: post_secret # 那边配置的密钥
 
 font: # 字体相关
-  normal: font/xxx.ttf
-  AA: font/xxx.ttf
+  normal: font/file.ttf
+  AA: font/file.ttf
+  tex: font/file.ttf
 
 ygo: # ygo 相关指令的相关设置
   ygoPath: /path/to/ygoroot/ # ygopro 路径
