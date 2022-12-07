@@ -192,6 +192,14 @@ requires_python = ">=3.7"
 summary = "Safely add untrusted strings to HTML/XML markup."
 
 [[package]]
+name = "openaiauth"
+version = "0.0.2.1"
+summary = "OpenAI Authentication Reverse Engineered"
+dependencies = [
+    "tls-client",
+]
+
+[[package]]
 name = "orjson"
 version = "3.8.3"
 requires_python = ">=3.7"
@@ -263,6 +271,15 @@ dependencies = [
     "charset-normalizer<3,>=2",
     "idna<4,>=2.5",
     "urllib3<1.27,>=1.21.1",
+]
+
+[[package]]
+name = "revchatgpt"
+version = "0.0.31.3"
+summary = "ChatGPT is a reverse engineering of OpenAI's ChatGPT API"
+dependencies = [
+    "OpenAIAuth",
+    "requests",
 ]
 
 [[package]]
@@ -339,6 +356,11 @@ dependencies = [
 ]
 
 [[package]]
+name = "tls-client"
+version = "0.1.5"
+summary = "Advanced Python HTTP Client."
+
+[[package]]
 name = "typing-extensions"
 version = "4.4.0"
 requires_python = ">=3.7"
@@ -411,7 +433,7 @@ summary = "An implementation of the WebSocket Protocol (RFC 6455 & 7692)"
 
 [metadata]
 lock_version = "4.1"
-content_hash = "sha256:48090c9a0f908a201be38d5f9891c2bc32cf8015ec00810563bbac95fa1c7d5a"
+content_hash = "sha256:c65e3bf6a8675af0b56dd1595a3d56725d7bcbc32f949c86faa36b3462def254"
 
 [metadata.files]
 "anyio 3.6.2" = [
@@ -707,6 +729,10 @@ content_hash = "sha256:48090c9a0f908a201be38d5f9891c2bc32cf8015ec00810563bbac95f
     {url = "https://files.pythonhosted.org/packages/fd/f4/524d2e8f5a3727cf309c2b7df7c732038375322df1376c9e9ef3aa92fcaf/MarkupSafe-2.1.1-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:4b9fe39a2ccc108a4accc2676e77da025ce383c108593d65cc909add5c3bd601"},
     {url = "https://files.pythonhosted.org/packages/ff/3a/42262a3aa6415befee33b275b31afbcef4f7f8d2f4380061b226c692ee2a/MarkupSafe-2.1.1-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:a49907dd8420c5685cfa064a1335b6754b74541bbb3706c259c02ed65b644b3e"},
 ]
+"openaiauth 0.0.2.1" = [
+    {url = "https://files.pythonhosted.org/packages/64/a7/6c1a112d068da603a4c6ae8e8cf4ede4b9d6e2a4a273d62f1b9ca918d244/OpenAIAuth-0.0.2.1.tar.gz", hash = "sha256:6281564e470fabb4fbb37fe20b4da5f7e63294d1b3be9ee183eb370d69d33b9d"},
+    {url = "https://files.pythonhosted.org/packages/d3/86/f10f7eac0aaefab1bf89a60e9e3b684051f9fd15e492a2a0ec4f6c2ae7b0/OpenAIAuth-0.0.2.1-py3-none-any.whl", hash = "sha256:3aaab62e8539b7ab5cc3e62a0ac10a9c31d04d93cd270138471a8f2cc1e9fc34"},
+]
 "orjson 3.8.3" = [
     {url = "https://files.pythonhosted.org/packages/02/0e/003f4a444e00d7758a40fd14aeb7c30a7bacb70e8d756243833ad9e5d562/orjson-3.8.3-cp38-cp38-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:cbdfbd49d58cbaabfa88fcdf9e4f09487acca3d17f144648668ea6ae06cc3183"},
     {url = "https://files.pythonhosted.org/packages/02/1c/8234d74a415bcc22f43dcbc636b6ba31df295c449e3bdc294f7616c43c49/orjson-3.8.3-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:65ea3336c2bda31bc938785b84283118dec52eb90a2946b140054873946f60a4"},
@@ -971,6 +997,10 @@ content_hash = "sha256:48090c9a0f908a201be38d5f9891c2bc32cf8015ec00810563bbac95f
     {url = "https://files.pythonhosted.org/packages/a5/61/a867851fd5ab77277495a8709ddda0861b28163c4613b011bc00228cc724/requests-2.28.1.tar.gz", hash = "sha256:7c5599b102feddaa661c826c56ab4fee28bfd17f5abca1ebbe3e7f19d7c97983"},
     {url = "https://files.pythonhosted.org/packages/ca/91/6d9b8ccacd0412c08820f72cebaa4f0c0441b5cda699c90f618b6f8a1b42/requests-2.28.1-py3-none-any.whl", hash = "sha256:8fefa2a1a1365bf5520aac41836fbee479da67864514bdb821f31ce07ce65349"},
 ]
+"revchatgpt 0.0.31.3" = [
+    {url = "https://files.pythonhosted.org/packages/40/56/234718456ad441890a5e0ee6e9611a56f709cde1a0dbc8387bb5d323e2fc/revChatGPT-0.0.31.3.tar.gz", hash = "sha256:89538ffd222189c7230c910e205963b86bbf71a41265033c186ddec81ca8181b"},
+    {url = "https://files.pythonhosted.org/packages/40/f9/ecaa811d9ad8039b2142e576a9100574e0eea04decf5e776d534a34e46e6/revChatGPT-0.0.31.3-py3-none-any.whl", hash = "sha256:be2cd0b2cedc043b5fe563fe0e4ffd66e90eb0ec7a21c936ef6137f762298ce5"},
+]
 "rfc3986 1.5.0" = [
     {url = "https://files.pythonhosted.org/packages/79/30/5b1b6c28c105629cc12b33bdcbb0b11b5bb1880c6cfbd955f9e792921aa8/rfc3986-1.5.0.tar.gz", hash = "sha256:270aaf10d87d0d4e095063c65bf3ddbc6ee3d0b226328ce21e036f946e421835"},
     {url = "https://files.pythonhosted.org/packages/c4/e5/63ca2c4edf4e00657584608bee1001302bbf8c5f569340b78304f2f446cb/rfc3986-1.5.0-py2.py3-none-any.whl", hash = "sha256:a86d6e1f5b1dc238b218b012df0aa79409667bb209e58da56d0b94704e712a97"},
@@ -1001,6 +1031,9 @@ content_hash = "sha256:48090c9a0f908a201be38d5f9891c2bc32cf8015ec00810563bbac95f
 "tinycss2 1.2.1" = [
     {url = "https://files.pythonhosted.org/packages/75/be/24179dfaa1d742c9365cbd0e3f0edc5d3aa3abad415a2327c5a6ff8ca077/tinycss2-1.2.1.tar.gz", hash = "sha256:8cff3a8f066c2ec677c06dbc7b45619804a6938478d9d73c284b29d14ecb0627"},
     {url = "https://files.pythonhosted.org/packages/da/99/fd23634d6962c2791fb8cb6ccae1f05dcbfc39bce36bba8b1c9a8d92eae8/tinycss2-1.2.1-py3-none-any.whl", hash = "sha256:2b80a96d41e7c3914b8cda8bc7f705a4d9c49275616e886103dd839dfc847847"},
+]
+"tls-client 0.1.5" = [
+    {url = "https://files.pythonhosted.org/packages/4b/89/c2be455f8010bb31263f9d3ce3f4c85d86c1d3de88a5662b6fa60874f508/tls_client-0.1.5-py3-none-any.whl", hash = "sha256:cd65d7b1405cd2075050fca4e59abc6e04207b29ea47eabc6f406ce16735421f"},
 ]
 "typing-extensions 4.4.0" = [
     {url = "https://files.pythonhosted.org/packages/0b/8e/f1a0a5a76cfef77e1eb6004cb49e5f8d72634da638420b9ea492ce8305e8/typing_extensions-4.4.0-py3-none-any.whl", hash = "sha256:16fa4864408f655d35ec496218b85f79b3437c829e93320c7c9215ccfd92489e"},
