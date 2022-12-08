@@ -42,14 +42,15 @@ def wtf(pr:ParseResult):
         parser.core.EM.send(EventNames.UndefinedCmd,npr,parser)
         result=[f"是没见过的指令诶\n{pr2str(npr)}"]
     elif npr.isWrongType():
+        parser.core.EM.send(EventNames.WrongCmdType,npr,parser)
         result=["\n".join([
             "指令类型错误",
             {pr2str(npr)},
             "该指令支持的类型如下",
             " ".join(npr._cmd.typelist)
         ])]
-        parser.core.EM.send(EventNames.WrongCmdType,npr,parser)
     parser.core.EM.send(EventNames.AfterParse,npr,parser)
+    return result
 
 
 def pr2str(pr:ParseResult):
