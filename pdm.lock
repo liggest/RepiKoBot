@@ -275,7 +275,7 @@ dependencies = [
 
 [[package]]
 name = "revchatgpt"
-version = "0.0.31.3"
+version = "0.0.32"
 summary = "ChatGPT is a reverse engineering of OpenAI's ChatGPT API"
 dependencies = [
     "OpenAIAuth",
@@ -997,9 +997,9 @@ content_hash = "sha256:c65e3bf6a8675af0b56dd1595a3d56725d7bcbc32f949c86faa36b346
     {url = "https://files.pythonhosted.org/packages/a5/61/a867851fd5ab77277495a8709ddda0861b28163c4613b011bc00228cc724/requests-2.28.1.tar.gz", hash = "sha256:7c5599b102feddaa661c826c56ab4fee28bfd17f5abca1ebbe3e7f19d7c97983"},
     {url = "https://files.pythonhosted.org/packages/ca/91/6d9b8ccacd0412c08820f72cebaa4f0c0441b5cda699c90f618b6f8a1b42/requests-2.28.1-py3-none-any.whl", hash = "sha256:8fefa2a1a1365bf5520aac41836fbee479da67864514bdb821f31ce07ce65349"},
 ]
-"revchatgpt 0.0.31.3" = [
-    {url = "https://files.pythonhosted.org/packages/40/56/234718456ad441890a5e0ee6e9611a56f709cde1a0dbc8387bb5d323e2fc/revChatGPT-0.0.31.3.tar.gz", hash = "sha256:89538ffd222189c7230c910e205963b86bbf71a41265033c186ddec81ca8181b"},
-    {url = "https://files.pythonhosted.org/packages/40/f9/ecaa811d9ad8039b2142e576a9100574e0eea04decf5e776d534a34e46e6/revChatGPT-0.0.31.3-py3-none-any.whl", hash = "sha256:be2cd0b2cedc043b5fe563fe0e4ffd66e90eb0ec7a21c936ef6137f762298ce5"},
+"revchatgpt 0.0.32" = [
+    {url = "https://files.pythonhosted.org/packages/15/be/8d9b1b543e6e09017ec5cc422796b872cd94ea4484e9d0dd73ca30a45663/revChatGPT-0.0.32.tar.gz", hash = "sha256:07f5c2dab6ec50aa98dd88ce193df31be532588f6bf999ccde9c453be36b09b5"},
+    {url = "https://files.pythonhosted.org/packages/58/f3/f1ad383f72ec1c13c6ae29053b94990c2234a7a5ec2f7043622418c080ba/revChatGPT-0.0.32-py3-none-any.whl", hash = "sha256:b71df6c634e6873b66c312f866b9bf5d59fe27cde8b22d3185214b8ba1afcda0"},
 ]
 "rfc3986 1.5.0" = [
     {url = "https://files.pythonhosted.org/packages/79/30/5b1b6c28c105629cc12b33bdcbb0b11b5bb1880c6cfbd955f9e792921aa8/rfc3986-1.5.0.tar.gz", hash = "sha256:270aaf10d87d0d4e095063c65bf3ddbc6ee3d0b226328ce21e036f946e421835"},
