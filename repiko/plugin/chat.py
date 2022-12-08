@@ -1,5 +1,5 @@
 from repiko.core.bot import Bot
-from repiko.core.constant import EventNames
+# from repiko.core.constant import EventNames
 from repiko.msg.data import Message
 from revChatGPT.revChatGPT import Chatbot
 
@@ -18,13 +18,13 @@ def initChat(bot:Bot):
         chatbot=Chatbot(config, conversation_id=None)
     print("chatbot 初始化完毕")
 
-@Events.on(EventNames.StartUp)
-def botStartUP(bot:Bot):
-    initChat(bot)
+# @Events.on(EventNames.StartUp)
+# def botStartUP(bot:Bot):
+#     initChat(bot)
 
 @Events.onCmd("aichat")
 def aichat(pr:ParseResult):
-    if pr["reset"]:
+    if pr["reset"] or not chatbot:
         msg:Message=pr.raw
         initChat(msg.selector.bot)
     if not chatbot:
