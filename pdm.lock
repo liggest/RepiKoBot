@@ -281,7 +281,7 @@ dependencies = [
 
 [[package]]
 name = "revchatgpt"
-version = "0.0.38.6"
+version = "0.0.38.7"
 summary = "ChatGPT is a reverse engineering of OpenAI's ChatGPT API"
 dependencies = [
     "OpenAIAuth>=0.0.6",
@@ -440,7 +440,7 @@ summary = "An implementation of the WebSocket Protocol (RFC 6455 & 7692)"
 
 [metadata]
 lock_version = "4.1"
-content_hash = "sha256:783f6ff0ea3244ec5c0ec2bf76b4d00e07e2fd0e46fc47cabcb49f5559060f9c"
+content_hash = "sha256:a90c1069eb98b499b1384373edea24690b748f06dc5148a2b193247f2ae865e2"
 
 [metadata.files]
 "anyio 3.6.2" = [
@@ -1008,9 +1008,9 @@ content_hash = "sha256:783f6ff0ea3244ec5c0ec2bf76b4d00e07e2fd0e46fc47cabcb49f555
     {url = "https://files.pythonhosted.org/packages/a5/61/a867851fd5ab77277495a8709ddda0861b28163c4613b011bc00228cc724/requests-2.28.1.tar.gz", hash = "sha256:7c5599b102feddaa661c826c56ab4fee28bfd17f5abca1ebbe3e7f19d7c97983"},
     {url = "https://files.pythonhosted.org/packages/ca/91/6d9b8ccacd0412c08820f72cebaa4f0c0441b5cda699c90f618b6f8a1b42/requests-2.28.1-py3-none-any.whl", hash = "sha256:8fefa2a1a1365bf5520aac41836fbee479da67864514bdb821f31ce07ce65349"},
 ]
-"revchatgpt 0.0.38.6" = [
-    {url = "https://files.pythonhosted.org/packages/e5/46/05e8d833b70434c0e69066228fbf8db80c5156690f83ab7476049b091561/revChatGPT-0.0.38.6-py3-none-any.whl", hash = "sha256:b37282e02ac2df813d67581446936781055d2c99a13a663553048d58d7f93a73"},
-    {url = "https://files.pythonhosted.org/packages/ec/1e/d061398ef9ee6401d10631181f379a66a8979dcd6263767308ca60fa38d8/revChatGPT-0.0.38.6.tar.gz", hash = "sha256:0f963615388c539e52b03541f3feaa690e05b1001afb7bbb7806e4995b7bcaf3"},
+"revchatgpt 0.0.38.7" = [
+    {url = "https://files.pythonhosted.org/packages/06/85/7ae81e32d4d782c9565c581148f59b03660d0e600416d568a6fe037672ce/revChatGPT-0.0.38.7.tar.gz", hash = "sha256:3237529676266b2b62204d45e3cc4102453375601e072f8816a85137e6af33e2"},
+    {url = "https://files.pythonhosted.org/packages/15/64/00e9b78655a08b35e4ec1e129c11964bcf882da82108ca382a76b2cc0db0/revChatGPT-0.0.38.7-py3-none-any.whl", hash = "sha256:07df6255d22c93e0f4b730e2d902cb27923a3f61383e546b56358dfc77997064"},
 ]
 "rfc3986 1.5.0" = [
     {url = "https://files.pythonhosted.org/packages/79/30/5b1b6c28c105629cc12b33bdcbb0b11b5bb1880c6cfbd955f9e792921aa8/rfc3986-1.5.0.tar.gz", hash = "sha256:270aaf10d87d0d4e095063c65bf3ddbc6ee3d0b226328ce21e036f946e421835"},
