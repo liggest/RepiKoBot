@@ -23,9 +23,6 @@ svg = [
     "cairocffi>=1.4.0",
     "rlpycairo>=0.1.0",
 ]
-chat = [
-    "revChatGPT>=0.0.38.7",
-]
 
 [tool.pdm]
 

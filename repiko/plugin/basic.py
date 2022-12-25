@@ -500,7 +500,7 @@ def duel(pr:ParseResult):
     if not room:
         room=YGORoom.parseRoom(paramStr)
     noRoom=not room.name
-    if isMe and noRoom and not pr["get"]:
+    if isMe and noRoom and not pr["get"] and not pr["random"]:
         result.append("""看样子还没有记录自己的房间？\n这里是一个随机房间哦\n可以使用 .duelset xxx 记录自己的房间""")
     if noRoom or pr["random"]:
         room.name=YGORoom.randomRoomName(pr.parserData["mc"].data["ygocdb"])

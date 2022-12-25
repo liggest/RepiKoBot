@@ -192,20 +192,6 @@ requires_python = ">=3.7"
 summary = "Safely add untrusted strings to HTML/XML markup."
 
 [[package]]
-name = "nest-asyncio"
-version = "1.5.6"
-requires_python = ">=3.5"
-summary = "Patch asyncio to allow nested event loops"
-
-[[package]]
-name = "openaiauth"
-version = "0.0.6"
-summary = "OpenAI Authentication Reverse Engineered"
-dependencies = [
-    "tls-client",
-]
-
-[[package]]
 name = "orjson"
 version = "3.8.3"
 requires_python = ">=3.7"
@@ -277,16 +263,6 @@ dependencies = [
     "charset-normalizer<3,>=2",
     "idna<4,>=2.5",
     "urllib3<1.27,>=1.21.1",
-]
-
-[[package]]
-name = "revchatgpt"
-version = "0.0.38.7"
-summary = "ChatGPT is a reverse engineering of OpenAI's ChatGPT API"
-dependencies = [
-    "OpenAIAuth>=0.0.6",
-    "httpx",
-    "nest-asyncio",
 ]
 
 [[package]]
@@ -363,11 +339,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "tls-client"
-version = "0.1.5"
-summary = "Advanced Python HTTP Client."
-
-[[package]]
 name = "typing-extensions"
 version = "4.4.0"
 requires_python = ">=3.7"
@@ -440,7 +411,7 @@ summary = "An implementation of the WebSocket Protocol (RFC 6455 & 7692)"
 
 [metadata]
 lock_version = "4.1"
-content_hash = "sha256:a90c1069eb98b499b1384373edea24690b748f06dc5148a2b193247f2ae865e2"
+content_hash = "sha256:48090c9a0f908a201be38d5f9891c2bc32cf8015ec00810563bbac95fa1c7d5a"
 
 [metadata.files]
 "anyio 3.6.2" = [
@@ -736,14 +707,6 @@ content_hash = "sha256:a90c1069eb98b499b1384373edea24690b748f06dc5148a2b193247f2
     {url = "https://files.pythonhosted.org/packages/fd/f4/524d2e8f5a3727cf309c2b7df7c732038375322df1376c9e9ef3aa92fcaf/MarkupSafe-2.1.1-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:4b9fe39a2ccc108a4accc2676e77da025ce383c108593d65cc909add5c3bd601"},
     {url = "https://files.pythonhosted.org/packages/ff/3a/42262a3aa6415befee33b275b31afbcef4f7f8d2f4380061b226c692ee2a/MarkupSafe-2.1.1-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:a49907dd8420c5685cfa064a1335b6754b74541bbb3706c259c02ed65b644b3e"},
 ]
-"nest-asyncio 1.5.6" = [
-    {url = "https://files.pythonhosted.org/packages/35/76/64c51c1cbe704ad79ef6ec82f232d1893b9365f2ff194111787dc91b004f/nest_asyncio-1.5.6.tar.gz", hash = "sha256:d267cc1ff794403f7df692964d1d2a3fa9418ffea2a3f6859a439ff482fef290"},
-    {url = "https://files.pythonhosted.org/packages/e9/1a/6dd9ec31cfdb34cef8fea0055b593ee779a6f63c8e8038ad90d71b7f53c0/nest_asyncio-1.5.6-py3-none-any.whl", hash = "sha256:b9a953fb40dceaa587d109609098db21900182b16440652454a146cffb06e8b8"},
-]
-"openaiauth 0.0.6" = [
-    {url = "https://files.pythonhosted.org/packages/91/95/f075f2220c3212a7d56e3e695de43f18aec28496e9988d9e37e15da86265/OpenAIAuth-0.0.6.tar.gz", hash = "sha256:cbc4d7a57069dba0fc7f8d3b7803866f6c149444344f9d93656f049b7fdad1cd"},
-    {url = "https://files.pythonhosted.org/packages/9b/db/0fafdb747a9269062d2846c04a46c142ed5ee920cf61accea07f7d04d905/OpenAIAuth-0.0.6-py3-none-any.whl", hash = "sha256:f7584bb99db7edace6a08a55696bacdf8e2ffd254a94496226b9fb57c7b7ee62"},
-]
 "orjson 3.8.3" = [
     {url = "https://files.pythonhosted.org/packages/02/0e/003f4a444e00d7758a40fd14aeb7c30a7bacb70e8d756243833ad9e5d562/orjson-3.8.3-cp38-cp38-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:cbdfbd49d58cbaabfa88fcdf9e4f09487acca3d17f144648668ea6ae06cc3183"},
     {url = "https://files.pythonhosted.org/packages/02/1c/8234d74a415bcc22f43dcbc636b6ba31df295c449e3bdc294f7616c43c49/orjson-3.8.3-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:65ea3336c2bda31bc938785b84283118dec52eb90a2946b140054873946f60a4"},
@@ -1008,10 +971,6 @@ content_hash = "sha256:a90c1069eb98b499b1384373edea24690b748f06dc5148a2b193247f2
     {url = "https://files.pythonhosted.org/packages/a5/61/a867851fd5ab77277495a8709ddda0861b28163c4613b011bc00228cc724/requests-2.28.1.tar.gz", hash = "sha256:7c5599b102feddaa661c826c56ab4fee28bfd17f5abca1ebbe3e7f19d7c97983"},
     {url = "https://files.pythonhosted.org/packages/ca/91/6d9b8ccacd0412c08820f72cebaa4f0c0441b5cda699c90f618b6f8a1b42/requests-2.28.1-py3-none-any.whl", hash = "sha256:8fefa2a1a1365bf5520aac41836fbee479da67864514bdb821f31ce07ce65349"},
 ]
-"revchatgpt 0.0.38.7" = [
-    {url = "https://files.pythonhosted.org/packages/06/85/7ae81e32d4d782c9565c581148f59b03660d0e600416d568a6fe037672ce/revChatGPT-0.0.38.7.tar.gz", hash = "sha256:3237529676266b2b62204d45e3cc4102453375601e072f8816a85137e6af33e2"},
-    {url = "https://files.pythonhosted.org/packages/15/64/00e9b78655a08b35e4ec1e129c11964bcf882da82108ca382a76b2cc0db0/revChatGPT-0.0.38.7-py3-none-any.whl", hash = "sha256:07df6255d22c93e0f4b730e2d902cb27923a3f61383e546b56358dfc77997064"},
-]
 "rfc3986 1.5.0" = [
     {url = "https://files.pythonhosted.org/packages/79/30/5b1b6c28c105629cc12b33bdcbb0b11b5bb1880c6cfbd955f9e792921aa8/rfc3986-1.5.0.tar.gz", hash = "sha256:270aaf10d87d0d4e095063c65bf3ddbc6ee3d0b226328ce21e036f946e421835"},
     {url = "https://files.pythonhosted.org/packages/c4/e5/63ca2c4edf4e00657584608bee1001302bbf8c5f569340b78304f2f446cb/rfc3986-1.5.0-py2.py3-none-any.whl", hash = "sha256:a86d6e1f5b1dc238b218b012df0aa79409667bb209e58da56d0b94704e712a97"},
@@ -1042,9 +1001,6 @@ content_hash = "sha256:a90c1069eb98b499b1384373edea24690b748f06dc5148a2b193247f2
 "tinycss2 1.2.1" = [
     {url = "https://files.pythonhosted.org/packages/75/be/24179dfaa1d742c9365cbd0e3f0edc5d3aa3abad415a2327c5a6ff8ca077/tinycss2-1.2.1.tar.gz", hash = "sha256:8cff3a8f066c2ec677c06dbc7b45619804a6938478d9d73c284b29d14ecb0627"},
     {url = "https://files.pythonhosted.org/packages/da/99/fd23634d6962c2791fb8cb6ccae1f05dcbfc39bce36bba8b1c9a8d92eae8/tinycss2-1.2.1-py3-none-any.whl", hash = "sha256:2b80a96d41e7c3914b8cda8bc7f705a4d9c49275616e886103dd839dfc847847"},
-]
-"tls-client 0.1.5" = [
-    {url = "https://files.pythonhosted.org/packages/4b/89/c2be455f8010bb31263f9d3ce3f4c85d86c1d3de88a5662b6fa60874f508/tls_client-0.1.5-py3-none-any.whl", hash = "sha256:cd65d7b1405cd2075050fca4e59abc6e04207b29ea47eabc6f406ce16735421f"},
 ]
 "typing-extensions 4.4.0" = [
     {url = "https://files.pythonhosted.org/packages/0b/8e/f1a0a5a76cfef77e1eb6004cb49e5f8d72634da638420b9ea492ce8305e8/typing_extensions-4.4.0-py3-none-any.whl", hash = "sha256:16fa4864408f655d35ec496218b85f79b3437c829e93320c7c9215ccfd92489e"},
