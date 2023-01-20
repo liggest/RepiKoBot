@@ -30,7 +30,7 @@ class Bot():
 
     def __init__(self):
 
-        self._aClient:httpx.AsyncClient=None
+        # self._aClient:httpx.AsyncClient=None
 
         print("bot醒了，bot想初始化")
         self.ConfigInit()
@@ -56,8 +56,8 @@ class Bot():
 
     async def Shutdown(self):
         await self.EM.asyncSend(EventNames.ShutDown,self)
-        if self._aClient:
-            await self._aClient.aclose()
+        # if self._aClient:
+        #     await self._aClient.aclose()
 
     #读取配置文件
     def LoadConfig(self,path=r"config/config.yaml") -> typing.Dict[str,typing.Dict]:
@@ -152,16 +152,16 @@ class Bot():
         url=self.POSTURL+etype
         return requests.post(url, json=param,headers=self.HEADER,timeout=timeout)
 
-    @property
-    def aClient(self):
-        if not self._aClient:
-            self._aClient=httpx.AsyncClient()
-        return self._aClient
+    # @property
+    # def aClient(self):
+    #     if not self._aClient:
+    #         self._aClient=httpx.AsyncClient()
+    #     return self._aClient 
 
     async def AsyncPost(self,api,json={},timeout=None):
         url=self.POSTURL+api
-        async with self.aClient as client:
-            client:httpx.AsyncClient
+        # async with self.aClient as client:
+        async with httpx.AsyncClient() as client:
             return await client.post(url,json=json,headers=self.HEADER,timeout=timeout)
         # return await self.aClient.post(url,json=json,headers=self.HEADER,timeout=timeout)
 

@@ -6,7 +6,7 @@ from reportlab.graphics import renderPM
 from bs4 import BeautifulSoup
 from bs4.element import Tag
 from io import StringIO,BytesIO
-
+from pathlib import Path
 # from reportlab import rl_settings
 # rl_settings.renderPMBackend="rlPyCairo"
 
@@ -35,9 +35,12 @@ url=r"https://www.zhihu.com/equation"
 class LatexError(ValueError):
     pass
 
-def initFont(name:str,path:str):
+def initFont(path:str):
     # TODO Font Manager
     global fontName,fontPath,font,ex2px
+    if not (path and Path(path).exists()):
+        return print(f"字体 {path} 未找到！")
+    name=Path(path).stem.split()[0]
     name,success=register_font(name,path)
     print(f"注册字体 {name}")
     if not success:

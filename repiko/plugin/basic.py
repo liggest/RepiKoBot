@@ -15,7 +15,7 @@ from repiko.module.ygoRoom import YGORoom
 from repiko.module.calculator import Calculator
 # from repiko.module.ygoServerRequest import ygoServerRequester
 # from repiko.module.helper import Helper
-from repiko.module.google_translation import gTranslator
+# from repiko.module.google_translation import gTranslator
 from repiko.module.ygo.card import Card
 from repiko.module.ygo.dataloader import cdbReader,confReader,ShrinkLevel
 from repiko.module.ygo.sqlbuilder import SQLBuilder
@@ -268,25 +268,28 @@ async def ygoocg(pr:ParseResult):
 #         expression=":"+expression
 #     return [a.request(expression)]
 
+# @Events.onCmd("translate")
+# def translate(pr:ParseResult):
+#     if len(pr.params)==0:
+#         return ["给点东西让我翻译嘛"]
+#     text=pr.paramStr
+#     a=gTranslator()
+#     donly=pr.getByType("donly",False,bool)
+#     if donly:
+#         return a.detectonly(text)
+#     fromlan=pr.getByType("from","auto")
+#     tolan="cn"
+#     for lang in ("en","ja","ru","de","es"):
+#         if pr.getByType(lang,False,bool):
+#             tolan=lang
+#             break
+#     tolan=pr.getByType("to",tolan)
+#     poun=pr.getByType("p",False,bool)
+#     dtct=pr.getByType("d",False,bool)
+#     return a.trans(text,fromlan=fromlan,tolan=tolan,poun=poun,showDetect=dtct)
 @Events.onCmd("translate")
-def translate(pr:ParseResult):
-    if len(pr.params)==0:
-        return ["给点东西让我翻译嘛"]
-    text=pr.paramStr
-    a=gTranslator()
-    donly=pr.getByType("donly",False,bool)
-    if donly:
-        return a.detectonly(text)
-    fromlan=pr.getByType("from","auto")
-    tolan="cn"
-    for lang in ("en","ja","ru","de","es"):
-        if pr.getByType(lang,False,bool):
-            tolan=lang
-            break
-    tolan=pr.getByType("to",tolan)
-    poun=pr.getByType("p",False,bool)
-    dtct=pr.getByType("d",False,bool)
-    return a.trans(text,fromlan=fromlan,tolan=tolan,poun=poun,showDetect=dtct)
+def translate(_):
+    return ["呜呜呜谷歌翻译寄了啊啊啊啊啊"]
 
 def initLuck(core:MCore):
     core.data["luckbar"]=["","一","二","三","亖"]
@@ -330,9 +333,10 @@ def copyYGO(bot:Bot):
     import shutil
     cplist=["cards.cdb","lflist.conf","strings.conf"]
     # if not self.config.has_option("ygo","ygopath"):
-    if not (bot.config.get("ygo") and bot.config["ygo"].get("ygoPath")):
+    if "ygo" not in bot.config:
         return
-    ygopath=bot.config["ygo"]["ygoPath"]
+    if not ((ygopath:=bot.config["ygo"].get("ygoPath")) and os.path.exists(ygopath)):
+        return print(f"YGO 路径 {ygopath} 不存在！")
     if not os.path.exists(ygodir):
         os.mkdir(ygodir)
     for f in cplist:
@@ -345,10 +349,13 @@ def copyYGO(bot:Bot):
 
 def initYGO(core:MCore):
     ygopath=ygodir
-    core.data["ygocdb"]=cdbReader(path=ygopath+"cards.cdb")
+    if os.path.exists(p:=os.path.join(ygopath,"cards.cdb")):
+        core.data["ygocdb"]=cdbReader(path=p)
     conf=confReader()
-    conf.loadLFlist(os.path.join(ygopath,"lflist.conf"))
-    conf.loadSets(os.path.join(ygopath,"strings.conf"))
+    if os.path.exists(p:=os.path.join(ygopath,"lflist.conf")):
+        conf.loadLFlist(p)
+    if os.path.exists(p:=os.path.join(ygopath,"strings.conf")):
+        conf.loadSets(p)
     core.data["ygoconf"]=conf
 
 @Events.onCmd("ygodraw")
@@ -493,7 +500,7 @@ def duel(pr:ParseResult):
     if not room:
         room=YGORoom.parseRoom(paramStr)
     noRoom=not room.name
-    if isMe and noRoom and not pr["get"]:
+    if isMe and noRoom and not pr["get"] and not pr["random"]:
         result.append("""看样子还没有记录自己的房间？\n这里是一个随机房间哦\n可以使用 .duelset xxx 记录自己的房间""")
     if noRoom or pr["random"]:
         room.name=YGORoom.randomRoomName(pr.parserData["mc"].data["ygocdb"])
@@ -586,8 +593,7 @@ def initFont(bot:Bot):
     if paths:
         initNormalFont(paths.get("normal"))
         initAAFont(paths.get("AA"))
-        tex=paths.get("tex")
-        initTexFont(Path(tex).stem.split()[0],tex)
+        initTexFont(paths.get("tex"))
 
 @Events.onCmd("AA")
 async def drawAA(pr:ParseResult):

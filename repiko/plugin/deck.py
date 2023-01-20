@@ -197,6 +197,8 @@ async def deckdel(pr:ParseResult):
 def initDeck(bot:Bot):
     global ygopath,deckpath,reviewpath
     ygopath=Path(bot.config["ygo"]["ygoPath"])
+    if not ygopath.exists():
+        return print(f"{ygopath} 不存在！")
     deckpath=ygopath / "deck" / "random"
     deckpath.mkdir(0o774,parents=True,exist_ok=True)
     reviewpath=ygopath / "deck" / "review"

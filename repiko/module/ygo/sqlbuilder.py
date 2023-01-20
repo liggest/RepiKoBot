@@ -15,7 +15,7 @@ class SQLBuilder:
         return self.resolve()
 
     def __repr__(self) -> str:
-        return self.materials.__repr__()+"\n"+super.__repr__()
+        return self.materials.__repr__()+"\n"+super().__repr__()
 
     @staticmethod
     def _upperFirst(text:str):
@@ -103,7 +103,7 @@ class SQLBuilder:
     def _dealMark(text:str) -> int:
         if text.isdigit(): 
             val=int(text)
-            if 0<val<15:    # 1-15 的数
+            if 0<=val<15:    # 0-15 的数
                 return val
 
     @classmethod

@@ -19,6 +19,8 @@ if not os.path.exists(imageDir):
 
 def initFont(path:str):
     global titleFont,font,lineHeight
+    if not (path and os.path.exists(path)):
+        return print(f"字体 {path} 未找到！")
     titleFont=ImageFont.truetype(path,24) #总之需要一个字体
     font=ImageFont.truetype(path,16)
     lineHeight=font.getsize("A")[1]
