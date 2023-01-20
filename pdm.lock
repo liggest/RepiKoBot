@@ -72,6 +72,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "deepl"
+version = "1.12.0"
+requires_python = ">=3.6.2,<4"
+summary = "Python library for the DeepL API."
+dependencies = [
+    "requests<3,>=2",
+]
+
+[[package]]
 name = "dnspython"
 version = "2.2.1"
 requires_python = ">=3.6,<4.0"
@@ -411,7 +420,7 @@ summary = "An implementation of the WebSocket Protocol (RFC 6455 & 7692)"
 
 [metadata]
 lock_version = "4.1"
-content_hash = "sha256:48090c9a0f908a201be38d5f9891c2bc32cf8015ec00810563bbac95fa1c7d5a"
+content_hash = "sha256:fc5af27d793fbb122f2b7bdee960ddfd3fcfc557122a409c6c33bbb3dd225614"
 
 [metadata.files]
 "anyio 3.6.2" = [
@@ -510,6 +519,10 @@ content_hash = "sha256:48090c9a0f908a201be38d5f9891c2bc32cf8015ec00810563bbac95f
 "cssselect2 0.7.0" = [
     {url = "https://files.pythonhosted.org/packages/9d/3a/e39436efe51894243ff145a37c4f9a030839b97779ebcc4f13b3ba21c54e/cssselect2-0.7.0-py3-none-any.whl", hash = "sha256:fd23a65bfd444595913f02fc71f6b286c29261e354c41d722ca7a261a49b5969"},
     {url = "https://files.pythonhosted.org/packages/e7/fc/326cb6f988905998f09bb54a3f5d98d4462ba119363c0dfad29750d48c09/cssselect2-0.7.0.tar.gz", hash = "sha256:1ccd984dab89fc68955043aca4e1b03e0cf29cad9880f6e28e3ba7a74b14aa5a"},
+]
+"deepl 1.12.0" = [
+    {url = "https://files.pythonhosted.org/packages/a5/a8/333e6b79fd48fe910ed6220f337995495b9a87d39d573ac909ed7a8db73a/deepl-1.12.0-py3-none-any.whl", hash = "sha256:3b589aad11bc5c30a290d72e6c1af462d38968e87a0adf7681b322d97e30d563"},
+    {url = "https://files.pythonhosted.org/packages/bf/5d/445f83e92aced81d938dc26a523891eeed3434c5d809364371fd5f4fed84/deepl-1.12.0.tar.gz", hash = "sha256:223a118620946bae0016567cddffd36081f51d72c44240126d2b96c9e82a38d8"},
 ]
 "dnspython 2.2.1" = [
     {url = "https://files.pythonhosted.org/packages/99/fb/e7cd35bba24295ad41abfdff30f6b4c271fd6ac70d20132fa503c3e768e0/dnspython-2.2.1.tar.gz", hash = "sha256:0f7569a4a6ff151958b64304071d370daa3243d15941a7beedf0c9fe5105603e"},

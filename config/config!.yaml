@@ -31,3 +31,6 @@ ygo: # ygo 相关指令的相关设置
     "233": ["s1.ygo233.com",233]
     编年史: ["duelstart.com",2333]
     2pick: ["2pick.mycard.moe",765]
+
+deepl:
+  key: my_auth_key

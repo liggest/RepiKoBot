@@ -15,7 +15,6 @@ from repiko.module.ygoRoom import YGORoom
 from repiko.module.calculator import Calculator
 # from repiko.module.ygoServerRequest import ygoServerRequester
 # from repiko.module.helper import Helper
-# from repiko.module.google_translation import gTranslator
 from repiko.module.ygo.card import Card
 from repiko.module.ygo.dataloader import cdbReader,confReader,ShrinkLevel
 from repiko.module.ygo.sqlbuilder import SQLBuilder
@@ -54,11 +53,6 @@ Command("ycpic").names("ycp","bgpic","bgp")
 
 Command("ygoocg").names("yo","ourocg").opt("-ver",OPT.M,"翻译版本").opt("-wiki",OPT.N,"提供wiki链接").opt("-im",OPT.N,"以图片发送").opt(["-pic","-p"],OPT.N,"卡图").opt("-reload",OPT.N,"重载图片")
 # Command("ygoserver").names("ys")
-(Command("translate").names("ts").opt("-from",OPT.M,"源语言").opt("-to",OPT.M,"目标语言").opt("-p",OPT.N,"显示发音")
-    .opt("-d",OPT.N,"检测语言").opt("-donly",OPT.N,"只检测语言")
-    .opt("-en",OPT.N,"翻译到英语").opt("-ja",OPT.N,"翻译到日语").opt("-ru",OPT.N,"翻译到俄语").opt("-de",OPT.N,"翻译到德语")
-    .opt("-es",OPT.N,"翻译到西语")
-)
 Command("luck").names("jrrp").opt("-yc",OPT.N,"根据运值卡查").opt("-yci",OPT.N,"根据运值卡查，发送图片").opt("-ycp",OPT.N,"根据运值卡查，发送卡图")
 (Command("ygodraw").names("yd").opt("-n",OPT.M,"抽卡数").opt("-im",OPT.N,"以图片发送").opt(["-pic","-p"],OPT.N,"卡图")
     .opt(["-notoken","-nt","-无衍生物"],OPT.N,"不含衍生物").opt(["-noalias","-na","-无同名卡"],OPT.N,"不含同名卡")
@@ -267,29 +261,6 @@ async def ygoocg(pr:ParseResult):
 #     if not expression.startswith(":"):
 #         expression=":"+expression
 #     return [a.request(expression)]
-
-# @Events.onCmd("translate")
-# def translate(pr:ParseResult):
-#     if len(pr.params)==0:
-#         return ["给点东西让我翻译嘛"]
-#     text=pr.paramStr
-#     a=gTranslator()
-#     donly=pr.getByType("donly",False,bool)
-#     if donly:
-#         return a.detectonly(text)
-#     fromlan=pr.getByType("from","auto")
-#     tolan="cn"
-#     for lang in ("en","ja","ru","de","es"):
-#         if pr.getByType(lang,False,bool):
-#             tolan=lang
-#             break
-#     tolan=pr.getByType("to",tolan)
-#     poun=pr.getByType("p",False,bool)
-#     dtct=pr.getByType("d",False,bool)
-#     return a.trans(text,fromlan=fromlan,tolan=tolan,poun=poun,showDetect=dtct)
-@Events.onCmd("translate")
-def translate(_):
-    return ["呜呜呜谷歌翻译寄了啊啊啊啊啊"]
 
 def initLuck(core:MCore):
     core.data["luckbar"]=["","一","二","三","亖"]
