@@ -27,6 +27,7 @@ from LSparser import *
 t:DeepTrans=None
 
 def initTrans(core:MCore):
+    global t
     if key:=core.bot.config.get("deepl",{}).get("key"):
         t=DeepTrans()
         t.init(key)
