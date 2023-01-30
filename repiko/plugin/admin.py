@@ -60,7 +60,7 @@ with CommandCore(name="admin") as core:
     Command("debug")
     Command("status").names("version")
     # Command("clean")
-    Command("restart").opt(["-time","-t"],OPT.M,"重启延迟（毫秒）") #重启不知道为啥不好使
+    # Command("restart").opt(["-time","-t"],OPT.M,"重启延迟（毫秒）") #重启不知道为啥不好使
     Command("reload")
 
     @Events.onBeforeParse
@@ -128,7 +128,7 @@ with CommandCore(name="admin") as core:
                     qqs=fillQQs(ps,qqs)
         if qqs:
             if content:
-                await bot.AsyncBroadcast(qqs,Message.build(content))
+                await bot.Broadcast(qqs,Message.build(content))
             num=0
             result=""
             # result="广播如下：\n"
@@ -151,20 +151,20 @@ with CommandCore(name="admin") as core:
 
     @Events.onCmd("status")
     @AdminOnly
-    def status(pr:ParseResult):
+    async def status(pr:ParseResult):
         bot:Bot=pr.parserData["mc"].bot
-        return [bot.GetStatus(pr.command)] # status / version
+        return [await bot.GetStatus(pr.command)] # status / version
 
-    @Events.onCmd("restart")
-    @AdminOnly
-    def restart(pr:ParseResult):
-        bot:Bot=pr.parserData["mc"].bot
-        time=pr.getToType("time",3000,int)
-        time=max(1,time)
-        if time<300: # 太小的话看作是秒
-            time*=1000
-        bot.Restart(time)
-        return [f"约 {time/1000}s 后重启插件~"]
+    # @Events.onCmd("restart")
+    # @AdminOnly
+    # def restart(pr:ParseResult):
+    #     bot:Bot=pr.parserData["mc"].bot
+    #     time=pr.getToType("time",3000,int)
+    #     time=max(1,time)
+    #     if time<300: # 太小的话看作是秒
+    #         time*=1000
+    #     bot.Restart(time)
+    #     return [f"约 {time/1000}s 后重启插件~"]
 
     @Events.onCmd("reload")
     @AdminOnly
@@ -181,7 +181,7 @@ with CommandCore(name="admin") as core:
             msgc.content=f"已重载：{'、'.join(results)}"
         else:
             msgc.content="什么都没有重载！？"
-        await bot.AsyncSend(msgc)
+        await bot.Send(msgc)
         return []
 
     Command("-cq")
@@ -249,16 +249,17 @@ async def request(req:Request,bot:Bot):
         qqs=filter(lambda qq: not bot.IsMe(qq),bot.AdminQQ)
         # qqs=[ qq for qq in self.bot.AdminQQ if not self.bot.IsMe(qq) ]
         msg=Message.build(str(req),dst=0,mtype=MessageType.Private)
-        bot.AddBackTask(bot.AsyncBroadcast,qqs,msg)
+        # bot.AddBackTask(bot.AsyncBroadcast,qqs,msg)
+        asyncio.create_task(bot.Broadcast(qqs,msg))
 
-@Events.on(EventNames.StartUp)
+@Events.on(EventNames.Startup)
 def botStartup(bot:Bot):
     global AdminMode
     AdminMode=getattr(bot,"AdminMode",False)
     loadBroadcastPreset(bot)
 
-@Events.on(EventNames.ShutDown)
-def BotShutdown(bot:Bot):
+@Events.on(EventNames.Shutdown)
+def botShutdown(bot:Bot):
     if AdminMode:
         setattr(bot,"AdminMode",AdminMode)
 

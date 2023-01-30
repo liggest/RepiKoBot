@@ -3,7 +3,7 @@
   .tl make it Chinese!
   .tl В добрый путь! -从 俄语 -到 英语
   .tl 俺のターン！ -to en
-  .tl 山穷水复疑无路 -日语
+  .tl 山重水复疑无路 -日语
   （-日语 等同于 -到 日语，对上述常用语言码有效）
   .tl Uygarlastiramadiklarimizdanmissinizcasina
 选项详细：

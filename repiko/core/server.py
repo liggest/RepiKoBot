@@ -6,54 +6,69 @@ from fastapi import FastAPI,Request,Depends,BackgroundTasks
 # import random
 # import json
 # import typing
+import hmac
+import uvicorn
 
 from repiko.core.constant import PostType
 from repiko.core.bot import Bot
-from repiko.msg.data import BaseData
+# from repiko.core.log import logger
+# from repiko.msg.data import BaseData
 # from repiko.msg.selector import *
 # from repiko.msg.message import Message
 
-app=FastAPI()
+def getApp(bot:Bot):
 
-bot:Bot=None
+    def verification(request:Request,data:bytes):
+        ecp = hmac.new(bot.SECRET,data,'sha1').hexdigest()
+        receivedEcp = request.headers['X-Signature'][5:] # len('sha1=')==5
+        return ecp == receivedEcp
 
-@app.on_event("startup")
-async def StartUp():
-    global bot
-    # import repiko.core.bot as bot_core
-    # bot=bot_core.Bot()
-    bot=Bot()
-    await bot.Init()
+    app=FastAPI()
 
-@app.on_event("shutdown")
-async def ShutDown():
-    await bot.Shutdown()
+    @app.on_event("startup")
+    async def Startup():
+        # global bot
+        # import repiko.core.bot as bot_core
+        # bot=bot_core.Bot()
+        # bot=Bot()
+        await bot.Init()
 
-@app.post("/",response_model=None)
-async def MessageReceiver(backTasks:BackgroundTasks,request:Request):
-    rd=await request.body()
-    if bot.Verification(request,rd):
-        rj=await request.json()
-        postType=rj["post_type"]
+    @app.on_event("shutdown")
+    async def Shutdown():
+        await bot.Shutdown()
 
-        #DEBUG
-        if bot.DebugMode and postType!=PostType.Meta: #不打印心跳
-            print(rj)
-        
-        
-        sltr=None
-        for s in bot.selectors:
-            if s.isAccept(rj):
-                sltr=s
-                break
-        if sltr:
-            msg:BaseData=await sltr.asyncAction(rj,backTasks)
-            # print(msg)
-            # print(repr(msg.content))
-            if msg and msg.quickReply: #快速操作
-                print("quickReply",msg.replyJson)
-                return msg.replyJson
-    return {}
+    @app.post("/",response_model=None)
+    # async def MessageReceiver(backTasks:BackgroundTasks,request:Request):
+    async def MessageReceiver(request:Request):
+        rd=await request.body()
+        if verification(request,rd):
+            rj=await request.json()
+            return await bot._handleData(rj)
+        return {}
+        #     postType=rj["post_type"]
+
+        #     #DEBUG
+        #     if bot.DebugMode and postType!=PostType.Meta: #不打印心跳
+        #         logger.debug(rj)
+            
+            
+        #     sltr=None
+        #     if any(sltr:=s for s in bot.selectors if s.isAccept(rj)):
+        #     # for s in bot.selectors:
+        #     #     if s.isAccept(rj):
+        #     #         sltr=s
+        #     #         break
+        #     # if sltr:
+        #         # msg:BaseData=await sltr.asyncAction(rj,backTasks)
+        #         msg:BaseData=await sltr.asyncAction(rj)
+        #         # print(msg)
+        #         # print(repr(msg.content))
+        #         sltr.runBackTasks()
+        #         if msg and msg.quickReply: # 快速操作
+        #             logger.info(f"quickReply:{msg.replyJson}")
+        #             return msg.replyJson
+        # return {}
+    return app
 
 #============#
 # Old Stuffs #
@@ -169,4 +184,5 @@ def __MessageReceiver(backTasks:BackgroundTasks,request:Request=Depends(get_body
 if __name__ =='__main__':
     # app.run(host='0.0.0.0',port=8080,debug=True)
     import uvicorn
+    app=getApp(Bot())
     uvicorn.run(app,host='0.0.0.0',port=8000)
