@@ -1,10 +1,17 @@
-from repiko.core.bot import Bot
+from __future__ import annotations
+
 from repiko.core.constant import PostType,EventNames,MessageType
 from repiko.msg.data import BaseData,Message,Request
 # from repiko.msg.message import Message
 # from repiko.msg.request import RequestData
 
 from fastapi import BackgroundTasks
+# from collections import deque
+import asyncio
+
+import typing
+if typing.TYPE_CHECKING:
+    from repiko.core.bot import Bot
 
 
 class BaseSelector:
@@ -33,9 +40,22 @@ class BaseSelector:
     def __init__(self,bot:Bot):
         self.bot=bot
         self.eventName=self.getEventName()
-        self.backTasks=[]
+        # self.backTasks=[]
+        # self.backTasks=deque()
+        self._backTasks=None
 
-    def action(self,rjson,backTasks:BackgroundTasks):
+    @property
+    def backTasks(self):
+        if not self._backTasks:
+            self._backTasks=BackgroundTasks()
+        return self._backTasks
+
+    @backTasks.deleter
+    def backTasks(self):
+        self._backTasks=None
+
+    # def action(self,rjson,backTasks:BackgroundTasks):
+    def action(self,rjson):
         self.bot.currentSelector=self
 
         msg=self.json2Obj(rjson)
@@ -43,24 +63,33 @@ class BaseSelector:
         
         self.bot.EM.send(self.eventName,msg,bot=self.bot)
 
-        self.transBackTasks(backTasks)
+        # self.transBackTasks(backTasks)
         return msg
 
-    async def asyncAction(self,rjson,backTasks:BackgroundTasks):
+    # async def asyncAction(self,rjson,backTasks:BackgroundTasks):
+    async def asyncAction(self,rjson):
         self.bot.currentSelector=self
         msg=self.json2Obj(rjson)
         msg.selector=self
         await self.bot.EM.asyncSend(self.eventName,msg,bot=self.bot)
-        self.transBackTasks(backTasks)
+        # self.transBackTasks(backTasks)
         return msg
 
     def addBackTask(self,func,*args,**kw):
-        self.backTasks.append( (func,args,kw) )
+        # self.backTasks.append( (func,args,kw) )
+        self.backTasks.add_task(func,*args,**kw)
 
-    def transBackTasks(self,backTasks:BackgroundTasks):
-        while self.backTasks:
-            task=self.backTasks.pop(0)
-            backTasks.add_task(task[0],*task[1],**task[2])
+    # def transBackTasks(self,backTasks:BackgroundTasks):
+    # def transBackTasks(self):
+    #     while self.backTasks:
+    #         task=self.backTasks.pop(0)
+    #         backTasks.add_task(task[0],*task[1],**task[2])
+
+    def runBackTasks(self):
+        """  用 create_task 运行 backTasks ，不阻塞  """
+        if backTasks:=self._backTasks:
+            self._backTasks=None
+            asyncio.create_task(backTasks())
 
 class MessageSelector(BaseSelector):
 
@@ -87,8 +116,10 @@ class MessageSelector(BaseSelector):
     #         # self.bot.SendStrList(msg.copy(srcAsDst=True),result)
     #     return msg
 
-    async def asyncAction(self,rjson,backTasks:BackgroundTasks):
-        msg:Message=await super().asyncAction(rjson,backTasks)
+    # async def asyncAction(self,rjson,backTasks:BackgroundTasks):
+    async def asyncAction(self,rjson):
+        # msg:Message=await super().asyncAction(rjson,backTasks)
+        msg:Message=await super().asyncAction(rjson)
         # if msg.realSrc in self.bot.AdminQQ: #管理
         #     if msg.content.startswith("-"):
         #         
@@ -107,7 +138,9 @@ class MessageSelector(BaseSelector):
                 if responseMsg:
                     msg.addQuickReply(responseMsg) # 快速回复 带@
             result=await self.bot.mc.AsyncResponse(msg)
-            backTasks.add_task(self.bot.AsyncSendStrs,msg.copy(srcAsDst=True),result)
+            # backTasks.add_task(self.bot.AsyncSendStrs,msg.copy(srcAsDst=True),result)
+            # self.addBackTask(self.bot.AsyncSendStrs,msg.copy(srcAsDst=True),result)
+            asyncio.create_task(self.bot.SendContents(msg.copy(srcAsDst=True),result))
         return msg
 
 class NoticeSelector(BaseSelector):
@@ -125,9 +158,10 @@ class RequestSelector(BaseSelector):
 
         self.lastRequest=None
 
-    async def asyncAction(self,rjson,backTasks:BackgroundTasks):
-        req:Request=await super().asyncAction(rjson,backTasks)
-        
+    # async def asyncAction(self,rjson,backTasks:BackgroundTasks):
+    #     req:Request=await super().asyncAction(rjson,backTasks)
+    async def asyncAction(self,rjson):
+        req:Request=await super().asyncAction(rjson) 
         # if self.bot.AdminQQ:
         #     qqs=[ qq for qq in self.bot.AdminQQ if not self.bot.IsMe(qq) ]
         #     msg=Message.build(str(req),dst=0,mtype=MessageType.Private)

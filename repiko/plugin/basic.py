@@ -1,6 +1,7 @@
 
 from repiko.core.bot import Bot
 from repiko.core.constant import EventNames, MessageType
+from repiko.core.log import logger
 from repiko.msg.content import Content
 from repiko.msg.core import MCore
 # from repiko.msg.message import Message
@@ -307,16 +308,16 @@ def copyYGO(bot:Bot):
     if "ygo" not in bot.config:
         return
     if not ((ygopath:=bot.config["ygo"].get("ygoPath")) and os.path.exists(ygopath)):
-        return print(f"YGO 路径 {ygopath} 不存在！")
+        return logger.error(f"YGO 路径 {ygopath} 不存在！")
     if not os.path.exists(ygodir):
         os.mkdir(ygodir)
     for f in cplist:
         fpath=os.path.join(ygopath,f)
         if os.path.exists(fpath):
             shutil.copy(fpath,ygodir)
-            print(f"拷贝{fpath}到{ygodir}")
+            logger.info(f"拷贝{fpath}到{ygodir}")
         else:
-            print(f"没有发现{fpath}")
+            logger.error(f"没有发现{fpath}")
 
 def initYGO(core:MCore):
     ygopath=ygodir
@@ -672,7 +673,7 @@ def texError(pr:ParseResult,e:Exception):
         return [" ".join(e.args)]
     raise e
 
-@Events.on(EventNames.StartUp)
+@Events.on(EventNames.Startup)
 def botStartUP(bot:Bot):
     copyYGO(bot)
     initFont(bot)
@@ -684,7 +685,7 @@ def coreInit(core:MCore):
     initEat(core)
     initLuck(core)
 
-@Events.on(EventNames.ShutDown)
+@Events.on(EventNames.Shutdown)
 def botShutDown(bot:Bot):
     YGORoom.saveDuel()
 

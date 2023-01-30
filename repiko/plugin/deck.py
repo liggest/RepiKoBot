@@ -10,6 +10,7 @@ from LSparser import *
 
 from repiko.core.bot import Bot
 from repiko.core.constant import MessageType,EventNames
+from repiko.core.log import logger
 from repiko.msg.part import Image
 from repiko.msg.data import Message
 
@@ -65,7 +66,7 @@ async def downloadTask(bot:Bot,group:int,paths:typing.List[Path],me:int=False):
                     if not me or str(file["uploader"])==str(me):
                         result.append(await downloadFile(bot,group,file,path/file["file_name"]))
     if result:
-        await bot.AsyncSend(Message.build("\n".join(filter(None,result)),group,MessageType.Group))
+        await bot.Send(Message.build("\n".join(filter(None,result)),group,MessageType.Group))
     
 
 async def downloadFile(bot:Bot,group:int,file:dict,path:Path):
@@ -196,15 +197,15 @@ async def deckdel(pr:ParseResult):
 
 def initDeck(bot:Bot):
     global ygopath,deckpath,reviewpath
-    ygopath=Path(bot.config["ygo"]["ygoPath"])
-    if not ygopath.exists():
-        return print(f"{ygopath} 不存在！")
+    ygopath=bot.config["ygo"]["ygoPath"]
+    if not ygopath or not (ygopath:=Path(ygopath)).exists():
+        return logger.error(f"YGO 路径 {ygopath} 不存在！")
     deckpath=ygopath / "deck" / "random"
     deckpath.mkdir(0o774,parents=True,exist_ok=True)
     reviewpath=ygopath / "deck" / "review"
     reviewpath.mkdir(0o774,parents=True,exist_ok=True)
-    print(f"确保 {deckpath}、{reviewpath} 存在")
+    logger.info(f"确保 {deckpath}、{reviewpath} 存在")
 
-@Events.on(EventNames.StartUp)
+@Events.on(EventNames.Startup)
 def botStartUP(bot:Bot):
    initDeck(bot)

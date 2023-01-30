@@ -4,6 +4,8 @@ import importlib
 import os
 import traceback
 
+from repiko.core.log import logger
+
 def loadPlugins(path:str="repiko/plugin",reload:typing.Dict[str,ModuleType]=None) -> typing.Dict[str,ModuleType]:
     pkgName="repiko"
     plugins={}
@@ -22,12 +24,12 @@ def loadPlugins(path:str="repiko/plugin",reload:typing.Dict[str,ModuleType]=None
             fullName=".".join(nameList)
             try:
                 if reload and name in reload:
-                    print(f"重载 {fullName} ——")
+                    logger.info(f"重载 {fullName} ——")
                     plugins[name]=importlib.reload(reload[name])
                 else:
-                    print(f"加载 {fullName} ——")
+                    logger.info(f"加载 {fullName} ——")
                     plugins[name]=importlib.import_module(fullName)
             except Exception as ex:
                 traceback.print_exception(type(ex),ex,ex.__traceback__)
-                print(f">> {fullName} 载入失败！ <<")
+                logger.error(f">> {fullName} 载入失败！ <<")
     return plugins

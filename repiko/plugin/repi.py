@@ -7,6 +7,7 @@ from repiko.msg.selector import MessageSelector
 
 from LSparser import Events
 import random
+import asyncio
 
 # @Events.on(MessageSelector.getEventName())
 # def repi(msg:Message,bot:Bot):
@@ -29,10 +30,12 @@ async def repi(msg:Message,bot:Bot):
         return
     factor=random.randint(1,1000)
     if factor>=500 and factor<510:
-        bot.AddBackTask(bot.AsyncSend,msg.copy(srcAsDst=True))
+        # bot.AddBackTask(bot.AsyncSend,msg.copy(srcAsDst=True))
+        asyncio.create_task(bot.Send(msg.copy(srcAsDst=True)))
     elif factor==1:
         if random.randint(1,10)==1:
-            bot.AddBackTask(bot.AsyncSendMany,[msg.copy(srcAsDst=True)]*3)
+            # bot.AddBackTask(bot.AsyncSendMany,[msg.copy(srcAsDst=True)]*3)
+            asyncio.create_task(bot.SendMany([msg.copy(srcAsDst=True)]*3))
 
 # @Events.on(NoticeSelector.getEventName())
 # async def notice(msg:Message,bot:Bot):

@@ -1,5 +1,16 @@
 from enum import Enum
 
+class ConnectionMethod(str,Enum):
+    """  通信方法  """
+    Unknown="unknown"
+    """ 一般不用这个 """
+    HTTP="http"
+    """ http post """
+    WS="ws"
+    """ 正向 WebSocket """
+    Combined="combined"
+    """ 正向 WebSocket（可用 http 调用 api） """
+
 class PostType(str,Enum):
     """ 事件类型 """
     Unknown="unknown"
@@ -74,9 +85,9 @@ class MetaEventType(str,Enum):
 class EventNames:
     """ 各种 bot 事件名 """
 
-    StartUp="bot-StartUp"
+    Startup="bot-Startup"
     """ bot 启动 \n (bot:Bot) -> None """
-    ShutDown="bot-ShutDown"
+    Shutdown="bot-Shutdown"
     """ bot 关闭 \n (bot:Bot) -> None """
     MsgCoreInit="msgcore-Init"
     """ msg.core 初始化 \n (core:MCore) -> None """
