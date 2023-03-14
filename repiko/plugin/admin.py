@@ -1,5 +1,6 @@
 from repiko.core.bot import Bot
 from repiko.core.constant import EventNames,MessageType
+from repiko.core.config import pluginConfig, PluginGroup
 # from repiko.msg.core import MCore
 from repiko.msg.data import Message,Request
 from repiko.msg.selector import RequestSelector
@@ -13,10 +14,24 @@ import typing
 import functools
 import asyncio
 
+# bdcfg=Config("broadcast.toml")
+
 broadcastPreset={}
-def loadBroadcastPreset(bot:Bot):
+
+PluginGroup.addDefault("broadcast",{
+    "update":{
+        "group":[10086,10086]
+    },
+    "bot":{
+        "private":[10086,10086]
+    }
+},anno=typing.Annotated[dict,"broadcast 指令相关，可忽略"])
+
+@pluginConfig.on
+def loadBroadcastPreset(config:dict, bot:Bot):
     global broadcastPreset
-    for k,v in bot.config["broadcast"].items():
+    data=config.get("broadcast",{})
+    for k,v in data.items():
         if isinstance(v,list):
             v={"group":v}   # 默认群广播
         elif isinstance(v,int):
@@ -24,6 +39,17 @@ def loadBroadcastPreset(bot:Bot):
         if v:
             broadcastPreset[k]=v
     broadcastPreset["admin"]={ "private":[ q for q in bot.AdminQQ if not bot.IsMe(q) ] }
+
+# def loadBroadcastPreset(bot:Bot):
+#     global broadcastPreset
+#     for k,v in bot.config["broadcast"].items():
+#         if isinstance(v,list):
+#             v={"group":v}   # 默认群广播
+#         elif isinstance(v,int):
+#             v={"group":[v]} # 默认群广播
+#         if v:
+#             broadcastPreset[k]=v
+#     broadcastPreset["admin"]={ "private":[ q for q in bot.AdminQQ if not bot.IsMe(q) ] }
 
 def fillQQs(qq:typing.Union[typing.List[str],dict,str,None],qqs:dict,key=MessageType.Group):
     if qq:
@@ -256,7 +282,7 @@ async def request(req:Request,bot:Bot):
 def botStartup(bot:Bot):
     global AdminMode
     AdminMode=getattr(bot,"AdminMode",False)
-    loadBroadcastPreset(bot)
+    # loadBroadcastPreset(bot)
 
 @Events.on(EventNames.Shutdown)
 def botShutdown(bot:Bot):

@@ -2,6 +2,7 @@
 from repiko.core.bot import Bot
 from repiko.core.constant import EventNames, MessageType
 from repiko.core.log import logger
+from repiko.core.config import Config, pluginConfig, PluginGroup
 from repiko.msg.content import Content
 from repiko.msg.core import MCore
 # from repiko.msg.message import Message
@@ -32,8 +33,8 @@ import random
 import datetime
 import os
 import re
-from typing import List
-from pathlib import Path
+from typing import Annotated
+# from pathlib import Path
 # import yaml
 
 from LSparser import *
@@ -301,13 +302,41 @@ async def luck(pr:ParseResult):
 
 ygodir="./ygo/"
 
-def copyYGO(bot:Bot):
+ServerUnit=Config.Unit("servers",tuple[str,int])
+ServerUnit.addDefault("233", ("s1.ygo233.com",233))
+ServerUnit.addDefault("编年史", ("duelstart.com",2333))
+ServerUnit.addDefault("2pick", ("2pick.mycard.moe",765))
+
+# ygocfg=Config("ygo.toml")
+
+@Config.considerClass
+class YGOConfig:
+    """  ygo 相关指令的设置  """
+    ygoPath:Annotated[str,"ygopro 路径"]
+    servers:Annotated[ServerUnit,"服务器列表"]
+    # = {
+    #     "233": ("s1.ygo233.com",233),
+    #     "编年史": ("duelstart.com",2333),
+    #     "2pick": ("2pick.mycard.moe",765)
+    # }
+
+PluginGroup.addDefault("ygo", anno=YGOConfig)
+
+@pluginConfig.on
+def initYGOplugin(config:dict, bot:Bot):
+    data=config.get("ygo")
+    copyYGO(data)
+    initYGO(bot.mc)
+    initDuel(data)
+
+def copyYGO(data:YGOConfig|dict):
     import shutil
     cplist=["cards.cdb","lflist.conf","strings.conf"]
     # if not self.config.has_option("ygo","ygopath"):
-    if "ygo" not in bot.config:
-        return
-    if not ((ygopath:=bot.config["ygo"].get("ygoPath")) and os.path.exists(ygopath)):
+    # if "ygo" not in bot.config:
+    if not data:
+        return logger.error(f"YGO 配置不存在！")
+    if not ((ygopath:=data.ygoPath) and os.path.exists(ygopath)):
         return logger.error(f"YGO 路径 {ygopath} 不存在！")
     if not os.path.exists(ygodir):
         os.mkdir(ygodir)
@@ -448,6 +477,9 @@ def where2eat(pr:ParseResult):
 def catImage(_):
     return [r"[CQ:image,file=https://thiscatdoesnotexist.com,cache=0]"]
 
+def initDuel(data:YGOConfig|None):
+    YGORoom.initDuel(ygodir, data.servers if data and data.servers else {})
+        
 
 @Events.onCmd("duel")
 def duel(pr:ParseResult):
@@ -560,12 +592,30 @@ def mahjong(pr:ParseResult):
     else:
         return [麻将.和()]
 
-def initFont(bot:Bot):
-    paths=bot.config.get("font")
-    if paths:
-        initNormalFont(paths.get("normal"))
-        initAAFont(paths.get("AA"))
-        initTexFont(paths.get("tex"))
+FontUnit=Config.Unit("font",str, doc="各种字体文件\n路径例：font/file.ttf")
+FontUnit.addDefault("normal","")
+FontUnit.addDefault("AA","")
+FontUnit.addDefault("tex","")
+# FontConfig["normal"]=""
+# FontConfig["AA"]=""
+# FontConfig["tex"]=""
+
+PluginGroup.addDefault("font",anno=FontUnit)
+
+# @Config("font.toml").withDefaults(FontUnit).on
+@pluginConfig.on
+def initFont(config:dict[str,dict], bot:Bot):
+    if data:=config.get("font"):
+        initNormalFont(data.get("normal"))
+        initAAFont(data.get("AA"))
+        initTexFont(data.get("tex"))
+
+# def initFont(bot:Bot):
+#     paths=bot.config.get("font")
+#     if paths:
+#         initNormalFont(paths.get("normal"))
+#         initAAFont(paths.get("AA"))
+#         initTexFont(paths.get("tex"))
 
 @Events.onCmd("AA")
 async def drawAA(pr:ParseResult):
@@ -606,7 +656,7 @@ def ygocdb(pr:ParseResult):
     if not builder.materials:
         return ["空气怎么查啊！"]
     foundSet=set()
-    found=[]
+    found:list[Card]=[]
     with cdb:
         directSearch=cdb.getCardsByName(paramStr)
         if directSearch:
@@ -622,7 +672,7 @@ def ygocdb(pr:ParseResult):
                 c.fromCDBTuple(ct,conf.setdict,conf.lfdict)
                 if (c.alias or c.id) not in foundSet:
                     found.append(c)
-    foundName:List[str]=[c.name+"\n" for c in found]
+    foundName:list[str]=[c.name+"\n" for c in found]
     if not foundName:
         return ["找不到卡片的说……"]
     foundName[-1]=foundName[-1].rstrip()
@@ -673,15 +723,15 @@ def texError(pr:ParseResult,e:Exception):
         return [" ".join(e.args)]
     raise e
 
-@Events.on(EventNames.Startup)
-def botStartUP(bot:Bot):
-    copyYGO(bot)
-    initFont(bot)
+# @Events.on(EventNames.Startup)
+# def botStartUP(bot:Bot):
+#     copyYGO(bot)
+    # initFont(bot)
 
 @Events.on(EventNames.MsgCoreInit)
 def coreInit(core:MCore):
-    initYGO(core)
-    YGORoom.initDuel(ygodir,core.bot.config.get("ygo",{}).get("servers",{}))
+    # initYGO(core)
+    # YGORoom.initDuel(ygodir,core.bot.config.get("ygo",{}).get("servers",{}))
     initEat(core)
     initLuck(core)
 

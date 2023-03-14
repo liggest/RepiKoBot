@@ -7,7 +7,7 @@ from typing import Type,List,Dict,Iterable
 from repiko.msg.part import MessagePart,Text
 from repiko.msg.util import isCQcode
 
-class Content(list):
+class Content(list[MessagePart]):
     """ 消息内容 """
 
     @classmethod

@@ -161,9 +161,18 @@ cython_debug/
 
 
 # config/setting.ini
-config/config.yaml
-/font/
-/ygo/
+# config/config.yaml
+config/test
+config/__main__.toml
+config/config.toml
+config/plugin.toml
+config/poke.yaml
+# config/broadcast.toml
+# config/font.toml
+# config/trans.toml
+# config/ygo.toml
+/font/*
+/ygo/*
 /image/
 /old/
 /AAFile/

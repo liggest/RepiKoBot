@@ -205,7 +205,7 @@ class WS:
     def run(self,url:str):
         asyncio.run(self.asyncRun(url))
 
-    _signals=(signal.SIGTERM,signal.SIGINT)
+    # _signals=(signal.SIGTERM,signal.SIGINT)
 
     def _signalCallback(self):
         sigMap={signal.SIGTERM:"SIGTERM", signal.SIGINT:"SIGINT"}
@@ -214,11 +214,11 @@ class WS:
             self._toExit.set()
         try:
             loop=asyncio.get_event_loop()
-            for sig in self._signals:
+            for sig in sigMap:
                 loop.add_signal_handler(sig,callback,sig)
         except NotImplementedError:
             
-            for sig in self._signals:
+            for sig in sigMap:
                 signal.signal(sig,callback)
 
 

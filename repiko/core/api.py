@@ -139,6 +139,9 @@ class Api:
     async def groupMemberInfo(self, group:int, qq:int, cache=True):
         return await self.post("get_group_member_info",{ "group_id":group, "user_id":qq, "no_cache":not cache })
 
+    async def qqInfo(self, qq:int, cache=True):
+        return await self.post("get_stranger_info",{ "user_id":qq, "no_cache":not cache })
+
     async def groupRootFolder(self, group:int):
         return await self.post("get_group_root_files",{ "group_id":group })
     
