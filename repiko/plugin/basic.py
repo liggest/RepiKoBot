@@ -156,13 +156,16 @@ def calculate(pr:ParseResult):
 @Events.onCmd("roll")
 def rolldice(pr:ParseResult):
     if not pr.isDefinedCommand():
-        pr=pr.opt("-act",1).parse()
+        pr=pr.opt("-act",OPT.M).parse()
     a=Calculator()
     cmd=pr.command
     act=pr.getByType("act","")
     expression=""
+    symbols={ *Calculator.symbol, *"0123456789.dD" } # 算式用到的字符集合
     for params in pr.params:
-        if params.isalpha() and not "d" in params:
+        chars=set(params)
+        if chars - symbols: # 有不在 symbols 中的字符
+        # if params.isalpha() and not "d" in params:
             act+=" "+params
         else:
             expression+=params
