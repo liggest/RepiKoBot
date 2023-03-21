@@ -85,23 +85,24 @@ async def setme(pr:ParseResult):
         return [f"未找到 {name} 的 .poke"]
     return [f"为 {name} 删除了 .poke"]
 
-@Events.onBeforeParse
-async def before(pr:ParseResult,_):
-    global pokeCount
-    pokeCount+=1
-    # meCount.set(meCount.get(0)+1)
-    # await meStack.put_nowait(None)
+# @Events.onBeforeParse
+# async def before(pr:ParseResult,_):
+#     global pokeCount
+#     pokeCount+=1
+#     # meCount.set(meCount.get(0)+1)
+#     # await meStack.put_nowait(None)
 
-@Events.onAfterParse
-async def after(pr:ParseResult,_):
-    global pokeCount
-    pokeCount=0
-    # meCount.set(meCount.get(1)-1)
-    # await meStack.get_nowait()
+# @Events.onAfterParse
+# async def after(pr:ParseResult,_):
+#     global pokeCount
+#     pokeCount=0
+#     # meCount.set(meCount.get(1)-1)
+#     # await meStack.get_nowait()
 
 @Events.onCmd("poke")
 async def poke(pr:ParseResult):
     global pokeCount
+    pokeCount+=1
     # mes=meCount.get()
     logger.debug(f"Poke: {pokeCount}")
     if pokeCount>=2: # 防止递归
@@ -117,6 +118,7 @@ async def poke(pr:ParseResult):
     if result:
         msg.quickReply=True
         msg._replyJson=result
+    pokeCount=0
     return []
 
 path=Path("config/poke.yaml")

@@ -9,7 +9,7 @@ from fastapi import FastAPI,Request,Depends,BackgroundTasks
 import hmac
 import uvicorn
 
-from repiko.core.constant import PostType
+# from repiko.core.constant import PostType
 from repiko.core.bot import Bot
 from repiko.core.log import logger
 # from repiko.msg.data import BaseData

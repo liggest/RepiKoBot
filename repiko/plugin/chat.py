@@ -19,12 +19,20 @@ PluginGroup.addDefault("chat",anno=ChatConfig)
 
 chatbot:Chatbot=None
 
+# SysPrompt=("You are ChatGPT, an AI assistant that can access the internet. " 
+#            "Internet search results will be sent from the system in JSON format. "
+#            "Respond conversationally and cite your sources via a URL at the end of your message. "
+#            "那么，你好，ChatGPT，请回答我的问题")
+SysPrompt=("你好，ChatGPT，请回答我的问题。" 
+           "你可以用网络上的信息回复，将参考链接放在回复的尾部即可。")
+
 @pluginConfig.on
 def initChat(config:dict[str,ChatConfig], bot):
     global chatbot
     print("初始化 chatbot...")
     if (data:=config.get("chat")) and data.key:
-        chatbot=Chatbot(data.key,system_prompt="你好，ChatGPT，请回答我的问题")
+        # chatbot=Chatbot(data.key,system_prompt="你好，ChatGPT，请回答我的问题")
+        chatbot=Chatbot(data.key,system_prompt=SysPrompt)
         print("chatbot 初始化完毕")
     return True
 
@@ -33,7 +41,7 @@ def initChat(config:dict[str,ChatConfig], bot):
 #     initChat(bot)
 
 @Events.onCmd("chat")
-def aichat(pr:ParseResult):
+async def aichat(pr:ParseResult):
     if pr["reset"] or not chatbot:
         msg:Message=pr.raw
         initChat(pluginConfig.data, msg.selector.bot)
@@ -49,9 +57,13 @@ def aichat(pr:ParseResult):
     asyncio.create_task(chatTask(pr))
     return []
 
+def ask(s:str):
+    return chatbot.ask(s).strip()
+
 async def chatTask(pr:ParseResult):
-    await asyncio.sleep(0.01)
-    chat="".join(chatbot.ask_stream(pr.paramStr)).strip()
+    # await asyncio.sleep(0.01)
+    chat = await asyncio.get_running_loop().run_in_executor(None,ask,pr.paramStr)
+    # chat="".join(chatbot.ask_stream(pr.paramStr)).strip()
     msg:Message=pr.raw
     bot=msg.selector.bot
     if chat:
