@@ -6,8 +6,8 @@ from repiko.config import Config
 from repiko.core.constant import ConnectionMethod
 
 if TYPE_CHECKING:
-    config:Config
-    pluginConfig:Config
+    config:Config  # 基础配置
+    pluginConfig:Config  # 插件配置
 
 _configName="config.toml"
 _pluginConfigName="plugin.toml"

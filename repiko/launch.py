@@ -16,7 +16,8 @@ conn=ConnectionInfo.get(data.connection)
 # bot=Bot()
 if conn.METHOD==ConnectionMethod.HTTP:
     from repiko.core.server import getApp
-    app=getApp(Bot())
+    # app=getApp(Bot())
+    app=getApp()
 
     def run():
         # TODO
@@ -25,6 +26,9 @@ if conn.METHOD==ConnectionMethod.HTTP:
         from subprocess import Popen
         import signal
         sigMap={signal.SIGTERM:"SIGTERM", signal.SIGINT:"SIGINT"}
+        if "--port" not in sys.argv:
+            sys.argv.append("--port")
+            sys.argv.append("5701")
         pro=Popen(("pdm","run","uvicorn","bot:app",*sys.argv[1:]))
 
         def callback(sig:int,frame=None):
@@ -67,7 +71,7 @@ elif conn.METHOD in (ConnectionMethod.WS, ConnectionMethod.Combined):
     # del click
     # del uvicorn
     del sys
-            
+    
 
         
         

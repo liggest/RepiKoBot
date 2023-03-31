@@ -244,6 +244,7 @@ def main(bot:Bot):
     
     @ws.onStartup
     async def startup():
+        logger.debug("START!")
         if isinstance(bot._api,WSApi):
             bot._api._ws=ws
         await bot.Init()
@@ -251,7 +252,8 @@ def main(bot:Bot):
     @ws.onShutdown
     async def shutdown():
         await bot.Shutdown()
-        logger.debug("bot 停机")
+        logger.debug("SHUTDOWN!")
+        # logger.debug("bot 停机")
     
     ws.onReceive(bot._handleData)
     # @ws.onReceive

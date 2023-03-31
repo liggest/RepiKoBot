@@ -16,9 +16,8 @@ from repiko.core.log import logger
 # from repiko.msg.selector import *
 # from repiko.msg.message import Message
 
-def getApp(bot:Bot):
-
-    if bot.SECRET:
+def getVerification(bot:Bot=None):
+    if bot and bot.SECRET:
         def verification(request:Request,data:bytes):
             ecp = hmac.new(bot.SECRET,data,'sha1').hexdigest()
             print(ecp)
@@ -27,12 +26,20 @@ def getApp(bot:Bot):
     else:
         def verification(request:Request,data:bytes):
             return True
+    return verification
+
+def getApp(bot:Bot=None):
 
     app=FastAPI()
 
+    verification=getVerification(bot)
+
     @app.on_event("startup")
     async def Startup():
-        # global bot
+        nonlocal bot, verification
+        if bot is None:
+            bot=Bot()   # 延迟初始化 Bot
+            verification=getVerification(bot)
         # import repiko.core.bot as bot_core
         # bot=bot_core.Bot()
         # bot=Bot()
@@ -41,8 +48,8 @@ def getApp(bot:Bot):
 
     @app.on_event("shutdown")
     async def Shutdown():
-        logger.debug("SHUTDOWN!")
         await bot.Shutdown()
+        logger.debug("SHUTDOWN!")
 
     @app.post("/",response_model=None)
     # async def MessageReceiver(backTasks:BackgroundTasks,request:Request):
