@@ -1,4 +1,5 @@
 from repiko.core.bot import Bot
+from repiko.core.log import logger
 from repiko.core.constant import EventNames,MessageType
 # from repiko.msg.core import MCore
 from repiko.msg.data import Message,Request
@@ -200,7 +201,7 @@ with CommandCore(name="admin") as core:
         msg:Message=pr.raw
         bot:Bot=msg.selector.bot
         isBan=pr._cmd.name=="ban"
-        action="绝交" if isBan else "和好"
+        # action="绝交" if isBan else "和好"
         # content=None
         # if pr.params:
         #     content=pr.paramStr
@@ -236,11 +237,36 @@ with CommandCore(name="admin") as core:
                         bot.BanGroup.difference_update(strQQ)
                 result+=f"{k}: {', '.join(strQQ)}\n"
                 num+=len(v)
-            result+=f"和 {num} 个人{action}了"
+            result+=f"不理这 {num} 个人了！" if isBan else f"和 {num} 个人和好了！"
             # print(bot.BanQQ)
             # print(bot.BanGroup)
             return [result]
-        return ["我不知道要和谁{action}"]
+        return [f"要不理谁呢？" if isBan else f"要和谁和好呢？"]
+    
+    (Command("-str").opt(("-method","-m"), OPT.M, "方法名").opt(("-self","-me"), OPT.M, "字符串本体")
+     .opt(("--args","-arg","--a","-a"), OPT.M,"参数").opt(("-list","-l"), OPT.N,"列出方法"))
+    @Events.onCmd("str")
+    def callStr(pr:ParseResult):
+        if pr["list"]:
+            return [", ".join(name for name in dir(str) if callable(getattr(str,name,None)) )]
+        s=pr.getByType("self", pr.paramStr)
+        methodName=pr.getByType("method", None)
+        if not (methodName and (method:=getattr(str,methodName,None))):
+            method=str
+        if not callable(method):
+            return [f"{methodName} 不是方法名哦"]
+        args=pr["args"]
+        if args is None:
+            args=[]
+        elif not isinstance(args,list):
+            args=[args]
+        try:
+            result=method(s,*args)
+        except Exception as e:
+            logger.opt(exception=e).error(f"{repr(method)}({repr(s)}, *{repr(args)}) 执行出错！")
+            return [f"报了 {e.__class__.__name__}"]
+        # logger.debug(f"{repr(method)}({repr(s)}, *{repr(args)})")
+        return [str(result)]
 
 
 @Events.on(RequestSelector.getEventName()) # 这种事件需要在默认的 CommandCore 上
