@@ -263,7 +263,7 @@ with CommandCore(name="admin") as core:
                         bot.BanGroup.difference_update(strQQ)
                 result+=f"{k}: {', '.join(strQQ)}\n"
                 num+=len(v)
-            result+=f"不理这 {num} 个人了！" if isBan else f"和 {num} 个人和好了！"
+            result+=f"不理这 {num} 人了！" if isBan else f"和这 {num} 人和好了！"
             # print(bot.BanQQ)
             # print(bot.BanGroup)
             return [result]

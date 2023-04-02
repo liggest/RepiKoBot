@@ -4,7 +4,8 @@ from collections import defaultdict
 from itertools import zip_longest
 from typing import Type,List,Dict,Iterable
 
-from repiko.msg.part import MessagePart,Text
+from repiko.core.log import logger
+from repiko.msg.part import MessagePart,Text,Node
 from repiko.msg.util import isCQcode
 
 class Content(list[MessagePart]):
@@ -317,6 +318,14 @@ class Content(list[MessagePart]):
     def parts(self): # 重置 parts
         self._parts=None
 
+    @property
+    def isForward(self):
+        """ 是合并转发 """
+        return (
+            (not self._parts and any(isinstance(part,Node) for part in self)) # 默认不初始化 parts
+            or self._hasPart(Node) # 已经有 parts 就用
+        ) # 只检查了有没有 Node，没检查是否全是 Node
+
     def _hasPart(self,val:Type[MessagePart]) -> bool:
         """ 存在 val 类型的消息片段 """
         return isinstance(val,type) and val.partType in self.parts
@@ -530,4 +539,3 @@ class Content(list[MessagePart]):
         super().sort()  # TODO 因为 MessagePart 间没法比较，暂时用不了
         del self.parts
         # self._reinitPart()
-

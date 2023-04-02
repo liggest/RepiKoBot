@@ -185,7 +185,7 @@ class Message(BaseData):
         return str(self.content)
 
     @property
-    def content(self):
+    def content(self) -> Content:
         ctnt=self.get("message")
         if ctnt is not None:
             return ctnt

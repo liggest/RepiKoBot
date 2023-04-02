@@ -467,7 +467,6 @@ class Bot:
         return await self._api.resolveReq(req)
 
     # async def GetMsg(self,msgID:int,mtype=MessageType.Private):
-    #     # TODO
     #     res=await self.AsyncPost("get_msg",{"message_id":msgID})
     #     rj:dict=res.json()
     #     # print("rj")
@@ -491,6 +490,13 @@ class Bot:
 
     async def DeleteMsg(self, msgID:int):
         return await self._api.deleteMsg(msgID)
+
+    async def GetForward(self, forwardID:str):
+        return await self._api.forward(forwardID)
+    
+    async def SendForward(self, msg:Message):
+        """  msg 需包含 MessageType、dst 和全是 Node 的 Content  """
+        return await self._api.sendForward(msg)
 
     # async def GroupMemberInfo(self,group:int,qq:int,cache=True) -> dict:
     #     param={
