@@ -3,7 +3,6 @@ from __future__ import annotations
 import typing
 
 from repiko.core.constant import MessageType
-from repiko.core.log import logger
 from repiko.msg.data import Message,Request
 from repiko.msg.part import Node
 

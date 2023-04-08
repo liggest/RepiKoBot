@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Annotated
 
-from repiko.config import Config
+from repiko.config import Config, Pattern
 from repiko.core.constant import ConnectionMethod
 
 if TYPE_CHECKING:
@@ -44,7 +44,10 @@ class BotConfig:
     #     "ws":  { "url":None }
     # }
 
-PluginConfig=Config.Unit("PluginConfig", dict, "各种插件的配置")
+class PluginConfig(Pattern):
+    """  各种插件的配置  """
+
+# PluginConfig=Config.Unit("PluginConfig", dict, "各种插件的配置")
 PluginGroup=PluginConfig
 
 # cfg=None

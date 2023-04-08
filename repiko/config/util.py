@@ -3,11 +3,23 @@ from __future__ import annotations
 import inspect
 
 
-from typing import TYPE_CHECKING, Callable,get_origin , get_args, Mapping ,Generator
+from typing import TYPE_CHECKING, Callable, Mapping, MutableMapping #, get_origin, get_args, Generator
 if TYPE_CHECKING:
     from repiko.core.bot import Bot
 
-Undefined=object()
+class _Undefined:
+    """  None 有含义，不能作默认值时，用它作为未定义值的类型  """
+
+    def __new__(cls):
+        try:
+            return Undefined
+        except NameError:
+            return super().__new__(cls)
+        
+    def __repr__(self) -> str:
+        return "Undefined"
+
+Undefined = _Undefined()
 
 def looseGetattr(obj,name:str,default=None):
     """  在 obj 中寻找 `name`, `name.lower()` 和 `name.lower().strip("_")`  """
@@ -80,33 +92,33 @@ def eventDocsGen(eventName,bot:Bot,title:str=None):
                 started=True
             yield from indent(func.__doc__.splitlines(),level=1)
 
-from typing import Annotated # , _AnnotatedAlias, TypeGuard
+# from typing import Annotated # , _AnnotatedAlias, TypeGuard
 
 # def isAnnotated(cls) -> TypeGuard[_AnnotatedAlias]:
 #     return isinstance(cls, _AnnotatedAlias)
 
-def deAnnotated(cls, origin=Undefined, args=None):
-    """
-        判断 cls 是否为 Annotated\n
-        是则返回 被包装的类, docs（生成器）\n
-        否则返回 cls, None
-    """
-    if origin is Undefined:
-        origin=get_origin(cls)
-    if args is None:
-        args=get_args(cls)
-    if origin is not Annotated:
-        return cls, None
-    cls,*items=args
-    return cls, annotatedDocsGen(items)
+# def deAnnotated(cls, origin=Undefined, args=None):
+#     """
+#         判断 cls 是否为 Annotated\n
+#         是则返回 被包装的类, docs（生成器）\n
+#         否则返回 cls, None
+#     """
+#     if origin is Undefined:
+#         origin=get_origin(cls)
+#     if args is None:
+#         args=get_args(cls)
+#     if origin is not Annotated:
+#         return cls, None
+#     cls,*items=args
+#     return cls, annotatedDocsGen(items)
 
 
-def annotatedDocsGen(items:tuple) -> Generator[str,None,None]:
-    for i in items:
-        if isinstance(i,str):
-            yield from i.splitlines()
-        elif args:=get_args(i): # Literal["xxx"]
-            yield from annotatedDocsGen(args)
+# def annotatedDocsGen(items:tuple) -> Generator[str,None,None]:
+#     for i in items:
+#         if isinstance(i,str):
+#             yield from i.splitlines()
+#         elif args:=get_args(i): # Literal["xxx"]
+#             yield from annotatedDocsGen(args)
 
 def indent(lines:list[str],level=0,length=4):
     # if isinstance(lines,str):
@@ -119,39 +131,71 @@ def indent(lines:list[str],level=0,length=4):
 def just(val):
     return lambda: val
 
-def isBuiltinType(v:type):
-    """  对内建类型的不完全收集  """
-    return v in { object, int, float, complex, str, bytes, bool, slice, tuple, list, dict, set, range }
+# def isBuiltinType(v:type):
+#     """  对内建类型的不完全收集  """
+#     return v in { object, int, float, complex, str, bytes, bool, slice, tuple, list, dict, set, range }
 
-class ClassDict:
-    """  作为类变量的延迟初始化字典（描述符）  """
+# class ClassDict:
+#     """  作为类变量的延迟初始化字典（描述符）  """
 
-    def __init__(self,setFunc:Callable[[Mapping],Mapping]=None):
-        self.val:Mapping=None
-        self.setFunc=setFunc
+#     def __init__(self,setFunc:Callable[[Mapping],Mapping]=None):
+#         self.val:Mapping=None
+#         self.setFunc=setFunc
 
-    def __get__(self, obj, cls=None):
-        if self.val is None:
-            self.__set__(obj,{})
-        return self.val
+#     def __get__(self, obj, cls=None):
+#         if self.val is None:
+#             self.__set__(obj,{})
+#         return self.val
     
-    def __set__(self, obj, val):
-        if isinstance(val,Mapping):
-            if self.setFunc:
-                self.val=self.setFunc(val)
-            else:
-                self.val=val
-        else:
-            raise ValueError(f"{val=} is not Mapping")
+#     def __set__(self, obj, val):
+#         if isinstance(val,Mapping):
+#             if self.setFunc:
+#                 self.val=self.setFunc(val)
+#             else:
+#                 self.val=val
+#         else:
+#             raise ValueError(f"{val=} is not Mapping")
         
-    def __delete__(self, obj):
-        self.val=None
+#     def __delete__(self, obj):
+#         self.val=None
 
+class RecursionGuard:
+    """  用于防止递归  """
+    _box = set()
+
+    def __init__(self, obj):
+        """  obj 作为标识的对象  """
+        self.obj = obj
+
+    @classmethod
+    def guard(cls, obj):
+        cls._box.add(obj)
+
+    @classmethod
+    def release(cls, obj):
+        cls._box.discard(obj)
+
+    @classmethod
+    def has(cls, obj):
+        return obj in cls._box
+
+    def __enter__(self):
+        self.guard(self.obj)
+    
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.release(self.obj)
+
+def deepUpdate(origin:MutableMapping, new:Mapping):
+    origin.update(new)
+    for o,n in zip(origin.values(), new.values()):
+        if isinstance(o, MutableMapping) and isinstance(n, Mapping):
+            deepUpdate(o, n)
+    return origin
 
 import sys
 import types
 import functools
-from typing import MutableMapping, ForwardRef, _eval_type, TYPE_CHECKING
+from typing import ForwardRef, _eval_type, TYPE_CHECKING
 
 if TYPE_CHECKING:
     def _eval_type(t, globalns, localns, recursive_guard=frozenset()) -> type:
@@ -286,8 +330,8 @@ def get_annotations(obj, *, globals=None, locals=None, eval_str=False):
         locals = obj_locals
     # 如果 locals 有内容，与 obj_locals 合并
     elif isinstance(locals,MutableMapping):
-        locals.update(obj_locals)
-
+        # locals.update(obj_locals)  # 这样可能会修改默认的 local
+        locals = { **locals, **obj_locals }  
     # return_value = {key:
     #     value if not isinstance(value, str) else eval(value, globals, locals)
     #     for key, value in ann.items() }

@@ -20,7 +20,6 @@ def getVerification(bot:Bot=None):
     if bot and bot.SECRET:
         def verification(request:Request,data:bytes):
             ecp = hmac.new(bot.SECRET,data,'sha1').hexdigest()
-            print(ecp)
             receivedEcp = request.headers['X-Signature'][5:] # len('sha1=')==5
             return ecp == receivedEcp
     else:

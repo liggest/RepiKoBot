@@ -171,6 +171,7 @@ config/poke.yaml
 # config/font.toml
 # config/trans.toml
 # config/ygo.toml
+config/bing.json
 /font/*
 /ygo/*
 /image/

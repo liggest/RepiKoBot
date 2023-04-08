@@ -8,7 +8,7 @@ from typing import Any, Callable, TYPE_CHECKING, TypeVar
 
 from repiko.core.log import logger
 from repiko.core.constant import EventNames
-from repiko.config.meta import ConfigMeta
+from repiko.config.pattern import Pattern
 from repiko.config.loader import Loader
 from repiko.config.defaults import DefaultsPattern
 from repiko.config.util import eventDocsGen
@@ -138,7 +138,7 @@ class Config:
     # def __init__(self,name:str|Path=None):
 
     def __repr__(self):
-        return f"{self.__class__.__name__}({repr(self._name)})"
+        return f"{self.__class__.__name__}({self._name!r})"
 
     def _ensureStore(self):
         """  确保 self 在 Config._configs 中  """
@@ -196,9 +196,9 @@ class Config:
         return Events.on(self.updateEventName)(func)
 
     def _initData(self,bot:Bot=None):
-        self._data=self._pattern2data()
         if not self.path.is_file(): # 文件不存在
             logger.warning(f"配置 {self.pathKey} 不存在，尝试根据默认配置创建…")
+            self._data=self._pattern2data()
             if not self.path.is_absolute() and not self.path.parent.exists(): # 不是绝对路径的话，把目录也创出来
                 self.path.parent.mkdir(parents=True)
             self.save(bot)
@@ -285,7 +285,7 @@ class Config:
             self._defaultsFrame=inspect.currentframe().f_back
             return accepter.accept(self,pattern)
         
-        logger.warning(f"无法让配置 {self.name} 拥有默认样式 {repr(pattern)}!")
+        logger.warning(f"无法让配置 {self.name} 拥有默认样式 {pattern!r}!")
         return pattern
         # if isinstance(pattern,dict) or is_typeddict(pattern): # 传入字典 或传入 TypedDict（装饰器）
         #     self._pattern=pattern
@@ -308,7 +308,7 @@ class Config:
     @staticmethod
     def considerClass(cls:type):
         """  装饰自定义类 cls，使其对象在程序与配置文件中作为 dict 使用  """
-        return ConfigMeta.mimic(cls)
+        return Pattern.mimic(cls)
 
     def _docsGen(self,bot:Bot):
         if self._patternAccepter:
@@ -331,4 +331,3 @@ class Config:
         logger.info(f"保存配置 {self.pathKey} …")
         self._loader.save(self,bot)
 
-    from repiko.config.meta import Unit # Config.Unit ...

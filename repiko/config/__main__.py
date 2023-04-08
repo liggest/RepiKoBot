@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from repiko.config import Config
+from repiko.config import Config, Pattern
 
 if __name__ == "__main__":
 
     from repiko.core.log import logger
-    from typing import TypedDict, TYPE_CHECKING, Literal, Annotated
+    from typing import TYPE_CHECKING, TypedDict, Literal, Annotated
 
     if TYPE_CHECKING:
         from repiko.core.bot import Bot
@@ -29,11 +29,11 @@ if __name__ == "__main__":
             self._f=val
             self._f=val
 
-        def __init__(self,c=7,f=15,*args,**kw):
-            # logger.debug("__init__")
-            self.c=c
-            self._f=f
-            super().__init__()
+        # def __init__(self,c=7,f=15,*args,**kw):
+        #     # logger.debug("__init__")
+        #     self.c=c
+        #     self._f=f
+        #     super().__init__()
 
         # def __setattr__(self:dict, name:str, value:Any):
         #     logger.debug("__setattr__")
@@ -85,7 +85,7 @@ if __name__ == "__main__":
     cfg3=Config("test/test3.json")
     # logger.debug(f"{cfg2.pathKey}  {cfg2.name} {repr(cfg2._loader)}")
     @cfg3.defaults
-    class MyConfig:
+    class MyConfig(Pattern):
 
         a="my_path"
         b="my_token"
@@ -137,7 +137,7 @@ if __name__ == "__main__":
             myQQ = 10086
 
         # bot = { "name":"RepiKo", "myQQ":10086 }
-        bot:Bot
+        bot:BotCFG.Bot
 
         class Connection:
             class WS:
@@ -173,7 +173,7 @@ if __name__ == "__main__":
         g:float | str
         inner:InnerTD
         inner2:InnerTD
-        nested:TDCFG
+        nested:TDCFG | None
 
     clsCFG=Config("test/test6.yaml")
 
@@ -195,7 +195,7 @@ if __name__ == "__main__":
         g:float | str
         inner:InnerCls
         inner2:InnerCls
-        nested:CLSCFG
+        nested:CLSCFG | None
 
     clsCFG.withDefaults(CLSCFG)
 
@@ -228,19 +228,17 @@ if __name__ == "__main__":
     def init(data:TDCFG,bot:Bot):
         # logger.debug(data)
         logger.debug(type(data))
-        data["nested"]
-        data["nested"]["nested"]
-        data["nested"]["nested"]["nested"]
+        logger.debug(data["nested"]) # TDCFG({})
+        logger.debug(data["nested"]["nested"]) # None
 
     @clsCFG.onInit
     def init(data:CLSCFG,bot:Bot):
         # logger.debug(data)
         logger.debug(type(data))
-        data.nested
-        data.nested.nested
-        data.nested.nested.nested
+        logger.debug(data.nested) # CLSCFG({})
+        logger.debug(data.nested.nested) # None
 
-    class UnitPattern:
+    class UnitPattern(Pattern):
         """  单元  """
 
         x:str
@@ -248,7 +246,11 @@ if __name__ == "__main__":
         z:str|None
         w = "啊哇哇哇"
 
-    UnitGroup=Config.Unit("UnitGroup",UnitPattern,"单元组")
+    # UnitGroup=Config.Unit("UnitGroup",UnitPattern,"单元组")
+    class UnitGroup(Pattern):
+        """  单元组  """
+
+    UnitGroup.defaultAnnotation = UnitPattern
     UnitGroup.addDefault("p1",{ "x":"x", "y":3, "z":"z" })
     UnitGroup.addDefault("p2",{ "x":"xx", "y":33, "z":"zz", "w":"ww" })
     UnitGroup.addDefault("p3",UnitPattern({ "x":"xxx", "y":333, "z":"zzz" }))
@@ -264,11 +266,14 @@ if __name__ == "__main__":
         # logger.debug(data.get("p5"))
         return True
     
-    UnitAllGroup=Config.Unit("UnitAllGroup", dict, "什么都塞的单元组")
-    UnitAllGroup.addDefault("admin",anno=BotCFG.Admin)
-    UnitAllGroup.addDefault("bot",anno=BotCFG.Bot)
-    UnitAllGroup.addDefault("connection",anno=BotCFG.Connection)
-    UnitAllGroup.addDefault("unit",anno=UnitPattern)
+    class UnitAllGroup(Pattern):
+        """  什么都塞的单元组  """
+
+    # UnitAllGroup=Config.Unit("UnitAllGroup", dict, "什么都塞的单元组")
+    UnitAllGroup.addDefault("admin",annotation=BotCFG.Admin)
+    UnitAllGroup.addDefault("bot",annotation=BotCFG.Bot)
+    UnitAllGroup.addDefault("connection",annotation=BotCFG.Connection)
+    UnitAllGroup.addDefault("unit",annotation=UnitPattern)
     UnitAllGroup.addDefault("addition",{ "init":True })
 
     unitAllCFG=Config("test/unit_all")
@@ -283,7 +288,8 @@ if __name__ == "__main__":
         logger.debug(data["unit"])
         return True
 
-
     from repiko.core.bot import Bot
+    bot = Bot()
     for cfg in Config._configs.values():
-        cfg.initUpdate(Bot())
+        # logger.debug(cfg)
+        cfg.initUpdate(bot)

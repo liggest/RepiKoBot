@@ -4,7 +4,6 @@ from collections import defaultdict
 from itertools import zip_longest
 from typing import Type,List,Dict,Iterable
 
-from repiko.core.log import logger
 from repiko.msg.part import MessagePart,Text,Node
 from repiko.msg.util import isCQcode
 
