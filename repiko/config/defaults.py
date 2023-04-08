@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Generator #, TypedDict, is_typeddict, 
 
 from repiko.config.pattern import TypeHelper, Pattern
-from repiko.config.util import deepUpdate
 if TYPE_CHECKING:
     from repiko.config.config import Config
 
@@ -213,7 +212,7 @@ class ClassPattern(DefaultsPattern):
 
     @classmethod
     def updateData(cls, config:Config, data:dict):
-        return deepUpdate(Pattern.mimic(config._pattern)._defaultsNoOptionals, data)
+        return Pattern.mimic(config._pattern)._defaultsNoOptionals._deepUpdateWith(data)
 
     @classmethod
     def docsGen(cls, config:Config):

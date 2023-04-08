@@ -227,16 +227,16 @@ if __name__ == "__main__":
     # @clsCFG.onInit
     def init(data:TDCFG,bot:Bot):
         # logger.debug(data)
-        logger.debug(type(data))
-        logger.debug(data["nested"]) # TDCFG({})
-        logger.debug(data["nested"]["nested"]) # None
+        assert type(data) is TDCFG
+        assert data["nested"] == TDCFG({})
+        assert data["nested"]["nested"] is None
 
     @clsCFG.onInit
     def init(data:CLSCFG,bot:Bot):
         # logger.debug(data)
-        logger.debug(type(data))
-        logger.debug(data.nested) # CLSCFG({})
-        logger.debug(data.nested.nested) # None
+        assert type(data) is CLSCFG
+        assert data.nested == CLSCFG({})
+        assert data.nested.nested is None
 
     class UnitPattern(Pattern):
         """  单元  """
@@ -251,7 +251,7 @@ if __name__ == "__main__":
         """  单元组  """
 
     UnitGroup.defaultAnnotation = UnitPattern
-    UnitGroup.addDefault("p1",{ "x":"x", "y":3, "z":"z" })
+    UnitGroup.addDefault("p1",{ "x":"x", "y":3 })
     UnitGroup.addDefault("p2",{ "x":"xx", "y":33, "z":"zz", "w":"ww" })
     UnitGroup.addDefault("p3",UnitPattern({ "x":"xxx", "y":333, "z":"zzz" }))
 
@@ -259,11 +259,16 @@ if __name__ == "__main__":
     unitCFG.withDefaults(UnitGroup)
 
     @unitCFG.onInit
-    def init(data:dict,bot:Bot):
-        # logger.debug(f"{type(data)}  {repr(data)}")
-        # logger.debug(data.get("p1"))
-        # logger.debug(data.get("p3"))
-        # logger.debug(data.get("p5"))
+    def init(data:UnitGroup,bot:Bot):
+        logger.debug(f"{type(data)}  {repr(data)}")
+        p1:UnitPattern = data.get("p1")
+        assert type(p1) is UnitPattern
+        assert p1.z is None
+        assert p1.w == UnitPattern._fields["w"].default
+        p2:UnitPattern = data.get("p2")
+        assert p2.z == "zz"
+        assert p2.w == "ww"
+        assert data.get("p5") is None
         return True
     
     class UnitAllGroup(Pattern):
@@ -280,12 +285,11 @@ if __name__ == "__main__":
     unitAllCFG.withDefaults(UnitAllGroup)
 
     @unitAllCFG.onInit
-    def init(data:dict,bot:Bot):
+    def init(data:UnitAllGroup,bot:Bot):
         logger.debug(f"{type(data)}  {repr(data)}")
-        logger.debug(data["admin"])
-        logger.debug(data["bot"])
-        logger.debug(data["connection"])
-        logger.debug(data["unit"])
+        assert type(data["admin"]) is BotCFG.Admin
+        assert type(data["unit"]) is UnitPattern
+        assert data["addition"]["init"]
         return True
 
     from repiko.core.bot import Bot

@@ -1,7 +1,7 @@
 
 # from repiko.msg.core import MCore
 # from repiko.core.constant import EventNames
-from repiko.core.config import pluginConfig, PluginGroup, Config
+from repiko.core.config import pluginConfig, PluginUnits, Pattern
 # from repiko.module.google_translation import gTranslator
 from repiko.module.deepl_translation import DeepTrans,Formality
 
@@ -31,11 +31,10 @@ t:DeepTrans=None
 
 # cfg=Config("trans.toml")
 
-@Config.considerClass
-class TransConfig:
-    key:Annotated[str,"DeepL api key"] = ""
+class TransConfig(Pattern):
+    key:Annotated[str | None,"DeepL api key"]
 
-PluginGroup.addDefault("trans",anno=TransConfig)
+PluginUnits.addDefault("trans",annotation=TransConfig)
 
 # @cfg.withDefaults({ "key":"" }).onInit
 @pluginConfig.on

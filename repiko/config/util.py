@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import inspect
-
+import copy
 
 from typing import TYPE_CHECKING, Callable, Mapping, MutableMapping #, get_origin, get_args, Generator
 if TYPE_CHECKING:
@@ -186,11 +186,25 @@ class RecursionGuard:
         self.release(self.obj)
 
 def deepUpdate(origin:MutableMapping, new:Mapping):
-    origin.update(new)
-    for o,n in zip(origin.values(), new.values()):
-        if isinstance(o, MutableMapping) and isinstance(n, Mapping):
-            deepUpdate(o, n)
+    """  递归地用 new 更新 origin  """
+    origin = copy.copy(origin)
+    for k,n in new.items():
+        if (o := origin.get(k, Undefined)) is not Undefined and isinstance(o, MutableMapping) and isinstance(n, Mapping):
+            origin[k] = deepUpdate(o, n)
+        else:
+            origin[k] = n
     return origin
+
+# def deepIntersect(origin:MutableMapping, new:Mapping):
+#     """  递归地用 new 更新 origin，只更新 origin 中已有项  """
+#     for k,o in origin.items():
+#         if (n := new.get(k, Undefined)) is Undefined:
+#             continue
+#         if isinstance(o, MutableMapping) and isinstance(n, Mapping):
+#             deepIntersect(o, n)
+#         else:
+#             origin[k] = n
+#     return origin
 
 import sys
 import types

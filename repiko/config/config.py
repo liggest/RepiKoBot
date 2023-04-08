@@ -259,23 +259,23 @@ class Config:
     def defaults(self,pattern:T) -> T:
         """
             设定配置的默认样式，目前支持
+            - 传入 Pattern 的子类，提供类型标注与默认值（可嵌套）
+            - 传入 typing.TypedDict 的子类，提供类型标注
             - 传入字典对象提供默认值
-            - 传入 typing.TypedDict 提供配置结构与默认值
-            - 传入自定义类型，提供配置结构与默认值（可嵌套）
 
             （一个配置仅能传入一个样式）
 
             ```python
                 @Config(...).defaults
-                class MyConfig:
+                class MyConfig(Pattern):
                     x = 1
-                    y = ["a", "b", "c"]
-                    z:str
+                    y:list = ["a", "b", "c"]
 
-                    class Nested:
+                    class Nested(Pattern):
                         n1:str = "name"
                         n2:int = 3
-
+                    
+                    z:Nested
             ```
         """
         self._ensureStore()

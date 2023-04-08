@@ -1,7 +1,7 @@
 from repiko.core.bot import Bot
 from repiko.core.log import logger
 from repiko.core.constant import EventNames,MessageType
-from repiko.core.config import pluginConfig, PluginGroup
+from repiko.core.config import pluginConfig, PluginUnits
 # from repiko.msg.core import MCore
 from repiko.msg.data import Message,Request
 from repiko.msg.selector import RequestSelector
@@ -19,14 +19,14 @@ import asyncio
 
 broadcastPreset={}
 
-PluginGroup.addDefault("broadcast",{
+PluginUnits.addDefault("broadcast",{
     "update":{
         "group":[10086,10086]
     },
     "bot":{
         "private":[10086,10086]
     }
-},anno=typing.Annotated[dict,"broadcast 指令相关，可忽略"])
+},annotation=typing.Annotated[dict,"broadcast 指令相关，可忽略"])
 
 @pluginConfig.on
 def loadBroadcastPreset(config:dict, bot:Bot):

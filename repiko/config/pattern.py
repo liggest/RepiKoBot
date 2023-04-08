@@ -11,7 +11,7 @@ from typing import get_origin, get_args, is_typeddict
 from typing_extensions import Required, NotRequired, Self
 from types import UnionType, NoneType, FrameType
 
-from repiko.config.util import Undefined, get_annotations, indent, RecursionGuard
+from repiko.config.util import Undefined, RecursionGuard, get_annotations, indent, deepUpdate
 from repiko.core.log import logger
 
 # class PatternDictMeta(type):
@@ -25,11 +25,13 @@ class Field:
     _annotation:type = Undefined
     _default:Any = Undefined
     _optional:bool = field(default=None, init=False, compare=False)
+
     _container:FieldContainer = field(default=None, init=False, repr=False, compare=False)
-    
     _containerGetter:Callable[[],FieldContainer] = field(default=None, init=False, repr=False, compare=False)
 
     _doc:list[str] = field(default=None, init=False, compare=False)
+
+    _defaultInited = False
 
     @property
     def container(self):
@@ -68,7 +70,16 @@ class Field:
     def default(self):
         if self._default is Undefined:
             self._default = TypeHelper.toDefault(self.annotation)
+            self._defaultInited = True
+        if not self._defaultInited:
+            TypeHelper.ensureIfPattern(self)
+            self._defaultInited = True
         return self._default
+
+    @default.setter
+    def default(self, val):
+        self._default = val
+        self._defaultInited = False
 
     @property
     def optional(self):
@@ -80,12 +91,12 @@ class Field:
     def optional(self,val):
         self._optional = bool(val)
 
-    def doc(self, level=0, haddoc:set=None):
+    def doc(self, level=0):
         self._doc = []
         key = self.name
         if self.optional:
             key = f"{key}  [可选]"
-        self._doc.extend( TypeHelper.toDoc(key, self.annotation, level, haddoc) )
+        self._doc.extend( TypeHelper.toDoc(key, self.annotation, level) )
         return self._doc
 
     # def ensure(self):
@@ -132,8 +143,12 @@ class FieldContainer:
         return self.__pattern__( ( (k,v.default) for k,v in self.fields.items() ) )
 
     # @property
-    # def _defaultsNoOptionals(self):
-    #     return self.__pattern__( ( (k,v.default) for k,v in self.fields.items() if not v.optional) )
+    # def _optionalFields(self):
+    #     return ( (k,v) for k,v in self.fields.items() if not v.optional )
+    
+    @property
+    def _defaultsNoOptionals(self):
+        return self.__pattern__( ( (k,TypeHelper.toDefaultNoOptional(v)) for k,v in self.fields.items() if not v.optional) )
 
     __creatingFrame__:FrameType = None
     
@@ -159,9 +174,9 @@ class PatternMeta(type):
             return cls
         if mimiced := meta._mimiced.get(cls):
             return mimiced
-        mimiced:PatternMeta = types.new_class(cls.__name__, 
-                               TypeHelper.filterBases((Pattern, cls)), 
-                               { "metaclass":meta }, 
+        mimiced:PatternMeta = types.new_class(cls.__name__,
+                               TypeHelper.filterBases((Pattern, cls)),
+                               { "metaclass":meta },
                                lambda ns : ns.update(cls.__dict__))
         mimiced._container.__creatingFrame__ = frame or inspect.currentframe().f_back
         meta._mimiced[cls] = mimiced
@@ -309,16 +324,21 @@ class PatternMeta(type):
         if not container or RecursionGuard.has(cls):
             return cls()
         with RecursionGuard(cls):
-            return cls(TypeHelper.defaultsNoOptionalsGen(container.fields))
+            return container._defaultsNoOptionals
+            # gen = ( 
+            #     (k, default) for k,v in container.fields.items() 
+            #     if (default := TypeHelper.toDefaultNoOptional(v)) is not Undefined
+            # )
+            # return cls(gen)
     
     @property
-    def defaultAnnotation(self):
+    def defaultAnnotation(cls):
         """  所有字段的默认类型，初始时未定义  """
-        return self._container.__defaultAnnotation__
+        return cls._container.__defaultAnnotation__
     
     @defaultAnnotation.setter
-    def defaultAnnotation(self, val:type):
-        self._container.__defaultAnnotation__ = val
+    def defaultAnnotation(cls, val:type):
+        cls._container.__defaultAnnotation__ = val
 
 class Pattern(dict, metaclass=PatternMeta):
     """  用来定义配置各字段的类型、默认值等  """
@@ -355,26 +375,24 @@ class Pattern(dict, metaclass=PatternMeta):
             container.fields[key] = Field(key,_default=default).withContainer(container)
 
     @classmethod
-    def _docsGen(cls, level=0, haddoc:set=None):
+    def _docsGen(cls, level=0):
         container = cls._container
         pattern = container.__pattern__
-        if haddoc is None:
-            haddoc = set()
-        if pattern in haddoc:
-            return
-        else:
-            haddoc.add(pattern)
-        
-        if pattern.__doc__:
-            yield from indent(pattern.__doc__.splitlines(),level=level)
-        
-        if container.__fields__:
-            for v in container.__fields__.values():
-                yield from v.doc(level, haddoc)
 
-    @property
-    def __fieldContainer__(self):
-        return self.__class__._container
+        if RecursionGuard.has(pattern):
+            return
+        
+        with RecursionGuard(pattern):
+            if pattern.__doc__:
+                yield from indent(pattern.__doc__.splitlines(),level=level)
+
+            if container.__fields__:
+                for v in container.__fields__.values():
+                    yield from v.doc(level)
+
+    # @property
+    # def __fieldContainer__(self):
+    #     return self.__class__._container
 
     # @classmethod
     # def _emptyCopy(cls):
@@ -390,7 +408,7 @@ class Pattern(dict, metaclass=PatternMeta):
     #     return cls._defaults
 
     def __getitem__(self, key):
-        field = self.__fieldContainer__.fields.get(key)
+        field = self.__class__._container.fields.get(key)
         if field and field.optional:
             if (item := super().get(key)) is None: # 可选的项在不存在时可以返回 None
                 return item
@@ -401,16 +419,17 @@ class Pattern(dict, metaclass=PatternMeta):
             super().__setitem__(key,newItem)
         return newItem
 
-    def _handleItem(self, key, item):
+    @classmethod
+    def _handleItem(cls, key, item):
         itemCheck = item is None or isinstance(item,Mapping) # 为 None 或 Mapping 时，可能能替换为默认值
         if not itemCheck:
             return item
-        if isinstance(item, Pattern): # item 本体
+        if isinstance(item,Pattern): # item 本体
             # return item if item else item._defaults
             return item
         fieldCheck=(
-            (cls := self.__fieldContainer__) and
-            (field := cls.fields.get(key)) and
+            (container := cls._container) and
+            (field := container.fields.get(key)) and
             # (defaults:=self._defaults) and 
             ((defaultItem := field.default) is not Undefined) # key 有默认值
             # (defaultItem:=super(defaults.__class__,defaults).get(key,Undefined)) is not Undefined) # key 有默认值
@@ -455,9 +474,8 @@ class Pattern(dict, metaclass=PatternMeta):
             super().__setitem__(key,newItem)
         return newItem
 
-    # def _updateWith(self, data:Mapping):
-    #     self.update(data)
-    #     return self
+    def _deepUpdateWith(self, data:Mapping):
+        return deepUpdate(self, data)
 
 class TypeHelper:
 
@@ -481,6 +499,8 @@ class TypeHelper:
     @classmethod
     def toDefault(cls, t:type):
         # t = cls.filterClass(t)  # 暂时没必要
+        if t is Undefined:  # 无类型的话默认值为空
+            return None
         origin, args = get_origin(t), get_args(t)  # Literal[3] => Literal  (3,)
         tOri = origin or t
         if origin is Literal and args:
@@ -507,36 +527,51 @@ class TypeHelper:
             return cls.isOptional(a)
         return False
 
-    @classmethod
-    def defaultsNoOptionalsGen(cls, fields:dict[str,Field]):
-        for k,v in fields.items():
-            if v.optional:
-                continue
-            if v._default is not Undefined and isinstance(v._default,Pattern):
-                yield k, v._default.__class__._defaultsNoOptionals
-            elif t := v.annotation:
-                origin, args = get_origin(t), get_args(t)
-                tOri = origin or t
-                if origin in (Union, UnionType, Required, NotRequired, Annotated) and args:
-                    tOri = args[0]
-                if isinstance(tOri,type) and issubclass(tOri,Pattern):
-                    yield k, tOri._defaultsNoOptionals
-                    continue
-            yield k, v.default
+    @staticmethod
+    def isPatternField(field:Field):
+        """  Field 记录的类型是否为 Pattern，是的话返回该 Pattern 类  """
+        default = field._default
+        cls = None
+        if isinstance(default,Pattern):
+            cls = default.__class__
+        elif t := field.annotation:
+            origin, args = get_origin(t), get_args(t)
+            tOri = origin or t
+            if origin in (Union, UnionType, Required, NotRequired, Annotated) and args:
+                tOri = args[0]
+            if isinstance(tOri,type) and issubclass(tOri,Pattern):
+                cls = tOri
+        return cls
+
+    @staticmethod
+    def ensureIfPattern(field:Field):
+        """  如果 Field 记录的类型是 Pattern 类，保证 field 的默认值包含该 Pattern 中必要的默认值  """
+        if cls := TypeHelper.isPatternField(field):
+            if isinstance(field._default, Mapping):
+                default = cls._defaultsNoOptionals
+                default.update(field._default)
+                field._default = default
+
+    @staticmethod
+    def toDefaultNoOptional(field:Field):
+        default = field.default
+        if cls := TypeHelper.isPatternField(field):
+            return cls._defaultsNoOptionals
+        return default
 
     @classmethod
-    def toDoc(cls, key:str, t:type, level=0, haddoc:set=None):
+    def toDoc(cls, key:str, t:type, level=0):
         if t is Undefined:
             return indent((key,),level=level)
         if isinstance(t,type) and issubclass(t,Pattern):
-            return chain(indent((key,),level=level), t._docsGen(level=level+1, haddoc=haddoc))
+            return chain(indent((key,),level=level), t._docsGen(level=level+1))
         
         origin, args = get_origin(t), get_args(t)  # Literal[3] => Literal  (3,)
         if origin in (Union, UnionType, Required, NotRequired) and args:
-            return cls.toDoc(key,args[0],level,haddoc)  # Union 中的第一项
+            return cls.toDoc(key,args[0],level)  # Union 中的第一项
         tInner, annoDocs = cls.deAnnotated(t,origin,args) # Annotated[tInner,...]
         if annoDocs:  # Annotated 才有，否则为 None
-            tInnerDocs = cls.toDoc(key,tInner,level,haddoc) # tInner 的文档
+            tInnerDocs = cls.toDoc(key,tInner,level) # tInner 的文档
             try:
                 firstLine = next(tInnerDocs)
                 return chain((firstLine,), indent(annoDocs,level=level+1), tInnerDocs)
@@ -610,7 +645,8 @@ if __name__ == "__main__":
     from pprint import pprint as print
 
     print(CFG._fields)
-    assert CFG({ "a":10 }).a == 10
+    cfg = CFG({ "a":10 })
+    assert cfg.a == 10
     defaults = CFG._defaults
     print(defaults)
     assert defaults.abs == CFG.ABS({ "x":3, "y":5 })

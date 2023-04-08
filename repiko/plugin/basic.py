@@ -2,7 +2,7 @@
 from repiko.core.bot import Bot
 from repiko.core.constant import EventNames, MessageType
 from repiko.core.log import logger
-from repiko.core.config import Config, pluginConfig, PluginGroup
+from repiko.core.config import Config, Pattern, pluginConfig, PluginUnits
 from repiko.msg.content import Content
 from repiko.msg.core import MCore
 # from repiko.msg.message import Message
@@ -305,15 +305,18 @@ async def luck(pr:ParseResult):
 
 ygodir="./ygo/"
 
-ServerUnit=Config.Unit("servers",tuple[str,int])
+# ServerUnit=Config.Unit("servers",tuple[str,int])
+class ServerUnit(Pattern):
+    pass
+
 ServerUnit.addDefault("233", ("s1.ygo233.com",233))
 ServerUnit.addDefault("编年史", ("duelstart.com",2333))
 ServerUnit.addDefault("2pick", ("2pick.mycard.moe",765))
 
 # ygocfg=Config("ygo.toml")
 
-@Config.considerClass
-class YGOConfig:
+# @Config.considerClass
+class YGOConfig(Pattern):
     """  ygo 相关指令的设置  """
     ygoPath:Annotated[str,"ygopro 路径"]
     servers:Annotated[ServerUnit,"服务器列表"]
@@ -323,7 +326,7 @@ class YGOConfig:
     #     "2pick": ("2pick.mycard.moe",765)
     # }
 
-PluginGroup.addDefault("ygo", anno=YGOConfig)
+PluginUnits.addDefault("ygo",annotation=YGOConfig)
 
 @pluginConfig.on
 def initYGOplugin(config:dict, bot:Bot):
@@ -332,7 +335,7 @@ def initYGOplugin(config:dict, bot:Bot):
     initYGO(bot.mc)
     initDuel(data)
 
-def copyYGO(data:YGOConfig|dict):
+def copyYGO(data:YGOConfig):
     import shutil
     cplist=["cards.cdb","lflist.conf","strings.conf"]
     # if not self.config.has_option("ygo","ygopath"):
@@ -595,7 +598,13 @@ def mahjong(pr:ParseResult):
     else:
         return [麻将.和()]
 
-FontUnit=Config.Unit("font",str, doc="各种字体文件\n路径例：font/file.ttf")
+class FontUnit(Pattern):
+    """
+    各种字体文件
+    路径例：font/file.ttf
+    """
+
+# =Config.Unit("font",str, doc="各种字体文件\n路径例：font/file.ttf")
 FontUnit.addDefault("normal","")
 FontUnit.addDefault("AA","")
 FontUnit.addDefault("tex","")
@@ -603,7 +612,7 @@ FontUnit.addDefault("tex","")
 # FontConfig["AA"]=""
 # FontConfig["tex"]=""
 
-PluginGroup.addDefault("font",anno=FontUnit)
+PluginUnits.addDefault("font",annotation=FontUnit)
 
 # @Config("font.toml").withDefaults(FontUnit).on
 @pluginConfig.on
