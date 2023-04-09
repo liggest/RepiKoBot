@@ -205,12 +205,12 @@ def initDeck(config:dict, bot:Bot) -> bool:
     ygopath=config.get("ygo",{}).get("ygoPath")
     # ygopath=data["ygoPath"]
     if not ygopath or not (ygopath:=Path(ygopath)).exists():
-        return logger.error(f"YGO 路径 {ygopath} 不存在！")
+        return logger.error(f"YGO 路径 {ygopath!r} 不存在！")
     deckpath=ygopath / "deck" / "random"
     deckpath.mkdir(0o774,parents=True,exist_ok=True)
     reviewpath=ygopath / "deck" / "review"
     reviewpath.mkdir(0o774,parents=True,exist_ok=True)
-    logger.info(f"确保 {deckpath}、{reviewpath} 存在")
+    logger.info(f"确保 {deckpath!r}、{reviewpath!r} 存在")
 
 # @Events.on(EventNames.Startup)
 # def botStartUP(bot:Bot):

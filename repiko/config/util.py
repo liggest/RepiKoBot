@@ -128,8 +128,8 @@ def indent(lines:list[str],level=0,length=4):
     pad=" " * length * level
     return (f"{pad}{line.lstrip()}" for line in lines)
 
-def just(val):
-    return lambda: val
+# def just(val):
+#     return lambda: val
 
 # def isBuiltinType(v:type):
 #     """  对内建类型的不完全收集  """

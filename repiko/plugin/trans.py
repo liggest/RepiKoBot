@@ -1,6 +1,7 @@
 
 # from repiko.msg.core import MCore
 # from repiko.core.constant import EventNames
+from repiko.core.log import logger
 from repiko.core.config import pluginConfig, PluginUnits, Pattern
 # from repiko.module.google_translation import gTranslator
 from repiko.module.deepl_translation import DeepTrans,Formality
@@ -40,10 +41,13 @@ PluginUnits.addDefault("trans",annotation=TransConfig)
 @pluginConfig.on
 def initTrans(config:dict, bot):
     global t
+    logger.info("初始化 trans ...")
     data:TransConfig=config.get("trans")
     if data and (data.key):
         t=DeepTrans()
         t.init(data.key)
+    else:
+        logger.warning("无配置，未初始化 trans")
 
 @Events.onCmd("translate")
 def translate(pr:ParseResult):

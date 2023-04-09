@@ -343,16 +343,16 @@ def copyYGO(data:YGOConfig):
     if not data:
         return logger.error(f"YGO 配置不存在！")
     if not ((ygopath:=data.ygoPath) and os.path.exists(ygopath)):
-        return logger.error(f"YGO 路径 {ygopath} 不存在！")
+        return logger.error(f"YGO 路径 {ygopath!r} 不存在！")
     if not os.path.exists(ygodir):
         os.mkdir(ygodir)
     for f in cplist:
         fpath=os.path.join(ygopath,f)
         if os.path.exists(fpath):
             shutil.copy(fpath,ygodir)
-            logger.info(f"拷贝{fpath}到{ygodir}")
+            logger.info(f"拷贝 {fpath!r} 到 {ygodir!r}")
         else:
-            logger.error(f"没有发现{fpath}")
+            logger.error(f"没有发现 {fpath!r}")
 
 def initYGO(core:MCore):
     ygopath=ygodir

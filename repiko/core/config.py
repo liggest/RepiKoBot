@@ -47,7 +47,7 @@ class BotConfig(Pattern):
     # }
 
 class PluginUnits(Pattern):
-    """  Pattern，可以记录各种插件的配置样式  """
+    """  用于记录各种插件的配置样式  """
 
     # @staticmethod
     # def on(func:Callable[[Any,Bot],bool]):
