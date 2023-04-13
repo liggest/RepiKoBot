@@ -9,10 +9,11 @@ from pathlib import Path
 from LSparser import *
 
 from repiko.core.bot import Bot
-from repiko.core.constant import MessageType,EventNames
+from repiko.core.constant import MessageType #,EventNames
 from repiko.core.log import logger
 from repiko.msg.part import Image
 from repiko.msg.data import Message
+from repiko.core.config import pluginConfig
 
 from repiko.module.str2image import str2greyPng
 
@@ -195,17 +196,22 @@ async def deckdel(pr:ParseResult):
     else:
         return ["倒是指定一些卡组文件呀！"]
 
-def initDeck(bot:Bot):
+# ygocfg=Config("ygo.toml")
+# @ygocfg.on
+
+@pluginConfig.on
+def initDeck(config:dict, bot:Bot) -> bool:
     global ygopath,deckpath,reviewpath
-    ygopath=bot.config["ygo"]["ygoPath"]
+    ygopath=config.get("ygo",{}).get("ygoPath")
+    # ygopath=data["ygoPath"]
     if not ygopath or not (ygopath:=Path(ygopath)).exists():
-        return logger.error(f"YGO 路径 {ygopath} 不存在！")
+        return logger.error(f"YGO 路径 {ygopath!r} 不存在！")
     deckpath=ygopath / "deck" / "random"
     deckpath.mkdir(0o774,parents=True,exist_ok=True)
     reviewpath=ygopath / "deck" / "review"
     reviewpath.mkdir(0o774,parents=True,exist_ok=True)
-    logger.info(f"确保 {deckpath}、{reviewpath} 存在")
+    logger.info(f"确保 {deckpath!r}、{reviewpath!r} 存在")
 
-@Events.on(EventNames.Startup)
-def botStartUP(bot:Bot):
-   initDeck(bot)
+# @Events.on(EventNames.Startup)
+# def botStartUP(bot:Bot):
+#    initDeck(bot)

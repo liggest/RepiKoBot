@@ -4,6 +4,7 @@ import typing
 
 from repiko.core.constant import MessageType
 from repiko.msg.data import Message,Request
+from repiko.msg.part import Node
 
 if typing.TYPE_CHECKING:
     from repiko.core.bot import Bot
@@ -89,7 +90,11 @@ class Api:
         #     return []
         async def sendMsg(c):
             msg.content=c
-            return await self.send(msg)
+            if msg.content.isForward:
+                return await self.sendForward(msg)
+            else:
+                return await self.send(msg)
+        
         return [await sendMsg(c) for c in ml] # 保持消息有序（？
 
     async def sendMany(self, ml:list[Message]):
@@ -135,9 +140,29 @@ class Api:
 
     async def deleteMsg(self, msgID:int):
         return await self.post("delete_msg",{ "message_id":msgID })
+    
+    async def forward(self, forwardID:str) -> list[Node]:
+        rj=await self.post("get_forward_msg",{ "message_id":forwardID })
+        return [Node.fromEmpty({ "data":msg }) for msg in rj.get("messages",[])]
+    
+    async def sendForward(self, msg:Message):
+        if msg.mtype == MessageType.Group:
+            return await self.sendGroupForward(msg.dst, msg.content)
+        elif msg.mtype == MessageType.Private:
+            return await self.sendPrivateForward(msg.dst, msg.content)
+        return {}
+
+    async def sendGroupForward(self, group:int, nodes:list[Node]):
+        return await self.post("send_group_forward_msg",{ "group_id":group, "messages":nodes })
+
+    async def sendPrivateForward(self, qq:int, nodes:list[Node]):
+        return await self.post("send_private_forward_msg",{ "user_id":qq, "messages":nodes })
 
     async def groupMemberInfo(self, group:int, qq:int, cache=True):
         return await self.post("get_group_member_info",{ "group_id":group, "user_id":qq, "no_cache":not cache })
+
+    async def qqInfo(self, qq:int, cache=True):
+        return await self.post("get_stranger_info",{ "user_id":qq, "no_cache":not cache })
 
     async def groupRootFolder(self, group:int):
         return await self.post("get_group_root_files",{ "group_id":group })

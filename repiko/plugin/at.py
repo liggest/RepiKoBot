@@ -3,7 +3,8 @@ from LSparser import Events,Command,ParseResult,OPT
 from repiko.core.bot import Bot
 from repiko.core.constant import EventNames,MessageType
 from repiko.msg.data import Message
-from repiko.msg.part import Face,Reply
+from repiko.msg.part import Face,Reply,At
+from repiko.msg.content import Content
 
 import asyncio
 
@@ -30,6 +31,18 @@ async def atMe(msg:Message,bot:Bot):
         return await bot.plugins["basic"].aword(None)
     else:
         return "不要碰我呀QwQ"
+
+Command("at").names("@")
+
+@Events.onCmd("at")
+async def withdraw(pr:ParseResult):
+    msg:Message=pr.raw
+    atmsg=msg.copy()
+    atmsg.content=pr.paramStr
+    reply=await atMe(atmsg,msg.selector.bot)
+    if msg.mtype==MessageType.Group:
+        return [ Content(At(msg.realSrc),reply) ]
+    return [reply]
 
 scaredWords=[Face(55),Face(146),"多嘴","住口","住嘴","💣"] # 撤回关键字
 

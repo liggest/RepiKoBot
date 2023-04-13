@@ -185,7 +185,7 @@ class Message(BaseData):
         return str(self.content)
 
     @property
-    def content(self):
+    def content(self) -> Content:
         ctnt=self.get("message")
         if ctnt is not None:
             return ctnt
@@ -459,4 +459,10 @@ class Request(BaseData):
 
 class Notice(BaseData):
     """ 提醒 """
-    pass
+    
+    @property
+    def ntype(self) -> str:
+        """ 等价于 dtype """
+        return NoticeType(self["notice_type"])
+    
+    ntype=ntype.setter(dictSetter("notice_type"))

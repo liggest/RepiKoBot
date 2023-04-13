@@ -1,8 +1,12 @@
 
-from repiko.msg.core import MCore
-from repiko.core.constant import EventNames
+# from repiko.msg.core import MCore
+# from repiko.core.constant import EventNames
+from repiko.core.log import logger
+from repiko.core.config import pluginConfig, PluginUnits, Pattern
 # from repiko.module.google_translation import gTranslator
 from repiko.module.deepl_translation import DeepTrans,Formality
+
+from typing import Annotated
 
 from LSparser import *
 
@@ -26,11 +30,24 @@ from LSparser import *
 
 t:DeepTrans=None
 
-def initTrans(core:MCore):
+# cfg=Config("trans.toml")
+
+class TransConfig(Pattern):
+    key:Annotated[str | None,"DeepL api key"]
+
+PluginUnits.addDefault("trans",annotation=TransConfig)
+
+# @cfg.withDefaults({ "key":"" }).onInit
+@pluginConfig.on
+def initTrans(config:dict, bot):
     global t
-    if key:=core.bot.config.get("deepl",{}).get("key"):
+    logger.info("初始化 trans ...")
+    data:TransConfig=config.get("trans")
+    if data and (data.key):
         t=DeepTrans()
-        t.init(key)
+        t.init(data.key)
+    else:
+        logger.warning("无配置，未初始化 trans")
 
 @Events.onCmd("translate")
 def translate(pr:ParseResult):
@@ -57,9 +74,9 @@ def translate(pr:ParseResult):
         formality=Formality.PREFER_LESS
     return t.translate(text,fromLan=fromLan,toLan=toLan,formality=formality)
 
-@Events.on(EventNames.MsgCoreInit)
-def coreInit(core:MCore):
-    initTrans(core)
+# @Events.on(EventNames.MsgCoreInit)
+# def coreInit(core:MCore):
+#     initTrans(core)
 
 # @Events.onCmd("translate")
 # def translate(pr:ParseResult):

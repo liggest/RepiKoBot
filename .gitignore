@@ -108,6 +108,7 @@ ipython_config.py
 #   in version control.
 #   https://pdm.fming.dev/#use-with-ide
 .pdm.toml
+.pdm-python
 
 # PEP 582; used by e.g. github.com/David-OConnor/pyflow and github.com/pdm-project/pdm
 __pypackages__/
@@ -161,9 +162,19 @@ cython_debug/
 
 
 # config/setting.ini
-config/config.yaml
-/font/
-/ygo/
+# config/config.yaml
+config/test
+config/__main__.toml
+config/config.toml
+config/plugin.toml
+config/poke.yaml
+# config/broadcast.toml
+# config/font.toml
+# config/trans.toml
+# config/ygo.toml
+config/bing.json
+/font/*
+/ygo/*
 /image/
 /old/
 /AAFile/

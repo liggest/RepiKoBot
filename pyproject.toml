@@ -14,6 +14,9 @@ dependencies = [
     "requests>=2.28.1",
     "deepl>=1.12.0",
     "loguru>=0.6.0",
+    "ruamel.yaml>=0.17.21",
+    "tomli>=2.0.1",
+    "tomli-w>=1.0.0",
 ]
 requires-python = ">=3.10"
 readme = "README.md"
@@ -25,6 +28,10 @@ svg = [
     "cairocffi>=1.4.0",
     "rlpycairo>=0.1.0",
 ]
+chat = [
+    "revChatGPT>=4.0.11",
+    "EdgeGPT>=0.1.22.1",
+]
 
 [tool.pdm]
 
@@ -33,7 +40,7 @@ requires = ["pdm-pep517>=1.0"]
 build-backend = "pdm.pep517.api"
 
 [tool.pdm.scripts]
-app = "python bot.py {args:--host=0.0.0.0 --port=8080 --reload --reload-dir repiko}"
+app = "python bot.py {args:--host=0.0.0.0 --port=5701 --reload --reload-dir repiko}"
 # app = "uvicorn bot:app --reload --reload-dir repiko --host=0.0.0.0 {args:--port=8080}"
 # wsapp = "python -m repiko.core.websocket"
 # watch = "watchfiles 'pdm run app' repiko"

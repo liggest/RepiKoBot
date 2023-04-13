@@ -4,11 +4,11 @@
 # import httpx
 import contextvars
 # import configparser
-import yaml
+# import yaml
 import importlib
 # import shutil
 import os
-import typing
+# import typing
 import time
 from pathlib import Path
 
@@ -18,6 +18,8 @@ import repiko.core.loader as loader
 from repiko.core.constant import EventNames,PostType,MessageType,ConnectionMethod
 from repiko.core.log import logger
 from repiko.core.api import Api
+from repiko.core.config import BotConfig, ConnectionInfo
+from repiko.config import Config
 from repiko.msg.data import BaseData,Message,Request
 from repiko.msg.selector import BaseSelector,MessageSelector,NoticeSelector,RequestSelector
 # from repiko.msg.message import Message
@@ -25,7 +27,7 @@ from repiko.msg.selector import BaseSelector,MessageSelector,NoticeSelector,Requ
 import repiko.msg.core as msgCore
 # import repiko.msg.admin as admin
 
-class Bot():
+class Bot:
     #POSTURL在config里面
     HEADER={'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Trident/7.0; rv:11.0) like Gecko',"Content-Type": "application/json"}
     MsgTypeConvert={"private":"user_id","group":"group_id","discuss":"discuss_id"}
@@ -36,13 +38,14 @@ class Bot():
 
         logger.info("bot醒了，bot想初始化")
         self._api:Api=None
+
+        self.EM=Events.getEM()
+
         self.ConfigInit()
         self.DebugMode=False
         # self.MYQQ,self.MYNICK=self.GetMyQQInf()
 
         # self.CopyYGO()
-
-        self.EM=Events.getEM()
 
         # self.plugins=loader.loadPlugins()
 
@@ -59,51 +62,49 @@ class Bot():
         self.mc=msgCore.MCore(self)
         await self.EM.asyncSend(EventNames.Startup,self)
         await self.mc.Init()
+        await self.MoreConfigsInit()
 
     async def Shutdown(self):
         await self.EM.asyncSend(EventNames.Shutdown,self)
         # if self._aClient:
         #     await self._aClient.aclose()
 
-    async def _handleData(self,rj:dict):
-        """  处理 event 数据，返回快速操作结果  """
-        postType=rj["post_type"]
-        #DEBUG
-        if self.DebugMode and postType!=PostType.Meta: #不打印心跳
-            logger.debug(rj)
-        
-        sltr=None
-        if any(sltr:=s for s in self.selectors if s.isAccept(rj)):
-            msg:BaseData=await sltr.asyncAction(rj)
-            sltr.runBackTasks()
-            if msg and msg.quickReply: # 快速操作
-                logger.info(f"quickReply:{msg.replyJson}")
-                return msg.replyJson
-        return {}
-
     #读取配置文件
-    def LoadConfig(self,path:Path=None) -> typing.Dict[str,typing.Dict]:
-        if not path:
-            path=Path(r"config/config!.yaml")
-        with path.open(encoding="utf-8") as f:
-            cfg=yaml.safe_load(f)
-        # cfg=configparser.ConfigParser()
-        # cfg.read(path)
-        return cfg
+    # def LoadConfig(self,path:Path=None) -> typing.Dict[str,typing.Dict]:
+    def LoadConfig(self) -> BotConfig | dict:
+        # if not path:
+        #     path=Path(r"config/config!.yaml")
+        # with path.open(encoding="utf-8") as f:
+        #     cfg=yaml.safe_load(f)
+        # # cfg=configparser.ConfigParser()
+        # # cfg.read(path)
+        # return cfg
+        from repiko.core.config import config
+        if config.data is None:
+            return config.init(self)
+        return config.data
+
+    # def SaveConfig(self):
+    #     from repiko.core.config import config
+    #     config.save(self)
 
     #初始化各种设置
     def ConfigInit(self):
         logger.info("正在读取设置……")
-        path=Path(r"config/config.yaml")
-        self.config=self.LoadConfig(path) if path.exists() else self.LoadConfig() #默认配置
+        # path=Path(r"config/config.yaml")
+        # self.config=self.LoadConfig(path) if path.exists() else self.LoadConfig() #默认配置
+        self.config=self.LoadConfig()
+        # logger.debug(repr(self.config))
         # if self.config is None: 
         #     self.config=self.LoadConfig(path) 
-        self.name=self.config["bot"]["name"]
+        # self.name=self.config["bot"]["name"]
+        self.name=self.config.bot.name
         # self.POSTURL=self.config["bot"]["postURL"]
-        self.ConnectionInit(self.config.get("connection",{}))
+        # self.ConnectionInit(self.config.get("connection",{}))
+        self.ConnectionInit(self.config.connection)
         # self.AdminQQ=[int(x.strip()) for x in self.config["admin"]["adminQQ"].split(",")]
-        self.AdminQQ:list[int]=self.config["admin"].get("adminQQ",[])
-        self.AdminQQ=[int(qq) for qq in self.AdminQQ if qq]
+        admin=self.config.admin
+        self.AdminQQ=[int(qq) for qq in admin.adminQQ if qq]
         # self.SECRET=str.encode(self.config["bot"].get("secret",""))
         self.BanQQ=set()
         self.BanGroup=set()
@@ -115,30 +116,21 @@ class Bot():
         logger.info("读取更新信息……")
         self.update
         #print(self.__update)
-    
-    def ConnectionInit(self,config:dict[str,dict]):
-        httpConn=config.get(ConnectionMethod.HTTP)
-        wsConn=config.get(ConnectionMethod.WS)
+
+    def ConnectionInit(self,config):
         self.URL:str=None
         self.POSTURL:str=None
         self.SECRET=""
         self.METHOD=ConnectionMethod.Unknown
-        if httpConn and (httpURL:=httpConn.get("url")):
-            self.URL=httpURL
-            self.POSTURL=httpURL
-            self.SECRET=str.encode(httpConn.get("secret",""))
-            self.METHOD=ConnectionMethod.HTTP
-        if wsConn and (wsURL:=wsConn.get("url")): # ws 覆盖 http
-            self.URL=wsURL
-            self.METHOD=ConnectionMethod.WS
-        if not self.URL: # 未找到 self.URL
-            return logger.error("未找到连接信息！请在 config 中修改配置")
+        ConnectionInfo.get(config,self)
         logger.info(f"bot 的命根子：[{self.METHOD}] {self.URL}")
         
-        if self.METHOD==ConnectionMethod.WS and self.POSTURL:
-            self.METHOD=ConnectionMethod.Combined
         self._api=Api.fromMethod(self.METHOD,self)
         logger.debug(f"正在使用 {self._api.__class__.__name__}")
+
+    async def MoreConfigsInit(self):
+        for config in Config._configs.values():
+            await config.asyncInit(self)
 
     #读取更新信息
     def ReadUpdateInfo(self):
@@ -192,6 +184,22 @@ class Bot():
 
     def AddBackTask(self,func,*args,**kw):
         self.currentSelector.addBackTask(func,*args,**kw)
+
+    async def _handleData(self,rj:dict):
+        """  处理 event 数据，返回快速操作结果  """
+        postType=rj["post_type"]
+        #DEBUG
+        if self.DebugMode and postType!=PostType.Meta: #不打印心跳
+            logger.debug(rj)
+        
+        sltr=None
+        if any(sltr:=s for s in self.selectors if s.isAccept(rj)):
+            msg:BaseData=await sltr.asyncAction(rj)
+            sltr.runBackTasks()
+            if msg and msg.quickReply: # 快速操作
+                logger.info(f"quickReply:{msg.replyJson}")
+                return msg.replyJson
+        return {}
 
     #发请求
     # def PostRequest(self,api,json={},timeout=None): # timeout: (连接超时，读取超时)
@@ -459,7 +467,6 @@ class Bot():
         return await self._api.resolveReq(req)
 
     # async def GetMsg(self,msgID:int,mtype=MessageType.Private):
-    #     # TODO
     #     res=await self.AsyncPost("get_msg",{"message_id":msgID})
     #     rj:dict=res.json()
     #     # print("rj")
@@ -484,6 +491,13 @@ class Bot():
     async def DeleteMsg(self, msgID:int):
         return await self._api.deleteMsg(msgID)
 
+    async def GetForward(self, forwardID:str):
+        return await self._api.forward(forwardID)
+    
+    async def SendForward(self, msg:Message):
+        """  msg 需包含 MessageType、dst 和全是 Node 的 Content  """
+        return await self._api.sendForward(msg)
+
     # async def GroupMemberInfo(self,group:int,qq:int,cache=True) -> dict:
     #     param={
     #         "group_id":group,
@@ -496,6 +510,9 @@ class Bot():
 
     async def GroupMemberInfo(self, group:int, qq:int, cache=True):
         return await self._api.groupMemberInfo(group,qq,cache)
+
+    async def QQInfo(self, qq:int, cache=True):
+        return await self._api.qqInfo(qq,cache)
 
     async def GroupFileInfo(self, group:int, path:str|Path) -> None|dict:
         if not isinstance(path,Path):

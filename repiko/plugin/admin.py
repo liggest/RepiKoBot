@@ -1,6 +1,7 @@
 from repiko.core.bot import Bot
 from repiko.core.log import logger
 from repiko.core.constant import EventNames,MessageType
+from repiko.core.config import pluginConfig, PluginUnits
 # from repiko.msg.core import MCore
 from repiko.msg.data import Message,Request
 from repiko.msg.selector import RequestSelector
@@ -14,10 +15,24 @@ import typing
 import functools
 import asyncio
 
+# bdcfg=Config("broadcast.toml")
+
 broadcastPreset={}
-def loadBroadcastPreset(bot:Bot):
+
+PluginUnits.addDefault("broadcast",{
+    "update":{
+        "group":[10086,10086]
+    },
+    "bot":{
+        "private":[10086,10086]
+    }
+},annotation=typing.Annotated[dict,"broadcast 指令相关，可忽略"])
+
+@pluginConfig.on
+def loadBroadcastPreset(config:dict, bot:Bot):
     global broadcastPreset
-    for k,v in bot.config["broadcast"].items():
+    data=config.get("broadcast",{})
+    for k,v in data.items():
         if isinstance(v,list):
             v={"group":v}   # 默认群广播
         elif isinstance(v,int):
@@ -25,6 +40,17 @@ def loadBroadcastPreset(bot:Bot):
         if v:
             broadcastPreset[k]=v
     broadcastPreset["admin"]={ "private":[ q for q in bot.AdminQQ if not bot.IsMe(q) ] }
+
+# def loadBroadcastPreset(bot:Bot):
+#     global broadcastPreset
+#     for k,v in bot.config["broadcast"].items():
+#         if isinstance(v,list):
+#             v={"group":v}   # 默认群广播
+#         elif isinstance(v,int):
+#             v={"group":[v]} # 默认群广播
+#         if v:
+#             broadcastPreset[k]=v
+#     broadcastPreset["admin"]={ "private":[ q for q in bot.AdminQQ if not bot.IsMe(q) ] }
 
 def fillQQs(qq:typing.Union[typing.List[str],dict,str,None],qqs:dict,key=MessageType.Group):
     if qq:
@@ -237,7 +263,7 @@ with CommandCore(name="admin") as core:
                         bot.BanGroup.difference_update(strQQ)
                 result+=f"{k}: {', '.join(strQQ)}\n"
                 num+=len(v)
-            result+=f"不理这 {num} 个人了！" if isBan else f"和 {num} 个人和好了！"
+            result+=f"不理这 {num} 人了！" if isBan else f"和这 {num} 人和好了！"
             # print(bot.BanQQ)
             # print(bot.BanGroup)
             return [result]
@@ -282,7 +308,7 @@ async def request(req:Request,bot:Bot):
 def botStartup(bot:Bot):
     global AdminMode
     AdminMode=getattr(bot,"AdminMode",False)
-    loadBroadcastPreset(bot)
+    # loadBroadcastPreset(bot)
 
 @Events.on(EventNames.Shutdown)
 def botShutdown(bot:Bot):

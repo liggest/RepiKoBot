@@ -8,7 +8,7 @@ from LSparser import *
 # import LSparser
 from repiko.core.constant import EventNames
 from repiko.msg.content import Content
-from repiko.msg.part import MessagePart,Face
+from repiko.msg.part import MessagePart
 # from repiko.msg.message import Message
 from repiko.msg.data import Message
 

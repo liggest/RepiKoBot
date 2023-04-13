@@ -158,7 +158,7 @@ class Face(MessagePart):
     partType="face"
 
     id:str
-    """ 表情ID """
+    """ 表情 id """
 
     def __init__(self,id:str,**kw):
         """ 表情 """
@@ -268,9 +268,11 @@ class Image(MessagePart):
     def imgType(self) -> str:
         """ 类型 \n\n 默认为空 \n\n 闪照 flash 秀图 show  """
         return self["data"].get("type")
+    
     @imgType.setter
     def imgType(self,val:str):
         self["data"]["type"]=val
+
     @imgType.deleter
     def imgType(self):
         del self["data"]["type"]
@@ -364,23 +366,6 @@ class Video(MessagePart):
     def brief(self):
         return "[视频]"
 
-class Forward(MessagePart):
-    """ 合并转发 """
-    partType="forward"
-
-    id:str
-    """ 合并转发 id """
-
-    def __init__(self,id:str,**kw):
-        """ 合并转发 """
-        super().__init__(id,**kw)
-        if not self._dictInit:
-            self.id=str(id)
-
-    @property
-    def brief(self):
-        return "[合并转发]"
-
 class Music(MessagePart):
     """ 音乐分享（发送） """
     partType="music"
@@ -460,6 +445,120 @@ class TTS(MessagePart):
         super().__init__(text,**kw)
         if not self._dictInit:
             self.text=text
+
+class Forward(MessagePart):
+    """ 合并转发（接收） """
+    partType="forward"
+
+    id:str
+    """ 合并转发 id """
+
+    def __init__(self,id:str,**kw):
+        """ 合并转发（接收） """
+        super().__init__(id,**kw)
+        if not self._dictInit:
+            self.id=id
+
+    @property
+    def brief(self):
+        return "[合并转发]"
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from repiko.msg.content import Content
+    from repiko.msg.data import Message
+
+class Node(MessagePart):
+    """ 合并转发消息节点 """
+    partType="node"
+
+    id:int
+    """ 消息 id """
+    name:str
+    """ 消息显示的昵称 """
+    uin:int
+    """ QQ号 """
+    
+    @property
+    def content(self) -> Content:
+        """ 消息内容 """
+        return self["data"].get("content")
+    
+    @content.setter
+    def content(self,val:Content):
+        from repiko.msg.content import Content
+        if not isinstance(val,Content):
+            val=Content(val)
+        self["data"]["content"]=val
+
+    @content.deleter
+    def content(self):
+        del self["data"]["content"]
+
+    @property
+    def seq(self) -> Content:
+        """ 消息内容？？ """
+        return self["data"].get("seq")
+    
+    @seq.setter
+    def seq(self,val:Content):
+        from repiko.msg.content import Content
+        if not isinstance(val,Content):
+            val=Content(val)
+        self["data"]["seq"]=val
+
+    @seq.deleter
+    def seq(self):
+        del self["data"]["seq"]
+
+    def __init__(self, qq:int, name:str=None, content:Content=None, **kw):
+        """ 合并转发消息节点 """
+        super().__init__(qq,name,content,**kw)
+        if not self._dictInit:
+            if not qq:
+                raise ValueError("消息节点的QQ号不能为空")
+            if name is None:
+                name = str(qq) # 昵称默认为 qq 号
+            self.name=name
+            self.uin=int(qq)
+            self.content=content
+            if content is None or not self.content:
+                raise ValueError("消息节点的内容不能为空")
+        else:
+            if sender := self.data.pop("sender",None): # 兼容 get_forward_msg API 的返回结果
+                sender:dict
+                name = sender.get("nickname")
+                qq = sender.get("user_id")
+                self.__init__(qq,name,self.content)
+    
+    @classmethod
+    def fromEmpty(cls,data:dict=None) -> Node|MessagePart:
+        """ 从几乎为空的字典创建消息节点 """
+        if data is None:
+            data = {}
+        data.setdefault("type", cls.partType)
+        return cls.asPart(data)
+
+    @classmethod
+    def fromMsgID(cls,id:int):
+        """ 从消息 id 创建消息节点 """
+        part = cls.fromEmpty()
+        part.id = id
+        return part
+
+    @classmethod
+    def fromMsg(cls,msg:Message, content=None):
+        """ 从消息创建消息节点 """
+        qq = msg.realSrc
+        name = msg.getSrcCard()
+        if content is None:
+            content = msg.content
+        return cls(qq,name,content)
+    
+    @property
+    def brief(self):
+        return "[消息节点]"
 
 # if __name__ == "__main__":
     

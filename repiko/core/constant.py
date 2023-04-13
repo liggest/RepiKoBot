@@ -107,6 +107,11 @@ class EventNames:
     # """ 收到撤回消息 \n (nti:Notice,bot:Bot) -> None """
 
     @staticmethod
-    def Config(path:str):
+    def ConfigInit(path:str):
         """  从 path 加载配置时 \n\n (config: dict | list ,bot:Bot) -> None """
-        return f"config-{path}"
+        return f"config-{path}-init"
+
+    @staticmethod
+    def ConfigUpdate(path:str):
+        """  配置更新时 \n\n (config: dict | list ,bot:Bot) -> None """
+        return f"config-{path}-update"
