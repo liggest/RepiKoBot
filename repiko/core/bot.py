@@ -36,7 +36,7 @@ class Bot:
 
         # self._aClient:httpx.AsyncClient=None
 
-        logger.info("bot醒了，bot想初始化")
+        logger.info("bot 醒了，bot 想初始化")
         self._api:Api=None
 
         self.EM=Events.getEM()
@@ -63,6 +63,8 @@ class Bot:
         await self.EM.asyncSend(EventNames.Startup,self)
         await self.mc.Init()
         await self.MoreConfigsInit()
+
+        logger.info("bot 说它好了")
 
     async def Shutdown(self):
         await self.EM.asyncSend(EventNames.Shutdown,self)
@@ -131,6 +133,9 @@ class Bot:
     async def MoreConfigsInit(self):
         for config in Config._configs.values():
             await config.asyncInit(self)
+        from repiko.core.config import pluginConfig
+        if not pluginConfig.saved:
+            pluginConfig.save(self)  # 总是在初始化后保存一下 pluginConfig
 
     #读取更新信息
     def ReadUpdateInfo(self):

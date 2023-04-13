@@ -135,6 +135,8 @@ class Config:
         self._patternAccepter=None
         self._defaultsFrame=None
 
+        self.saved = False  # 经过上次回调（init / update）后是否保存过
+
     # def __init__(self,name:str|Path=None):
 
     def __repr__(self):
@@ -207,10 +209,12 @@ class Config:
             self.load()
 
     def _init(self,bot:Bot=None):
+        self.saved = False
         self._initData(bot)
         return bot and any(bot.EM.send(self.initEventName,self.data,bot=bot)) # bot 为 None 时返回 None
 
     async def _asyncInit(self,bot:Bot=None):
+        self.saved = False
         self._initData(bot)
         return bot and any(await bot.EM.asyncSend(self.initEventName,self.data,bot=bot))
 
@@ -225,10 +229,12 @@ class Config:
         return self.data
 
     def _update(self,bot:Bot=None):
+        self.saved = False
         logger.info(f"更新配置 {self.name} …")
         return bot and any(bot.EM.send(self.updateEventName,self.data,bot=bot))
 
     async def _asyncUpdate(self,bot:Bot=None):
+        self.saved = False
         logger.info(f"更新配置 {self.name} …")
         return bot and any(await bot.EM.asyncSend(self.updateEventName,self.data,bot=bot))
 
@@ -330,4 +336,5 @@ class Config:
     def save(self,bot:Bot=None):
         logger.info(f"保存配置 {self.pathKey} …")
         self._loader.save(self,bot)
+        self.saved = True
 
