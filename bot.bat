@@ -1,1 +1,1 @@
-uvicorn bot:app --reload --reload-dir repiko --host=0.0.0.0 --port=8080
+pdm run app --host 0.0.0.0 --port 5701
