@@ -30,7 +30,7 @@ svg = [
 ]
 chat = [
     "revChatGPT>=4.0.11",
-    "EdgeGPT>=0.1.22.1",
+    "EdgeGPT>=0.3.1",
 ]
 
 [tool.pdm]

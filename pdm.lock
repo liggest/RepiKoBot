@@ -148,14 +148,13 @@ summary = "DNS toolkit"
 
 [[package]]
 name = "edgegpt"
-version = "0.1.22.1"
+version = "0.3.1"
 summary = "Reverse engineered Edge Chat API"
 dependencies = [
-    "BingImageCreator>=0.1.1.1",
+    "BingImageCreator>=0.1.2.1",
     "certifi",
     "httpx",
     "prompt-toolkit",
-    "regex",
     "requests",
     "rich",
     "websockets",
@@ -710,7 +709,7 @@ dependencies = [
 [metadata]
 lock_version = "4.2"
 groups = ["default", "chat", "svg"]
-content_hash = "sha256:394cc20d7e0f83e97b2c22df25b7920a53930e000ac60e854909c60c88cc6d64"
+content_hash = "sha256:174efed939ea451af517ba80e097e197301c4a34636ae27962c22b9a09f403b3"
 
 [metadata.files]
 "aiohttp 3.8.4" = [
@@ -926,9 +925,9 @@ content_hash = "sha256:394cc20d7e0f83e97b2c22df25b7920a53930e000ac60e854909c60c8
     {url = "https://files.pythonhosted.org/packages/99/fb/e7cd35bba24295ad41abfdff30f6b4c271fd6ac70d20132fa503c3e768e0/dnspython-2.2.1.tar.gz", hash = "sha256:0f7569a4a6ff151958b64304071d370daa3243d15941a7beedf0c9fe5105603e"},
     {url = "https://files.pythonhosted.org/packages/9b/ed/28fb14146c7033ba0e89decd92a4fa16b0b69b84471e2deab3cc4337cc35/dnspython-2.2.1-py3-none-any.whl", hash = "sha256:a851e51367fb93e9e1361732c1d60dab63eff98712e503ea7d92e6eccb109b4f"},
 ]
-"edgegpt 0.1.22.1" = [
-    {url = "https://files.pythonhosted.org/packages/79/6d/e3113419bfafb58878792b18838d491084758b0f53d065b4bc0d4bd2167f/EdgeGPT-0.1.22.1-py3-none-any.whl", hash = "sha256:c11b8a04cf9c8a4cb0d83939a42bac0422da68189025a1b92e451b51bb1e75da"},
-    {url = "https://files.pythonhosted.org/packages/7a/f3/4d3313b9b9a3071b1c7cc5f1d0927d09b3d69bafdd16b1ff7ff4f35b8506/EdgeGPT-0.1.22.1.tar.gz", hash = "sha256:77abfa57b07608d11fc9174000d1baf0c5eb866f409e3cf50564de3695368aaf"},
+"edgegpt 0.3.1" = [
+    {url = "https://files.pythonhosted.org/packages/29/d2/0e934a389aea9d8252cd124e15521f975679383d078f15c2db0cb274205a/EdgeGPT-0.3.1-py3-none-any.whl", hash = "sha256:1e0397086c94f085cb6dd3b9e8bdee4e3199cf816272ed76add5bcc4d5ccba68"},
+    {url = "https://files.pythonhosted.org/packages/dd/ce/d6b37cce26744b2587bbe2a0c12118172e59b28457df8f2f6e2b719f77fe/EdgeGPT-0.3.1.tar.gz", hash = "sha256:bb272b5a8f1432e4500d454aa504aafc1768c8a28207881cacf659c71a1152ba"},
 ]
 "email-validator 1.3.0" = [
     {url = "https://files.pythonhosted.org/packages/74/44/8c131647fe3c9afdca92abc4a7fe981df55710f142df3aae0ab658258316/email_validator-1.3.0.tar.gz", hash = "sha256:553a66f8be2ec2dea641ae1d3f29017ab89e9d603d4a25cdaac39eefa283d769"},
