@@ -224,7 +224,6 @@ def bingText(chat:Bing):
     for m in reversed(msgs):
         if m["author"] == "bot" and ("messageType" not in m or "suggestedResponses" in m): # 没有 messageType 的是回复
             break
-    logger.debug(m)
     if m["author"] != "bot": # 没有回复
         autoReset = True # 下次提问前重置 ChatBotV4
         return
