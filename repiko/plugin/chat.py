@@ -122,6 +122,7 @@ class BingMessage(BingBaseMessage):
     spokenText: NotRequired[str]  # 给用户的提问提示
     sourceAttributions: NotRequired[list[BingSource]]
     suggestedResponses: NotRequired[list[BingSuggest]]  # 给用户的提问建议
+    messageType: NotRequired[Literal["InternalSearchQuery"] | Literal["InternalSearchResult"] | Literal["InternalLoaderMessage"] | Literal["RenderCardRequest"]]
 
 class BingThrottling(TypedDict):
     maxNumUserMessagesInConversation: int
@@ -207,29 +208,29 @@ refPattern = re.compile(r"\[\^(\d+)\^\]")  # [^1^]
 
 def bingText(chat:Bing):
     global hintMsg, hints, autoReset
-    item=chat.get("item")
-    if not item:
+    if not (item := chat.get("item")):
+        autoReset = True
         return
-    msgs=item.get("messages")
-    if not msgs:
+    if not (msgs := item.get("messages")):
+        autoReset = True
         return
     
-    limit=item.get("throttling")
-    limitText=""
-    if limit:
-        limitText=f"{limit['numUserMessagesInConversation']} / {limit['maxNumUserMessagesInConversation']}"
+    limitText = ""
+    if limit := item.get("throttling"):
+        limitText = f"{limit['numUserMessagesInConversation']} / {limit['maxNumUserMessagesInConversation']}"
         if limit['numUserMessagesInConversation'] == limit['maxNumUserMessagesInConversation']:
             autoReset = True
 
     for m in reversed(msgs):
-        if m["author"] == "bot":
+        if m["author"] == "bot" and ("messageType" not in m or "suggestedResponses" in m): # 没有 messageType 的是回复
             break
+    logger.debug(m)
     if m["author"] != "bot": # 没有回复
         autoReset = True # 下次提问前重置 ChatBotV4
         return
-    if text:=m.get("text",""):
-        text=refPattern.sub(r"[\1]",text)  # [^1^] => [1]
-    texts=[text]
+    if text := m.get("text",""):
+        text = refPattern.sub(r"[\1]",text)  # [^1^] => [1]
+    texts = [text]
     logger.debug(text)
 
     hintMsg = m.get("spokenText","")
@@ -237,8 +238,7 @@ def bingText(chat:Bing):
 
     logger.debug(f"offense: {repr(m['offense'])}, hint: {repr(hintMsg)}, limit: {limitText}")
 
-    sources = m.get("sourceAttributions",[])
-    if sources:
+    if sources := m.get("sourceAttributions",[]):
         texts.append( "\n".join( f"[{i+1}] {s['seeMoreUrl']}" for i,s in enumerate(sources) ) )
 
     if limit:

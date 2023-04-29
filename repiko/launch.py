@@ -8,7 +8,7 @@ def _runHttp():
     if "--port" not in sys.argv:
         sys.argv.append("--port")
         sys.argv.append("5701")
-    pro=Popen(("pdm","run","uvicorn","bot:app",*sys.argv[1:]))
+    pro = Popen(("pdm","run","uvicorn","bot:app",*sys.argv[1:]))
 
     def callback(sig:int, frame=None):
         logger.debug(f"检测到 {sigMap[sig]}")
