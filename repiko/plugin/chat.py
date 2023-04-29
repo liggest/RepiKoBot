@@ -50,7 +50,7 @@ def initChatBot(config:ChatConfig):
 def initChatBotV4(config:ChatConfig):
     global chatbotV4
     if config and config.cookiePath:
-        chatbotV4 = ChatbotV4(cookiePath=config.cookiePath)
+        chatbotV4 = ChatbotV4(cookie_path=config.cookiePath)
         logger.info("chatbotV4 初始化完毕")
     else:
         logger.warning("无配置，未初始化 chatbotV4")
