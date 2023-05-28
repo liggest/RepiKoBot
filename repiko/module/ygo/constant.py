@@ -130,6 +130,7 @@ class CardRace(IntFlag):
     CreatorGod=0x400000
     Wyrm=0x800000
     Cyberse=0x1000000
+    Illusion=0x2000000
 
     def __str__(self):
         if self in cardRace2str:
@@ -167,7 +168,8 @@ cardRace2str={
     CardRace.Divine_Beast:"幻神兽",
     CardRace.CreatorGod:"创造神",
     CardRace.Wyrm:"幻龙",
-    CardRace.Cyberse:"电子界"
+    CardRace.Cyberse:"电子界",
+    CardRace.Illusion:"幻想魔"
 }
 
 str2cardRace=dict( map( reversed,cardRace2str.items() ) )
