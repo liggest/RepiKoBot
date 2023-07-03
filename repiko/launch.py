@@ -4,7 +4,7 @@ def _runHttp():
     from subprocess import Popen
     import signal
     from repiko.core.log import logger
-    sigMap = {signal.SIGTERM:"SIGTERM", signal.SIGINT:"SIGINT"}
+    sigMap = {signal.SIGTERM:"SIGTERM", signal.SIGINT:"SIGINT", signal.SIGBREAK:"SIGBREAK"}
     if "--port" not in sys.argv:
         sys.argv.append("--port")
         sys.argv.append("5701")

@@ -4,7 +4,7 @@ from repiko.core.config import pluginConfig, PluginUnits, Pattern
 from repiko.core.constant import EventNames
 from repiko.msg.data import Message
 from revChatGPT.V3 import Chatbot
-from EdgeGPT import Chatbot as ChatbotV4, ConversationStyle
+from EdgeGPT.EdgeGPT import Chatbot as ChatbotV4, ConversationStyle
 
 
 from LSparser import *
@@ -13,6 +13,7 @@ from typing import Annotated, TypedDict, Literal
 from typing_extensions import NotRequired
 # from enum import Enum
 import asyncio
+import json
 import re
 
 class ChatConfig(Pattern):
@@ -32,28 +33,29 @@ SysPrompt=("你好，ChatGPT，请回答我的问题。"
            "你可以用网络上的信息回复，将参考链接放在回复的尾部即可。")
 
 @pluginConfig.on
-def initChat(config:dict[str,ChatConfig], bot):
+async def initChat(config:dict[str,ChatConfig], bot):
     logger.info("初始化 chatbot 们...")
     if (data := config.get("chat")):
         initChatBot(data)
-        initChatBotV4(data)
+        await initChatBotV4(data)
     # return True
 
 def initChatBot(config:ChatConfig):
     global chatbot
-    if config and config.key:
-        chatbot = Chatbot(config.key,system_prompt=SysPrompt)
-        logger.info("chatbot 初始化完毕")
-    else:
+    if not (config and config.key):
         logger.warning("无配置，未初始化 chatbot")
+        return
+    chatbot = Chatbot(config.key,system_prompt=SysPrompt)
+    logger.info("chatbot 初始化完毕")
 
-def initChatBotV4(config:ChatConfig):
+async def initChatBotV4(config:ChatConfig):
     global chatbotV4
-    if config and config.cookiePath:
-        chatbotV4 = ChatbotV4(cookie_path=config.cookiePath)
-        logger.info("chatbotV4 初始化完毕")
-    else:
+    if not (config and config.cookiePath):
         logger.warning("无配置，未初始化 chatbotV4")
+        return
+    with open(config.cookiePath, encoding="utf-8") as f:
+        chatbotV4 = await ChatbotV4.create(cookies=json.load(f))
+    logger.info("chatbotV4 初始化完毕")
 
 # @Events.on(EventNames.StartUp)
 # def botStartUP(bot:Bot):
@@ -249,3 +251,12 @@ async def closeChatBot(bot):
     if chatbotV4:
         await chatbotV4.close()
         logger.info("关闭 chatbotV4")
+
+if __name__ == "__main__":
+
+    async def main():
+        await initChatBotV4(ChatConfig({ "cookiePath" : "my_cookie.json" }))
+        print(bingText(await chatbotV4.ask("山重水复疑无路", conversation_style=ConversationStyle.creative)))
+        await chatbotV4.close()
+
+    asyncio.run(main())
