@@ -1,112 +1,88 @@
-from typing import List, Generator, Any
-import httpx
-from contextvars import ContextVar
-from AA.file import AAFile
-import random
+
+from typing import Generator, Any
 import html
-# from pprint import pprint
 
-# header_dict = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Trident/7.0; rv:11.0) like Gecko',"Content-Type": "application/json"}
+from AA.backend import Backend
+from AA.file import AAFile
 
-baseUrl=r"https://aa.yaruyomi.com/"
-metaUrl=r"api/events/url"
-listUrl=None
-contentUrl=None
+class AAMZFile(AAFile):
 
-files=[]
-
-
-clientVar=ContextVar("client",default=None)
-
-async def httpRequest(url,param=None):
-    client:httpx.AsyncClient=clientVar.get()
-    if client:
-        r=await client.get(url,params=param,timeout=180)
-        return r.json()
-
-async def getUrls():
-    global listUrl,contentUrl
-    rj=await httpRequest(f"{baseUrl}{metaUrl}")
-    if rj:
-        listUrl=rj["events"]["matomeFileList"]
-        contentUrl=rj["events"]["matomeFileContents"]
-        return True
-
-def getFileListGen(fileList:List[dict[str, str]]) -> Generator[AAFile,Any,Any]:
-    if not fileList:
-        return
-    for file in fileList:
-        if file.get("filename", "").endswith(".mlt"):
-            yield AAFile(file)
-        elif child := file.get("child"):
-            yield from getFileListGen(child)
-
-async def getFileList():
-    if listUrl or await getUrls():
-        rj=await httpRequest(listUrl)
-        if rj:
-            return [*getFileListGen(rj)]
-    return []
-
-async def getFileContent(file:AAFile):
-    if contentUrl or await getUrls():
-        rj=await httpRequest(contentUrl,param={"hash":file.hash})
-        if rj:
-            if "contents" in rj:
-                rj["contents"]=[ html.unescape(c).replace("\r\n","\n") for c in rj["contents"] ]
-            return AAFile(rj)
-
-async def init():
-    global files
-    async with httpx.AsyncClient() as client:
-        clientVar.set(client)
-        if not files:
-            files=await getFileList()
-            print(f"读取到了 {len(files)} 个 AA 文件")
-
-async def randomFile():
-    if not files:
-        await init()
-        return None
-    l=len(files)
-    idx=random.randint(0,l-1)
-    file=files[idx]
-    if not file.hasContents:
-        async with httpx.AsyncClient() as client:
-            clientVar.set(client)
-            file=await getFileContent(file)
-        if not file:
-            return None
-        file.save()
-    return file
+    @property
+    def dir(self) -> str:
+        return self["dir"]
     
-def chooseContents(file:AAFile,hasR18=False):
-    if ("R18" in file.name or "R18" in file.dir) and not hasR18:
-        return
+    @property
+    def name(self) -> str:
+        return self["filename"]
 
-    picked=[]
-    for c in file.contents:
-        cs=c.strip(" \n\r")
-        if "R18" in cs:
-            if not hasR18:
-                break
-            continue
-        if cs.startswith("最終更新日"): # 最终更新日 xxx
-            continue
-        if cs.startswith("【") and cs.endswith("】"): # 【xxx】
-            continue
-        if "\n" not in cs: # 没有换行
-            continue
-        picked.append(c)
+    @property
+    def path(self) -> str:
+        return f"{self.dir.lstrip('/')}/{self.name}"
 
-    if picked:
-        return random.choice(picked)
+    @property
+    def _getSelfContents(self) -> list[str] | None:
+        return self.get("contents")
 
-async def randomAA(hasR18=False):
-    AAtext=None
-    file=None
-    while not AAtext:
-        file=await randomFile()
-        if file:
-            AAtext=chooseContents(file,hasR18)
-    return AAtext,file
+    @property
+    def hash(self) -> str:
+        return self["hash"]
+
+    @property
+    def size(self):
+        return self["filesize"]
+
+    @property
+    def isNew(self):
+        return self["isNew"]
+
+    @property
+    def isUp(self):
+        return self["isUp"]
+
+    @property
+    def isF(self):
+        return self["isF"]
+
+class AAMZ(Backend[AAMZFile]):
+    
+    baseUrl = r"https://aa.yaruyomi.com/"
+    metaUrl = r"api/events/url"
+
+    def __init__(self):
+        super().__init__()
+        self.listUrl = ""
+        self.contentUrl = ""
+
+    async def getUrls(self):
+        rj = await self.httpRequest(f"{self.baseUrl}{self.metaUrl}")
+        if rj:
+            self.listUrl = rj["events"]["matomeFileList"]
+            self.contentUrl = rj["events"]["matomeFileContents"]
+            return True
+
+    @classmethod
+    def getFileListGen(cls, fileList:list[dict[str, str]]) -> Generator[AAMZFile, Any, Any]:
+        if not fileList:
+            return
+        for file in fileList:
+            if file.get("filename", "").endswith(".mlt"):
+                yield AAMZFile(file)
+            elif child := file.get("child"):
+                yield from cls.getFileListGen(child)
+
+    async def getFileList(self) -> list[AAMZFile]:
+        if self.listUrl or await self.getUrls():
+            rj = await self.httpRequest(self.listUrl)
+            if rj:
+                return [*self.getFileListGen(rj)]
+        return []
+    
+    async def getFileContent(self, file:AAMZFile):
+        if self.contentUrl or await self.getUrls():
+            rj:dict = await self.httpRequest(self.contentUrl, param={"hash":file.hash})
+            if not rj:
+                return None
+            if contents := rj.get("contents"):
+                contents:list[str]
+                rj["contents"] = [ html.unescape(c).replace("\r\n","\n") for c in contents ]
+            return AAMZFile(rj)

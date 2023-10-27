@@ -25,7 +25,7 @@ from repiko.module.str2image import str2greyPng,getFilePath as getImgPath,initFo
 from repiko.module.util import redirect,asyncRedirect,CONS,Share
 
 from repiko.module import 麻将
-from repiko.module.AA import AAMZ
+import repiko.module.AA as AA
 from repiko.module.AA.image import AA2img,initFont as initAAFont
 from repiko.module.tex import initFont as initTexFont,atext2img,LatexError
 
@@ -37,7 +37,7 @@ from typing import Annotated
 # from pathlib import Path
 # import yaml
 
-from LSparser import *
+from LSparser import Command, OPT, Events, ParseResult, CommandCore, CommandParser
 from LSparser.command import CommandHelper
 
 Command("-hello")
@@ -96,7 +96,7 @@ Command("server").names("srv","服务器","服").opt("-l",OPT.N,"列出所有")
 
 Command("mahjong").names("maj","麻将","麻雀","雀").opt("-n",OPT.M,"张数")#.opt(["-和","-胡"],OPT.N,"和牌")
 
-Command("AA").names("aa").opt(["-R18","-r18"],OPT.N,"嘿嘿许可")
+Command("AA").names("aa").opt(["-R18","-r18"],OPT.N,"嘿嘿许可").opt(("-from", "-从"), OPT.M, "从哪个 AA 库")
 
 def toLS(*args):
     for x in args:
@@ -341,7 +341,7 @@ def copyYGO(data:YGOConfig):
     # if not self.config.has_option("ygo","ygopath"):
     # if "ygo" not in bot.config:
     if not data:
-        return logger.error(f"YGO 配置不存在！")
+        return logger.error("YGO 配置不存在！")
     if not ((ygopath:=data.ygoPath) and os.path.exists(ygopath)):
         return logger.error(f"YGO 路径 {ygopath!r} 不存在！")
     if not os.path.exists(ygodir):
@@ -631,11 +631,14 @@ def initFont(config:dict[str,dict], bot:Bot):
 
 @Events.onCmd("AA")
 async def drawAA(pr:ParseResult):
-    if not AAMZ.files:
-        await AAMZ.init()
-    AAtext,file=await AAMZ.randomAA(hasR18=pr["R18"])
+    site = pr["from"] or None
+    if not AA.isSite(site):
+        return [f"{site}？没见过的站点"]
+    if not AA.hasInited():
+        await AA.init(siteName=site)
+    AAtext,file=await AA.randomAA(siteName=site, hasR18=pr["R18"])
     AAimg=AA2img(AAtext)
-    title=f"{file.dir}/{file.name}"
+    title=file.path
     imgTitle=title.strip(" /").replace("/","-")+str(random.randint(0,9)) # 文件名尾部加一位随机数字
     path=getImgPath(imgTitle,None)
     AAimg.save(path)
@@ -725,7 +728,7 @@ Command("tex").names("TEX","Tex","TeX")
 async def tex(pr:ParseResult):
     if not pr.params:
         return ["没有公式，texy啦!"]
-    msg:Message=pr.raw
+    # msg:Message=pr.raw
     content=Content(pr.paramStr)
     return [Image(await atext2img(CQunescape(content.plainText)))]
 
