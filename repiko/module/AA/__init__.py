@@ -26,9 +26,10 @@ class _BackendToUse:
         return name.lower()
     
     @classmethod
-    def fromName(cls, name: str = None):
+    def fromName(cls, name:str=None):
         backendName = cls._backendName(name)
-        if cls.current and backendName == cls._backendName(cls.current):
+        if cls.current and (name is None or backendName == cls._backendName(cls.current)):
+            # name 为 None 时优先用当前的
             return cls.current
         
         backendCls = cls.backends.get(backendName)
