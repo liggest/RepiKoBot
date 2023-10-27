@@ -2,11 +2,12 @@
 from AA.file import AAFile
 from AA.AAMZ import AAMZ
 from AA.AAHub import AAHub
+from AA.AALocal import Local
 from AA.backend import Backend
 
 class _BackendToUse:
 
-    defaultName = "AAMZ"
+    defaultName = "AAHub"
     current:Backend[AAFile] = None
 
     backends:dict[str, type[Backend[AAFile]]] = {}
@@ -37,16 +38,17 @@ class _BackendToUse:
         if backendCls is None:
             raise ValueError(f'Unknown site: {name}')
         cls.current = backendCls()
-        print(f"将使用 {name} 站点里的 AA")
+        print(f"将使用 {name or cls.defaultName} 站点里的 AA")
         return cls.current
 
 _BackendToUse.backends = {
     _BackendToUse._backendName(AAMZ) : AAMZ ,
     _BackendToUse._backendName(AAHub): AAHub,
+    _BackendToUse._backendName(Local): Local,
 }
 
-def isSite(siteName:str=None):
-    return siteName is None or _BackendToUse._toName(siteName) in _BackendToUse.backends
+def isSite(name:str=None):
+    return name is None or _BackendToUse._toName(name) in _BackendToUse.backends
 
 def hasInited() -> bool:
     return _BackendToUse.current and _BackendToUse.current.files
@@ -54,6 +56,7 @@ def hasInited() -> bool:
 async def init(siteName:str=None):
     aa = _BackendToUse.fromName(siteName)
     await aa.init()
+    return aa
 
 async def randomAA(siteName:str=None, hasR18=False):
     aa = _BackendToUse.fromName(siteName)

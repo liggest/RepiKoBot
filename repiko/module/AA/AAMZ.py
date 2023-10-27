@@ -20,7 +20,7 @@ class AAMZFile(AAFile):
         return f"{self.dir.lstrip('/')}/{self.name}"
 
     @property
-    def _getSelfContents(self) -> list[str] | None:
+    def _selfContents(self) -> list[str] | None:
         return self.get("contents")
 
     @property
@@ -83,6 +83,6 @@ class AAMZ(Backend[AAMZFile]):
             if not rj:
                 return None
             if contents := rj.get("contents"):
-                contents:list[str]
+                contents: list[str]
                 rj["contents"] = [ html.unescape(c).replace("\r\n","\n") for c in contents ]
             return AAMZFile(rj)

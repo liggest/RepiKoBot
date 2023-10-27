@@ -18,16 +18,16 @@ class AAFile(dict):
         return saveRoot / self.path
     
     @property
-    def _getSelfContents(self) -> list[str] | None:  # get contents in self
+    def _selfContents(self) -> list[str] | None:  # get contents in self
         raise NotImplementedError
 
     @property
     def hasContents(self):
-        return bool(self._getSelfContents) or self.savePath.exists()
+        return bool(self._selfContents) or self.savePath.exists()
     
     @property
     def contents(self):
-        content = self._getSelfContents
+        content = self._selfContents
         path = self.savePath
         if not content and path.exists():
             with path.open(encoding="utf-8") as f:
@@ -35,7 +35,7 @@ class AAFile(dict):
         return content
     
     def save(self):
-        content = self._getSelfContents
+        content = self._selfContents
         if content:
             path = self.savePath
             path.parent.mkdir(parents=True, exist_ok=True)

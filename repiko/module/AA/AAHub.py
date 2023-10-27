@@ -37,7 +37,7 @@ class AAHubFile(AAFile):
         return self.get("kind", 0)  # 0 即 kind 不存在
     
     @property
-    def _getSelfContents(self) -> list[str] | None:
+    def _selfContents(self) -> list[str] | None:
         contents:list[dict[str, str]] = self.get("aa")
         return contents and [aa["value"] for aa in contents]
 
@@ -71,7 +71,7 @@ class AAHub(Backend[AAHubFile]):
             if not rj:
                 return None
             if contents := rj.get("aa"):
-                contents:list[dict[str, str]]
+                contents: list[dict[str, str]]
                 for aa in contents:
                     aa["value"] = html.unescape(aa["value"]).replace("\r\n","\n")
             return AAHubFile(rj)
