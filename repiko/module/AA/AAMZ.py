@@ -1,3 +1,4 @@
+from typing import List, Generator, Any
 import httpx
 from contextvars import ContextVar
 from AA.file import AAFile
@@ -27,15 +28,24 @@ async def getUrls():
     global listUrl,contentUrl
     rj=await httpRequest(f"{baseUrl}{metaUrl}")
     if rj:
-        listUrl=rj["events"]["matomeCompFileList"]
+        listUrl=rj["events"]["matomeFileList"]
         contentUrl=rj["events"]["matomeFileContents"]
         return True
+
+def getFileListGen(fileList:List[dict[str, str]]) -> Generator[AAFile,Any,Any]:
+    if not fileList:
+        return
+    for file in fileList:
+        if file.get("filename", "").endswith(".mlt"):
+            yield AAFile(file)
+        elif child := file.get("child"):
+            yield from getFileListGen(child)
 
 async def getFileList():
     if listUrl or await getUrls():
         rj=await httpRequest(listUrl)
         if rj:
-            return [AAFile(f) for f in rj]
+            return [*getFileListGen(rj)]
     return []
 
 async def getFileContent(file:AAFile):
@@ -56,6 +66,7 @@ async def init():
 
 async def randomFile():
     if not files:
+        await init()
         return None
     l=len(files)
     idx=random.randint(0,l-1)
@@ -84,7 +95,7 @@ def chooseContents(file:AAFile,hasR18=False):
             continue
         if cs.startswith("【") and cs.endswith("】"): # 【xxx】
             continue
-        if not "\n" in cs: # 没有换行
+        if "\n" not in cs: # 没有换行
             continue
         picked.append(c)
 
