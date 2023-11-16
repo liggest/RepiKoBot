@@ -123,6 +123,7 @@ class Bot:
         self.URL:str=None
         self.POSTURL:str=None
         self.SECRET=""
+        self.ACCESS_TOKEN=""
         self.METHOD=ConnectionMethod.Unknown
         ConnectionInfo.get(config,self)
         logger.info(f"bot 的命根子：[{self.METHOD}] {self.URL}")
@@ -377,8 +378,8 @@ class Bot:
             MYNICK:str=rj["nickname"]
             logger.info(f"我的QQ:{MYQQ}")
             logger.info(f"我的昵称:{MYNICK}")
-        except:
-            logger.error("自我信息载入失败…！与世界失去同步。")
+        except Exception as e:
+            logger.error(f"自我信息载入失败…！与世界失去同步。\n{e!r}")
         return MYQQ,MYNICK
     
     def IsMe(self,qq):

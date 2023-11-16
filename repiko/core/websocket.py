@@ -35,6 +35,7 @@ class WS:
         Events=self.Events
         CallbackFunc=self.CallbackFunc
         self._url:str=""
+        self._token:str=""
         self._conn:Client=None
         self._hasConn=asyncio.Event()
         self._events:dict[Events,CallbackFunc]={}
@@ -49,6 +50,11 @@ class WS:
         if self._conn is None:
             await self._hasConn.wait()
         return self._conn
+
+    @property
+    def authorization(self):
+        if self._token:
+            return {"Authorization" : f"Bearer {self._token}"}
 
     @property
     def conn(self) -> Coroutine[None,None,Client]:
@@ -105,7 +111,8 @@ class WS:
     async def connect(self,url:str):
         self._url=url
         try:
-            async with connect(url) as conn:
+            header = self.authorization
+            async with connect(url, extra_headers=header) as conn:
                 self.conn=conn
                 logger.info("WebSocket 已连接")
                 await self.emit(self.Events.Open,self._conn)
@@ -202,7 +209,8 @@ class WS:
             logger.info("WebSocket 运行结束")
             await self.emit(self.Events.Shutdown)
             
-    def run(self,url:str):
+    def run(self, url:str, token:str=""):
+        self._token=token
         asyncio.run(self.asyncRun(url))
 
     # _signals=(signal.SIGTERM,signal.SIGINT)
@@ -267,7 +275,7 @@ def main(bot:Bot):
         await bot._api._quickOperation(rj,res)
 
 
-    ws.run(bot.URL)
+    ws.run(bot.URL, bot.ACCESS_TOKEN)
 
 if __name__ == "__main__":
     main(Bot())

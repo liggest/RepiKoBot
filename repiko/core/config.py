@@ -33,6 +33,7 @@ class BotConfig(Pattern):
         """  默认优先 ws，ws 无内容则使用 http  """
         class WS(Pattern):
             url:Annotated[str|None,"正向 WS 监听地址的 url"] = "ws://127.0.0.1:8080/"
+            access_token:Annotated[str|None,"用于鉴权的 access_token"] = ""
         class Http(Pattern):
             url:Annotated[str|None,"HTTP 监听地址的 url（不是 post 的 url）"] = "http://127.0.0.1:5700/"
             secret:Annotated[str|None,"post 密钥"]
@@ -117,6 +118,7 @@ class ConnectionInfo:
         self.URL:str=None
         self.POSTURL:str=None
         self.SECRET=""
+        self.ACCESS_TOKEN=""
         self.METHOD=ConnectionMethod.Unknown
 
     @staticmethod
@@ -136,6 +138,7 @@ class ConnectionInfo:
         # if wsConn and (wsURL:=wsConn.url): # ws 覆盖 http
             self.URL=wsURL
             self.METHOD=ConnectionMethod.WS
+            self.ACCESS_TOKEN=wsConn.access_token
         if not self.URL: # 未找到 self.URL
             raise ValueError(f"未找到连接信息！请在 {_configName} 中修改配置")
         
