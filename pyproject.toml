@@ -17,7 +17,6 @@ dependencies = [
     "ruamel.yaml>=0.17.21",
     "tomli>=2.0.1",
     "tomli-w>=1.0.0",
-    "EdgeGPT>=0.11.8",
 ]
 requires-python = ">=3.10"
 readme = "README.md"
@@ -31,7 +30,7 @@ svg = [
 ]
 chat = [
     "revChatGPT>=4.0.11",
-    "EdgeGPT>=0.3.1",
+    "EdgeGPT>=0.11.8",
 ]
 
 [tool.pdm]
