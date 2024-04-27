@@ -11,15 +11,20 @@ from repiko.msg.data import Message
 from repiko.msg.part import MessagePart,Image,At,Text
 from repiko.msg.util import CQunescapeComma,CQunescape
 
-import repiko.module.ygoOurocg_ver4 as ygotest
-from repiko.module.ygoBG import BaiGe
-from repiko.module.ygoRoom import YGORoom
+# import repiko.module.ygoOurocg_ver4 as ygotest
+# from repiko.module.ygoBG import BaiGe
+# from repiko.module.ygoRoom import YGORoom
+from ygoutil.source import BaiGe, OurOCG
+from ygoutil.ygoRoom import YGORoom
 from repiko.module.calculator import Calculator
 # from repiko.module.ygoServerRequest import ygoServerRequester
 # from repiko.module.helper import Helper
-from repiko.module.ygo.card import Card
-from repiko.module.ygo.dataloader import cdbReader,confReader,ShrinkLevel
-from repiko.module.ygo.sqlbuilder import SQLBuilder
+# from repiko.module.ygo.card import Card
+from ygoutil import Card
+# from repiko.module.ygo.dataloader import cdbReader,confReader,ShrinkLevel
+from ygoutil.dataloader import CDBReader, ConfReader, ShrinkLevel
+from ygoutil.sqlbuilder import SQLBuilder
+# from repiko.module.ygo.sqlbuilder import SQLBuilder
 from repiko.module.hitokoto import HitokotoRequester
 from repiko.module.str2image import str2greyPng,getFilePath as getImgPath,initFont as initNormalFont
 from repiko.module.util import redirect,asyncRedirect,CONS,Share
@@ -193,7 +198,7 @@ async def ygocard(pr:ParseResult):
     a=BaiGe()
     if len(pr.params)==0:
         if pr.getByType("wiki",False,bool):
-            return [f"拿去吧~\n{ygotest.ourocg.wikiLink}"]
+            return [f"拿去吧~\n{OurOCG.wikiLink}"]
         return ["空气怎么查啊！"]
     rcard:Card=await a.asyncSearch(pr.paramStr)
     if rcard:
@@ -228,7 +233,7 @@ Events.onCmd("ycpic")(asyncRedirect("ygocard",[CONS,"-pic"],ygocard))
 
 @Events.onCmd("ygoocg")
 async def ygoocg(pr:ParseResult):
-    a=ygotest.ourocg()
+    a=OurOCG()
     if len(pr.params)==0:
         if pr.getByType("wiki",False,bool):
             return [f"拿去吧~\n{a.wikiLink}"]
@@ -312,6 +317,8 @@ class ServerUnit(Pattern):
 ServerUnit.addDefault("233", ("s1.ygo233.com",233))
 ServerUnit.addDefault("编年史", ("duelstart.com",2333))
 ServerUnit.addDefault("2pick", ("2pick.mycard.moe",765))
+ServerUnit.addDefault("无限火力", ("ds.linmengstore.win",4911))
+ServerUnit.addDefault("超先行", ("mygo.superpre.pro",888))
 
 # ygocfg=Config("ygo.toml")
 
@@ -357,8 +364,8 @@ def copyYGO(data:YGOConfig):
 def initYGO(core:MCore):
     ygopath=ygodir
     if os.path.exists(p:=os.path.join(ygopath,"cards.cdb")):
-        core.data["ygocdb"]=cdbReader(path=p)
-    conf=confReader()
+        core.data["ygocdb"]=CDBReader(path=p)
+    conf=ConfReader()
     if os.path.exists(p:=os.path.join(ygopath,"lflist.conf")):
         conf.loadLFlist(p)
     if os.path.exists(p:=os.path.join(ygopath,"strings.conf")):
@@ -381,8 +388,8 @@ def ygodraw(pr:ParseResult):
         levels.append(ShrinkLevel.NoMain)
     if not levels:
         levels=ShrinkLevel.No
-    cdb:cdbReader=pr.parserData["mc"].data["ygocdb"]
-    conf:confReader=pr.parserData["mc"].data["ygoconf"]
+    cdb:CDBReader=pr.parserData["mc"].data["ygocdb"]
+    conf:ConfReader=pr.parserData["mc"].data["ygoconf"]
     result=[]
     with cdb:
         if num<=1:
@@ -656,8 +663,8 @@ builderMap={
 
 @Events.onCmd("ygocdb")
 def ygocdb(pr:ParseResult):
-    cdb:cdbReader=pr.parserData["mc"].data["ygocdb"]
-    conf:confReader=pr.parserData["mc"].data["ygoconf"]
+    cdb:CDBReader=pr.parserData["mc"].data["ygocdb"]
+    conf:ConfReader=pr.parserData["mc"].data["ygoconf"]
     builder=SQLBuilder()
     paramStr=pr.paramStr
     if paramStr.strip():
