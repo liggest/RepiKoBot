@@ -13,9 +13,9 @@ from repiko.msg.util import CQunescapeComma,CQunescape
 
 # import repiko.module.ygoOurocg_ver4 as ygotest
 # from repiko.module.ygoBG import BaiGe
-# from repiko.module.ygoRoom import YGORoom
+from repiko.module.ygoRoom import YGORoom
 from ygoutil.source import BaiGe, OurOCG
-from ygoutil.ygoRoom import YGORoom
+# from ygoutil.ygoRoom import YGORoom
 from repiko.module.calculator import Calculator
 # from repiko.module.ygoServerRequest import ygoServerRequester
 # from repiko.module.helper import Helper
