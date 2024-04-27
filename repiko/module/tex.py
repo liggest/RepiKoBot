@@ -24,6 +24,8 @@ except:
 # from cairosvg import svg2png
 # import PIL.Image as PILImage
 
+from repiko.module.str2image import getSize
+
 fontName:str=None
 fontPath:str=None
 fontSize=15
@@ -48,7 +50,7 @@ def initFont(path:str):
     fontName=name
     fontPath=path
     font=ImageFont.truetype(fontPath,fontSize)
-    ex2px=font.getsize("x")[1]
+    ex2px = getSize(font, "x")[1]
 
 def tex2img(tex:str):
     if not font:
@@ -83,7 +85,7 @@ def reviseSVG(svgText:str):
             # 除去头部的 font-size: 和 尾部的 px，得到字体大小 len("font-size:")=10 len("px")=2
             fontSize=int(style[10:-2].strip())
             font=ImageFont.truetype(fontPath,fontSize)
-            ex2px=font.getsize("x")[1]
+            ex2px = getSize(font, "x")[1]
             break
     # fontFamily=f"font-family: {fontName}, monospace;"
     if HASrlPyCairo:

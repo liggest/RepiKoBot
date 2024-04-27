@@ -17,13 +17,17 @@ imageDir=r"image/"
 if not os.path.exists(imageDir):
     os.makedirs(imageDir)
 
+def getSize(font: ImageFont.FreeTypeFont, text: str, *args, **kw):
+    bbox = font.getbbox(text, *args, **kw)
+    return bbox[2] - bbox[0], bbox[3] - bbox[1]
+
 def initFont(path:str):
     global titleFont,font,lineHeight
     if not (path and os.path.exists(path)):
         return print(f"字体 {path} 未找到！")
     titleFont=ImageFont.truetype(path,24) #总之需要一个字体
     font=ImageFont.truetype(path,16)
-    lineHeight=font.getsize("A")[1]
+    lineHeight=getSize(font, "A")[1]
 
 
 def getFileName(title:str,fileName,suffix=".png"):
@@ -59,7 +63,7 @@ def str2greyPng(text:typing.Union[str,typing.Iterable],fileName=None,overwrite=F
 def drawText(title,lines): #这里的lines不包括title
     if not titleFont or not font:
         raise ValueError("还没有字体！")
-    titleSize=titleFont.getsize(title)
+    titleSize=getSize(titleFont, title)
     maxWidth=max(standardWidth,titleSize[0])
     height=titleSize[1]+titleSpacing
     maxTextWidth=titleSize[0]
@@ -82,7 +86,7 @@ def drawText(title,lines): #这里的lines不包括title
 def splitLine(line,maxWidth):
     if not font:
         raise ValueError("还没有字体！")
-    lineSize=list(font.getsize(line))
+    lineSize=list(getSize(font, line))
     lineSize[1]=lineHeight
     if lineSize[0]<=maxWidth:
         return line,tuple(lineSize)
@@ -94,7 +98,7 @@ def splitLine(line,maxWidth):
         while left<right and right-left>1: #找到最合适的字数
             current=(left+right)//2
             currentLine=line[:current]
-            currentSize=font.getsize(currentLine)
+            currentSize=getSize(font, currentLine)
             if currentSize[0]<maxWidth:
                 left=current
             elif currentSize[0]>maxWidth:
@@ -103,7 +107,7 @@ def splitLine(line,maxWidth):
                 left=current
                 break
         currentLine=line[:left]
-        currentSize=font.getsize(currentLine)
+        currentSize=getSize(font, currentLine)
         otherLine,otherSize=splitLine(line[left:],maxWidth)
         lineSize[1]+=otherSize[1]+spacing
         lineSize[0]=max(currentSize[0],otherSize[0])
