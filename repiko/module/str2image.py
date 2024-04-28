@@ -18,8 +18,9 @@ if not os.path.exists(imageDir):
     os.makedirs(imageDir)
 
 def getSize(font: ImageFont.FreeTypeFont, text: str, *args, **kw):
-    bbox = font.getbbox(text, *args, **kw)
-    return bbox[2] - bbox[0], bbox[3] - bbox[1]
+    left, top, right, bottom = font.getbbox(text, *args, **kw)
+    # return bbox[2] - bbox[0], bbox[3] - bbox[1]
+    return right, bottom
 
 def initFont(path:str):
     global titleFont,font,lineHeight
