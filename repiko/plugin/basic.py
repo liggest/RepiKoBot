@@ -13,9 +13,9 @@ from repiko.msg.util import CQunescapeComma,CQunescape
 
 # import repiko.module.ygoOurocg_ver4 as ygotest
 # from repiko.module.ygoBG import BaiGe
-from repiko.module.ygoRoom import YGORoom
+# from repiko.module.ygoRoom import YGORoom
 from ygoutil.source import BaiGe, OurOCG
-# from ygoutil.ygoRoom import YGORoom
+from ygoutil.ygoRoom import YGORoom
 from repiko.module.calculator import Calculator
 # from repiko.module.ygoServerRequest import ygoServerRequester
 # from repiko.module.helper import Helper
@@ -495,70 +495,70 @@ def initDuel(data:YGOConfig|None):
         
 
 @Events.onCmd("duel")
-def duel(pr:ParseResult):
-    msg:Message=pr.raw
-    result=[]
-    room=None
-    pr.args["me"]=pr.args.get("me") or not pr.params
-    isMe=pr["me"]
-    paramStr=pr.paramStr.strip()
+def duel(pr: ParseResult):
+    msg: Message = pr.raw
+    result = []
+    room = None
+    pr.args["me"] = pr.args.get("me") or not pr.params
+    isMe = pr["me"]
+    paramStr = pr.paramStr.strip()
 
     if not pr["random"]:
-        key=pr.getByType("get") or (msg.realSrc if pr["me"] else paramStr) # -get key | -me | .duel key
-        room=YGORoom.getMemberRoom(key)
-        if not room and isinstance(key,str): # 没找到的话尝试处理 @
-            keyContent=Content(key)
-            if len(keyContent)==1:
-                cqkey=keyContent[0]
-                if isinstance(cqkey,At) and cqkey.qq.isdigit(): # -get @xx | .duel @xx
-                    key=int(cqkey.qq) # 得到 @ 对象的 qq
-                    isMe=isMe or key==msg.realSrc
-                    room=YGORoom.getMemberRoom(key) # 再试着用 qq 找
+        key = pr.getByType("get") or (msg.realSrc if pr["me"] else paramStr) # -get key | -me | .duel key
+        room = YGORoom.getMemberRoom(str(key))
+        if not room and isinstance(key, str): # 没找到的话尝试处理 @
+            keyContent = Content(key)
+            if len(keyContent) == 1:
+                cqkey = keyContent[0]
+                if isinstance(cqkey, At) and cqkey.qq.isdigit(): # -get @xx | .duel @xx
+                    key = int(cqkey.qq) # 得到 @ 对象的 qq
+                    isMe = isMe or key == msg.realSrc
+                    room = YGORoom.getMemberRoom(str(key)) # 再试着用 qq 找
     if not room:
-        room=YGORoom.parseRoom(paramStr)
-    noRoom=not room.name
+        room = YGORoom.parseRoom(paramStr)
+    noRoom = not room.name
     if isMe and noRoom and not pr["get"] and not pr["random"]:
         result.append("""看样子还没有记录自己的房间？\n这里是一个随机房间哦\n可以使用 .duelset xxx 记录自己的房间""")
     if noRoom or pr["random"]:
-        room.name=YGORoom.randomRoomName(pr.parserData["mc"].data["ygocdb"])
-    if pr.getByType("time",None,bool) or pr["tm0"] or noRoom: # -tm -> -tm 0  没房间的时候默认也建一个 TM0 的
-        pr.args["time"]="0"
+        room.name = YGORoom.randomRoomName(pr.parserData["mc"].data["ygocdb"])
+    if pr.getByType("time", None, bool) or pr["tm0"] or noRoom: # -tm -> -tm 0  没房间的时候默认也建一个 TM0 的
+        pr.args["time"] = "0"
     room.args2prefix(pr.args)
     result.append(room.full)
 
     if not pr["server"]:
-        for s in ("23333","233","2333"):
+        for s in ("23333", "233", "2333"):
             if pr[s]:
-                pr.args["server"]=s
+                pr.args["server"] = s
     if pr["server"]: # 只有 -s 的时候才有服务器
-        if isinstance(pr["server"],str) or not room.hasServer: # -s 有值时覆盖 room 记录的服务器
-            room.serverName=pr.getByType("server","2333") # server是True的话默认2333
+        if isinstance(pr["server"], str) or not room.hasServer: # -s 有值时覆盖 room 记录的服务器
+            room.serverName = pr.getByType("server", "2333") # server是True的话默认2333
         if room.server:
             result.append(room.server)
 
     if pr["set"]:
-        key=pr.getByType("set",msg.realSrc) #无值的场合使用QQ号
-        srcName=msg.getSrcName()
+        key = pr.getByType("set", msg.realSrc) #无值的场合使用QQ号
+        srcName = msg.getSrcName()
         if room.full:
-            YGORoom.saveMemberRoom(key,room,srcName)
-            if not isinstance(key,str):
-                key=None
-            name=At(msg.realSrc).CQcode
-            if msg.mtype==MessageType.Private:
-                name=srcName
-            result.append(YGORoom.hint("记录",key,name))
+            YGORoom.saveMemberRoom(str(key), room, srcName)  # 确保存入的键是 str
+            if not isinstance(key, str):
+                key = None
+            name = At(msg.realSrc).CQcode
+            if msg.mtype == MessageType.Private:
+                name = srcName
+            result.append(YGORoom.hint("记录", key, name))
 
     if pr["del"]:
-        key=pr.getByType("del",msg.realSrc)
-        if YGORoom.removeMemberRoom(key):
-            if not isinstance(key,str):
-                key=None
-            name=At(msg.realSrc).CQcode
-            if msg.mtype==MessageType.Private:
-                name=msg.getSrcName()
-            result=[YGORoom.hint("移除",key,name)] # 移除的时候不发送房间
+        key = pr.getByType("del", msg.realSrc)
+        if YGORoom.removeMemberRoom(str(key)):
+            if not isinstance(key, str):
+                key = None
+            name = At(msg.realSrc).CQcode
+            if msg.mtype == MessageType.Private:
+                name = msg.getSrcName()
+            result = [YGORoom.hint("移除", key, name)] # 移除的时候不发送房间
         else:
-            result=["那个房间…本来就不存在哦…"] # 移除的时候不发送房间
+            result = ["那个房间…本来就不存在哦…"] # 移除的时候不发送房间
 
     return result
 
