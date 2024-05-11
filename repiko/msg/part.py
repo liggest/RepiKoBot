@@ -1,7 +1,7 @@
 
 from __future__ import annotations # 让类中定义的方法的返回值标注可以为类本身
 
-from typing import Iterable
+from typing import Iterable, TYPE_CHECKING
 from repiko.msg.meta import MessageMeta
 from repiko.msg.util import CQescape,CQescapeComma,dealFile,CQunescapeComma,CQunescape
 
@@ -29,7 +29,7 @@ class MessagePart(dict,metaclass=MessageMeta):
             super().__init__(args[0],**kw)
         else:
             super().__init__()   # 初始化空字典
-        if not "type" in self:
+        if "type" not in self:
             self["type"]=self.partType
         if self.get("data") is None: # 防止 data 为 None
             if self._dictInit:
@@ -115,7 +115,7 @@ class MessagePart(dict,metaclass=MessageMeta):
     def CQcode(self):
         """ 消息片段的CQ码 """
         if self.data:
-            data=",".join([f"{name}={CQescapeComma(str(val))}" for name,val in self.data.items() if not val is None ])
+            data=",".join([f"{name}={CQescapeComma(str(val))}" for name,val in self.data.items() if val is not None ])
             if data:
                 return f"[CQ:{self.type},{data}]"    
         return f"[CQ:{self.type}]"
@@ -293,7 +293,7 @@ class Image(MessagePart):
             self.file=dealFile(file)
             if type:
                 self.imgType=type
-            if not cache is None:
+            if cache is not None:
                 self.cache=int(cache)   # False => 0  True => 1
 
     @classmethod
@@ -330,13 +330,13 @@ class Record(MessagePart):
         super().__init__(file,magic,cache,proxy,timeout,**kw)
         if not self._dictInit:
             self.file=dealFile(file)
-            if not magic is None:
+            if magic is not None:
                 self.magic=int(magic) # False => 0  True => 1
-            if not cache is None:
+            if cache is not None:
                 self.cache=int(cache)
-            if not proxy is None:
+            if proxy is not None:
                 self.proxy=int(proxy)
-            if not timeout is None:
+            if timeout is not None:
                 self.timeout=timeout
     
     @property
@@ -462,8 +462,6 @@ class Forward(MessagePart):
     @property
     def brief(self):
         return "[合并转发]"
-
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from repiko.msg.content import Content
