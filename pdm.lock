@@ -5,7 +5,7 @@
 groups = ["default", "svg"]
 strategy = ["cross_platform"]
 lock_version = "4.4.1"
-content_hash = "sha256:2e1a7fcac160575feb4da85a7475ec3bfdfee8725c2c8b39bd4d8c12ae33dfa2"
+content_hash = "sha256:c5d62bf0412b0125eebc10ab773f9dee59eda17588da95b14f496c50f6c915e6"
 
 [[package]]
 name = "annotated-types"
@@ -1309,7 +1309,7 @@ files = [
 
 [[package]]
 name = "ygoutil"
-version = "0.2.1"
+version = "0.2.2"
 requires_python = ">=3.10"
 summary = "一个 ygo 工具集 | Handy tools for ygo"
 dependencies = [
@@ -1321,6 +1321,6 @@ dependencies = [
     "typing-extensions>=4.11.0",
 ]
 files = [
-    {file = "ygoutil-0.2.1-py3-none-any.whl", hash = "sha256:0dd0162d923582bf5a63dcbe52fee97bd1998de2cb3d28270f08bac20189cabe"},
-    {file = "ygoutil-0.2.1.tar.gz", hash = "sha256:c2a317c0df124494999768af6fae5351c942d96600986bee25aa9de4d21d426f"},
+    {file = "ygoutil-0.2.2-py3-none-any.whl", hash = "sha256:4e44856c18319adf4c778775b6157cf95c59d53e96099016b19b189a63fcad07"},
+    {file = "ygoutil-0.2.2.tar.gz", hash = "sha256:8ee10081a886224cb3704ec8632aaa2981c670e6b74eaff2fa903170c91b5714"},
 ]
