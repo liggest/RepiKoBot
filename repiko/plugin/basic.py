@@ -2,7 +2,7 @@
 from repiko.core.bot import Bot
 from repiko.core.constant import EventNames, MessageType
 from repiko.core.log import logger
-from repiko.core.config import Config, Pattern, pluginConfig, PluginUnits
+from repiko.core.config import Pattern, pluginConfig, PluginUnits
 from repiko.msg.content import Content
 from repiko.msg.core import MCore
 # from repiko.msg.message import Message
@@ -14,8 +14,9 @@ from repiko.msg.util import CQunescapeComma,CQunescape
 # import repiko.module.ygoOurocg_ver4 as ygotest
 # from repiko.module.ygoBG import BaiGe
 # from repiko.module.ygoRoom import YGORoom
-from ygoutil.source import BaiGe, OurOCG
+from ygoutil.source import BaiGe, BaiGePage, OurOcg
 from ygoutil.ygoRoom import YGORoom
+from ygoutil.source.cdb.misc import card_from_cdb
 from repiko.module.calculator import Calculator
 # from repiko.module.ygoServerRequest import ygoServerRequester
 # from repiko.module.helper import Helper
@@ -50,7 +51,7 @@ Command("help").names("?","？").opt("-p",OPT.M,"页数")# .opt("-im",OPT.N,"以
 Command("calculate").names("cal").opt("-show",OPT.N,"显示计算过程")
 Command("roll").names("r").opt("-act",OPT.M,"要投骰子的行动")
 (Command("ygocard").names("yc","bg","卡查","查卡").opt("-im",OPT.N,"以图片发送").opt(["-pic","-p"],OPT.N,"卡图")
-    .opt("-database",OPT.N,"数据库链接").opt("-QA",OPT.N,"Q&A链接").opt("-wiki",OPT.N,"wiki链接")
+    .opt("-database",OPT.T,"数据库链接").opt("-QA",OPT.N,"Q&A链接").opt("-wiki",OPT.N,"wiki链接")
     .opt("-yugipedia",OPT.N,"Yugipedia链接").opt("-ourocg",OPT.N,"OurOcg链接")
     .opt(["-script","-lua"],OPT.N,"脚本链接").opt(["-ocgRule","-rule"],OPT.N,"裁定链接").opt(["-url","-link"],OPT.N,"百鸽链接")
     #.opt("-ygorg",OPT.N,"YGOrg链接")
@@ -191,33 +192,39 @@ def undefined(pr:ParseResult, cp:CommandParser):
     if cmd.startswith("rolld") or cmd.startswith("rd"):
         pr.output.append(rolldice(pr))
 
-linkNames=["url","database","QA","wiki","yugipedia","ourocg","script","ocgRule"] # "ygorg"
+linkNames=["url","database","QA","wiki","yugipedia","ourocg","script","ocg_rule"] # "ygorg"
 
 @Events.onCmd("ygocard")
 async def ygocard(pr:ParseResult):
     a=BaiGe()
     if len(pr.params)==0:
         if pr.getByType("wiki",False,bool):
-            return [f"拿去吧~\n{OurOCG.wikiLink}"]
+            return [f"拿去吧~\n{OurOcg._wiki_link}"]
         return ["空气怎么查啊！"]
-    rcard:Card=await a.asyncSearch(pr.paramStr)
+    rcard: Card = await a.from_query(pr.paramStr)
     if rcard:
-        resultText=str(rcard)
-        result=[]
-        if pr.getByType("pic",False,bool) and rcard.img:
-            result.append(Image(rcard.img) if not pr["reload"] else Image(rcard.img,cache=False)) 
+        result = []
+        if pr.getByType("pic", False, bool) and rcard._url_unit and rcard.urls.pic:
+            result.append(Image(rcard.urls.pic) if not pr["reload"] else Image(rcard.urls.pic, cache=False)) 
             #f"[CQ:image,file={rcard.img}]"
-        elif pr.args.get("im",False):
-            filename=str2greyPng(resultText,rcard.name)
-            result.append(Image(filename) if not pr["reload"] else Image(filename,cache=False)) 
+        elif pr.args.get("im", False):
+            filename = str2greyPng(rcard.info(), rcard.name)
+            result.append(Image(filename) if not pr["reload"] else Image(filename, cache=False)) 
             # f"[CQ:image,file={filename}]"
         else:
-            result.append(resultText)
+            result.append(rcard.info())
         for ln in linkNames:
-            if pr.getByType(ln,False,bool):
-                link=getattr(rcard,ln)
+            pcard = None # page card
+            if pr.getToType(ln,False,bool):
+                if not pcard:
+                    pcard = await BaiGePage().from_id(rcard.id)
+                    assert pcard
+                if ln == "database" and (dbLang := pr.getByType(ln)):
+                    link = getattr(pcard.urls, f"{ln}_{dbLang.lower()}")  # database_cn / database_en / database_jp
+                else:
+                    link = getattr(pcard.urls, ln)
                 description=pr._cmd.shortOpts[f"-{ln}"].help
-                description=f"{rcard.name}的{description}"
+                description=f"{pcard.name}的{description}"
                 if link:
                     # result.append(link)
                     result.append(Share(link,title=description,content=link).to(pr))
@@ -233,29 +240,28 @@ Events.onCmd("ycpic")(asyncRedirect("ygocard",[CONS,"-pic"],ygocard))
 
 @Events.onCmd("ygoocg")
 async def ygoocg(pr:ParseResult):
-    a=OurOCG()
+    a=OurOcg()
     if len(pr.params)==0:
         if pr.getByType("wiki",False,bool):
-            return [f"拿去吧~\n{a.wikiLink}"]
+            return [f"拿去吧~\n{a._wiki_link}"]
         return ["空气怎么查啊！"]
     ver=pr.args.get("ver",False)
     if ver:
-        a.SetTranslateEdition(ver)
-    rcard:Card=await a.AsyncSearchByName( pr.paramStr )
+        a.set_translate_edition(ver)
+    rcard: Card = await a.from_name(pr.paramStr)
     if rcard:
-        resultText=str(rcard)
-        result=[]
-        if pr.getByType("pic",False,bool) and rcard.img:
-            result.append(Image(rcard.img) if not pr["reload"] else Image(rcard.img,cache=False)) 
-        elif pr.args.get("im",False):
-            filename=str2greyPng(resultText,rcard.name)
-            result.append(Image(filename) if not pr["reload"] else Image(filename,cache=False)) 
+        result = []
+        if pr.getByType("pic", False, bool) and rcard._url_unit and rcard.urls.pic:
+            result.append(Image(rcard.urls.pic) if not pr["reload"] else Image(rcard.urls.pic, cache=False)) 
+        elif pr.args.get("im", False):
+            filename = str2greyPng(rcard.info(), rcard.name)
+            result.append(Image(filename) if not pr["reload"] else Image(filename, cache=False)) 
         else:
-            result.append(resultText)
+            result.append(rcard.info())
     else:
         return ["找不到卡片的说……"]
     if pr.getByType("wiki",False,bool):
-        wikilink=a.getWikiLink(rcard)
+        wikilink = a._get_wiki_link(rcard)
         description=f"{rcard.name}的wiki链接"
         if wikilink:
             # result.append(wikilink)
@@ -393,14 +399,13 @@ def ygodraw(pr:ParseResult):
     result=[]
     with cdb:
         if num<=1:
-            cid=cdb.getRandomIDs(shrink=levels)[0]
-            ct=cdb.getCardByID(cid)
-            c=Card()
-            c.fromCDBTuple(ct,conf.setdict,conf.lfdict)
-            name=c.name
+            cid = cdb.getRandomIDs(shrink=levels)[0]
+            ct = cdb.getCardByID(cid)
+            c: Card = card_from_cdb(*ct, conf.setdict, conf.lfdict)
+            name = c.name
             if pr.getByType("pic",False,bool):
-                result.append(Image(BaiGe.imgLink(c.id)) if not pr["reload"] else Image(BaiGe.imgLink(c.id),cache=False))
-            resultText=str(c)
+                result.append(Image(BaiGePage.img_link(c.id)) if not pr["reload"] else Image(BaiGePage.img_link(c.id),cache=False))
+            resultText = c.info()
         else:
             if num>60:
                 num=60
@@ -683,16 +688,14 @@ def ygocdb(pr:ParseResult):
         directSearch=cdb.getCardsByName(paramStr)
         if directSearch:
             for ct in directSearch:
-                c=Card()
-                c.fromCDBTuple(ct,conf.setdict,conf.lfdict)
-                foundSet.add(c.alias or c.id)
+                c: Card = card_from_cdb(*ct, conf.setdict, conf.lfdict)
+                foundSet.add(c.id)  # 从 card_from_cdb 里面拿到的 c.id 一直是卡的真实 id，而不是同名卡 id
                 found.append(c)
         builderSearch=cdb.getCardsByBuilder(builder,num=100)
         if builderSearch:
             for ct in builderSearch:
-                c=Card()
-                c.fromCDBTuple(ct,conf.setdict,conf.lfdict)
-                if (c.alias or c.id) not in foundSet:
+                c: Card = card_from_cdb(*ct, conf.setdict, conf.lfdict)
+                if c.id not in foundSet:
                     found.append(c)
     foundName:list[str]=[c.name+"\n" for c in found]
     if not foundName:
