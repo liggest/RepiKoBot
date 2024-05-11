@@ -484,12 +484,12 @@ def where2eat(pr:ParseResult):
         for s in banlist:
             if s in canteen_current:
                 canteen_current.remove(s)
-    l=len(canteen_current)
-    if pr.args.get("r",False) or l==0:
+    cl=len(canteen_current)
+    if pr.args.get("r",False) or cl==0:
         pr.parserData["mc"].data["canteen_current"]=canteen_meta.copy()
         canteen_current=pr.parserData["mc"].data["canteen_current"]
-    l=len(canteen_current)
-    return[canteen_current.pop(random.randint(0,l-1))]
+    cl=len(canteen_current)
+    return[canteen_current.pop(random.randint(0,cl-1))]
 
 @Events.onCmd("cat")
 def catImage(_):
