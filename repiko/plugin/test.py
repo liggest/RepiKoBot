@@ -81,7 +81,7 @@ async def wtf(pr:ParseResult):
         await parser.core.EM.asyncSend(EventNames.WrongCmdType,npr,parser)
         result=["\n".join([
             "指令类型错误",
-            {pr2str(npr)},
+            pr2str(npr),
             "该指令支持的类型如下",
             " ".join(npr._cmd.typelist)
         ])]

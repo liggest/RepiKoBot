@@ -439,8 +439,8 @@ def logodraw(pr:ParseResult):
 
 @Events.onNotCmd
 def notCmd(pr:ParseResult, cp:CommandParser):
-    msg:Message=pr.raw
-    if msg and msg.content:
+    msg: Message | str = pr.raw
+    if isinstance(msg, Message) and msg.content:
         part:MessagePart=msg.content[-1]
         text=part.brief
         if text.endswith(("!","！")):
