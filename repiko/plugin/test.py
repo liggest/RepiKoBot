@@ -2,6 +2,7 @@ from LSparser import *
 from LSparser.event import EventNames
 from LSparser.command.parser import CommandState
 from repiko.core.log import logger
+from repiko.core.api import ApiError
 from repiko.msg.content import Content
 from repiko.msg.part import Record, TTS, Node, Forward
 from repiko.msg.data import Message
@@ -93,10 +94,25 @@ async def wtf(pr:ParseResult):
 def pr2str(pr:ParseResult):
     result=[
         str(pr.raw),
-        f"类型：{pr.type or '未知'}",
-        f"指令：{pr.command or '未知'}",
-        f"参数：{pr.params}"
+        f"类型：{repr(pr.type) if pr.type else '未知'}",
+        f"指令：{repr(pr.command) if pr.command else '未知'}",
+        f"参数：{repr(pr.params)}"
     ]
     if pr.hasOpt():
         result.extend(f"{k}: {v}" for k,v in pr.args.items())
     return "\n".join(result).strip()
+
+Command("-error").opt("-api", OPT.N, "ApiError")
+@Events.onCmd("error")
+async def error(pr:ParseResult):
+    if pr["api"]:
+        raise ApiError({"retcode": -1, "msg": "test"})
+    else:
+        from httpx import TimeoutException
+        raise TimeoutException("test")
+
+@Events.onExecuteError
+async def pasteErrorEmoji(pr:ParseResult, parser:CommandParser, e:Exception):
+    msg:Message = pr.raw
+    if not isinstance(e, ApiError):
+        await msg.selector.bot.PasteEmoji(msg.id, 128557) # 大哭
