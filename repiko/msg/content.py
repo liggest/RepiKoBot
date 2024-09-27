@@ -161,7 +161,7 @@ class Content(list[MessagePart]):
                 toDel=[]
                 for oldPart,newPart in zip_longest(old,val):
                     if oldPart is not None:
-                        while not (self[i] is oldPart):
+                        while self[i] is not oldPart:
                             i+=1
                         if newPart is None:
                             toDel.append(i)
@@ -244,7 +244,7 @@ class Content(list[MessagePart]):
                 part:MessagePart
                 typedParts=self.parts[part.partType]
                 oldi=0
-                while not (typedParts[oldi] is part):
+                while typedParts[oldi] is not part:
                     oldi+=1
                 del typedParts[oldi]
                 if not typedParts:
@@ -410,7 +410,7 @@ class Content(list[MessagePart]):
             寻找 val 在列表中的第一个下标 \n
                 index(Text) 寻找第一个 Text 的下标\n
         """
-        stop=stop if not stop is None else len(self)
+        stop=stop if stop is not None else len(self)
         if self._hasPart(val):
             val=self.parts[val.partType][0] # 寻找第一个 val 类型的
             # if parts[0]<stop and parts[-1]>=start:
@@ -475,7 +475,7 @@ class Content(list[MessagePart]):
         if self._parts:
             typedParts=self.parts[part.partType]
             oldi=0
-            while not (typedParts[oldi] is part):
+            while typedParts[oldi] is not part:
                 oldi+=1
             typedParts.pop(oldi)
             if not typedParts:
