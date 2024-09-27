@@ -33,6 +33,10 @@ chat = [
     "revChatGPT>=4.0.11",
     "EdgeGPT>=0.11.8",
 ]
+img = [
+    "resvg-py>=0.1.5",
+    "typst>=0.11.1",
+]
 
 [tool.pdm]
 
