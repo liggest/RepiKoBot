@@ -288,15 +288,19 @@ class Message(BaseData):
         if self.isReply:
         # if self.content and isinstance(self.content[0],Reply):
             # 群回复格式 Reply => At => " "
-            if self.mtype==MessageType.Group and len(self.content) >2 and self.content[1]==at:
-                self._hasReplyMe=True
+            if self.mtype == MessageType.Group:
+                if len(self.content) > 2 and self.content[1] == at:
+                    self._hasReplyMe = True
+                else:
+                    replyMsg = await self.replyMsg
+                    self._hasReplyMe = replyMsg and replyMsg.isMe
                 # print(repr(self))
                 # print(repr(await self.replyMsg))
-            elif self.mtype==MessageType.Private:
-                replyMsg:Message=await self.replyMsg
+            elif self.mtype == MessageType.Private:
+                replyMsg = await self.replyMsg
                 # print(repr(self))
                 # print(repr(replyMsg))
-                self._hasReplyMe=replyMsg and replyMsg.isMe
+                self._hasReplyMe = replyMsg and replyMsg.isMe
         count=self.content.removeAll(at)
         self._hasAtMe=bool(count)
 
