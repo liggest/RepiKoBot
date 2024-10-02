@@ -8,7 +8,7 @@ from repiko.module.deepl_translation import DeepTrans,Formality
 
 from typing import Annotated
 
-from LSparser import *
+from LSparser import Command, Events, ParseResult, OPT
 
 # (Command("translate").names("ts").opt("-from",OPT.M,"源语言").opt("-to",OPT.M,"目标语言").opt("-p",OPT.N,"显示发音")
 #     .opt("-d",OPT.N,"检测语言").opt("-donly",OPT.N,"只检测语言")

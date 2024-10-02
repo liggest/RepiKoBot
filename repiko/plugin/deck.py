@@ -6,7 +6,7 @@ import shutil
 from collections import deque
 from pathlib import Path
 
-from LSparser import *
+from LSparser import Command, Events, ParseResult, OPT
 
 from repiko.core.bot import Bot
 from repiko.core.constant import MessageType #,EventNames
@@ -92,7 +92,7 @@ async def downloadFile(bot:Bot,group:int,file:dict,path:Path):
             deckfile.unlink()
             return f"{path.as_posix()} 里卡的数量好像不太够呀…？"
         return f"耶！已下载 {path.as_posix()}"
-    except:
+    except Exception:
         return f"下载 {path.as_posix()} 失败！？明明就差一点了……"
 
 async def memberCard(bot:Bot,group:int,qq:int,default:str):
