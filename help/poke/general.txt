@@ -1,0 +1,17 @@
+.poke/.戳
+  戳一戳复读姬
+
+.setpoke/.pokeset
+  设定复读姬被戳的反应
+例：
+  .setpoke .jrrp
+
+.getpoke/.pokeget
+  查看复读姬被戳的反应
+例：
+  .getpoke
+
+.delpoke/.pokedel
+  删除复读姬被戳的反应
+例：
+  .delpoke

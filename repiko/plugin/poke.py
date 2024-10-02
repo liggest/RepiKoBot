@@ -56,8 +56,21 @@ memberPokes:dict[int,str]={}
 pokeCount=0
 
 Command("poke").names("戳")
+Command("getpoke").names("pokeget")
 Command("setpoke").names("pokeset")
 Command("delpoke").names("pokedel")
+
+@Events.onCmd("getpoke")
+async def getme(pr:ParseResult):
+    msg:Message=pr.raw
+    qq=msg.realSrc
+    name=msg.getSrcName()
+    atMe=At(msg.realSrc).CQcode
+    if not name or msg.mtype==MessageType.Group:
+        name=atMe
+    if myPoke := memberPokes.get(qq):
+        return [f"{name} 当前的 .poke 是 {myPoke}"]
+    return [f"尚未为 {name} 设置 .poke"]
 
 @Events.onCmd("setpoke")
 async def setme(pr:ParseResult):
@@ -74,7 +87,7 @@ async def setme(pr:ParseResult):
     return [f"为 {name} 设置了 .poke"]
 
 @Events.onCmd("delpoke")
-async def setme(pr:ParseResult):
+async def delme(pr:ParseResult):
     msg:Message=pr.raw
     qq=msg.realSrc
     name=msg.getSrcName()
