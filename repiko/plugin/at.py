@@ -35,7 +35,7 @@ async def atMe(msg:Message,bot:Bot):
 Command("at").names("@")
 
 @Events.onCmd("at")
-async def withdraw(pr:ParseResult):
+async def atCmd(pr:ParseResult):
     msg:Message=pr.raw
     atmsg=msg.copy()
     atmsg.content=pr.paramStr
