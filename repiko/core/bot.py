@@ -108,8 +108,8 @@ class Bot:
         admin=self.config.admin
         self.AdminQQ=[int(qq) for qq in admin.adminQQ if qq]
         # self.SECRET=str.encode(self.config["bot"].get("secret",""))
-        self.BanQQ=set()
-        self.BanGroup=set()
+        # self.BanQQ=set()
+        # self.BanGroup=set()
         # self.broadcastGroup={}
         # for k,v in self.config["broadcast"].items():
         #     # self.broadcastGroup[k]=[int(x.strip()) for x in v.split(",")]

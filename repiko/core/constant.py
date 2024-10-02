@@ -105,6 +105,8 @@ class EventNames:
     # """ 收到戳 bot 的消息 \n (msg:Message,bot:Bot) -> None """
     # WithDraw="notice-WithDraw"
     # """ 收到撤回消息 \n (nti:Notice,bot:Bot) -> None """
+    MsgFilter="msg-Filter"
+    """ 返回 True 时过滤当前消息 \n (msg:Message,bot:Bot) -> bool """
 
     @staticmethod
     def ConfigInit(path:str):

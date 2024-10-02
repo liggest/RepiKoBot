@@ -177,6 +177,9 @@ class Api:
     async def pasteEmoji(self, msgID:int, emojiID:int):
         return await self.post("set_msg_emoji_like",{ "message_id": msgID, "emoji_id": emojiID })
 
+    async def robotQQRange(self) -> list[dict[str, str]]:  # [ {"minUin": ..., "maxUin": ...} ]
+        return await self.post("get_robot_uin_range")
+
     async def _quickOperation(self, event:dict, operation:dict):
         return await self.post(".handle_quick_operation",{ "context":event, "operation":operation })
          

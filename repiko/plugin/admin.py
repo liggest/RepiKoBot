@@ -9,7 +9,7 @@ from repiko.msg.selector import RequestSelector
 from repiko.msg.content import Content
 from repiko.msg.util import CQunescapeComma
 
-from LSparser import *
+from LSparser import Command, Events, CommandCore, ParseResult, CommandParser, OPT
 
 import typing
 import functools
@@ -96,7 +96,7 @@ with CommandCore(name="admin") as core:
         # print(pr.state)
         msg:Message=pr.raw
         bot:Bot=pr.parserData["mc"].bot
-        if bot and not msg.realSrc in bot.AdminQQ:
+        if bot and msg.realSrc not in bot.AdminQQ:
             pr.state=ParseResult.CommandState.NotCommand # 不再继续解析
 
     def AdminOnly(func):
@@ -130,8 +130,8 @@ with CommandCore(name="admin") as core:
             msg.content=cmd
             apr=await pr.parser.asyncTryParse(msg,fromAdmin=True) # 触发其它 AdminOnly 指令
             result=[]
-            for l in apr.output:
-                result+=l
+            for o in apr.output:
+                result+=o
             return result
     
     @Events.onCmd("broadcast")
@@ -221,11 +221,15 @@ with CommandCore(name="admin") as core:
     Command("-ban").names("绝交","不理").opt(["-qq","--qq","-q","--q"],OPT.M,"qq号").opt(["-group","--group","-g","--g"],OPT.M,"群号").opt(["--preset","-preset","-p","--p"],OPT.M,"预设发送集合")
     Command("-unban").names("和好","理").opt(["-qq","--qq","-q","--q"],OPT.M,"qq号").opt(["-group","--group","-g","--g"],OPT.M,"群号").opt(["--preset","-preset","-p","--p"],OPT.M,"预设发送集合")
 
+    BanQQ = set()
+    BanGroup = set()
+    BanRobot: list[range] | None = None
+
     @Events.onCmd("ban")
     @Events.onCmd("unban")
     async def ban(pr:ParseResult):
-        msg:Message=pr.raw
-        bot:Bot=msg.selector.bot
+        # msg:Message=pr.raw
+        # bot:Bot=msg.selector.bot
         isBan=pr._cmd.name=="ban"
         # action="绝交" if isBan else "和好"
         # content=None
@@ -253,21 +257,25 @@ with CommandCore(name="admin") as core:
                 strQQ=[ str(qq) for qq in v ]
                 if k==MessageType.Private:
                     if isBan:
-                        bot.BanQQ.update(strQQ)
+                        # bot.BanQQ.update(strQQ)
+                        BanQQ.update(strQQ)
                     else:
-                        bot.BanQQ.difference_update(strQQ)
+                        # bot.BanQQ.difference_update(strQQ)
+                        BanQQ.difference_update(strQQ)
                 elif k==MessageType.Group:
                     if isBan:
-                        bot.BanGroup.update(strQQ)
+                        # bot.BanGroup.update(strQQ)
+                        BanGroup.update(strQQ)
                     else:
-                        bot.BanGroup.difference_update(strQQ)
+                        # bot.BanGroup.difference_update(strQQ)
+                        BanGroup.difference_update(strQQ)
                 result+=f"{k}: {', '.join(strQQ)}\n"
                 num+=len(v)
             result+=f"不理这 {num} 人了！" if isBan else f"和这 {num} 人和好了！"
             # print(bot.BanQQ)
             # print(bot.BanGroup)
             return [result]
-        return [f"要不理谁呢？" if isBan else f"要和谁和好呢？"]
+        return ["要不理谁呢？" if isBan else "要和谁和好呢？"]
     
     (Command("-str").opt(("-method","-m"), OPT.M, "方法名").opt(("-self","-me"), OPT.M, "字符串本体")
      .opt(("--args","-arg","--a","-a"), OPT.M,"参数").opt(("-list","-l"), OPT.N,"列出方法"))
@@ -295,6 +303,16 @@ with CommandCore(name="admin") as core:
         return [str(result)]
 
 
+@Events.on(EventNames.MsgFilter)
+def filterBan(msg:Message, bot:Bot):
+    return (
+        str(msg.realSrc) in BanQQ
+        or (msg.mtype==MessageType.Group and str(msg.src) in BanGroup)
+        or (BanRobot and any(int(msg.realSrc) in r for r in BanRobot))
+    )
+
+logger.info("在 admin 中注册了 ban 的消息过滤器")
+
 @Events.on(RequestSelector.getEventName()) # 这种事件需要在默认的 CommandCore 上
 async def request(req:Request,bot:Bot):
     if bot.AdminQQ: # 把请求信息推给管理员
@@ -305,10 +323,14 @@ async def request(req:Request,bot:Bot):
         asyncio.create_task(bot.Broadcast(qqs,msg))
 
 @Events.on(EventNames.Startup)
-def botStartup(bot:Bot):
-    global AdminMode
+async def botStartup(bot:Bot):
+    global AdminMode, BanRobot
     AdminMode=getattr(bot,"AdminMode",False)
     # loadBroadcastPreset(bot)
+    robotRange = await bot._api.robotQQRange()
+    if robotRange:
+        BanRobot = [range(int(d["minUin"]), int(d["maxUin"])) for d in robotRange]
+        logger.debug(f"机器人 QQ 号范围：{BanRobot!r}")
 
 @Events.on(EventNames.Shutdown)
 def botShutdown(bot:Bot):

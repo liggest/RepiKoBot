@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from repiko.core.constant import PostType,EventNames,MessageType
+from repiko.core.constant import PostType,EventNames
 from repiko.msg.data import BaseData,Message,Request
 # from repiko.msg.message import Message
 # from repiko.msg.request import RequestData
@@ -125,8 +125,9 @@ class MessageSelector(BaseSelector):
         #         
         #         adminr=self.bot.ac.GetAdminResponse(msg.content)
         #         backTasks.add_task(self.bot.AsyncSendStrs,msg.copy(srcAsDst=True),adminr)
-        isBanned=str(msg.realSrc) in self.bot.BanQQ or (msg.mtype==MessageType.Group and str(msg.src) in self.bot.BanGroup)
-        if not (self.bot.IsMe(msg.realSrc) or isBanned): #如果不是自己发的，响应消息
+        isFiltered = any(await self.bot.EM.asyncSend(EventNames.MsgFilter, msg, bot=self.bot))
+        # isBanned=str(msg.realSrc) in self.bot.BanQQ or (msg.mtype==MessageType.Group and str(msg.src) in self.bot.BanGroup)
+        if not (self.bot.IsMe(msg.realSrc) or isFiltered): #如果不是自己发的，响应消息
             # print(repr(msg))
             await msg.clearAtMe()
             if msg.isReply and msg.hasReplyMe:
