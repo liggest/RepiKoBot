@@ -50,7 +50,7 @@ async def onPoke(notice:Notice,bot:Bot):
         await bot.SendContents(msg.copy(srcAsDst=True),reply)
 
 
-memberPokes:dict[int,str]={}
+memberPokes:dict[int, dict[str, str]]={}
 # meCount=ContextVar("meCount",default=0)
 # meStack=asyncio.LifoQueue(maxsize=2)
 pokeCount=0
@@ -69,7 +69,7 @@ async def getme(pr:ParseResult):
     if not name or msg.mtype==MessageType.Group:
         name=atMe
     if myPoke := memberPokes.get(qq):
-        return [f"{name} 当前的 .poke 是 {myPoke}"]
+        return [f"{name} 当前的 .poke 是 {myPoke['content']}"]
     return [f"尚未为 {name} 设置 .poke"]
 
 @Events.onCmd("setpoke")
