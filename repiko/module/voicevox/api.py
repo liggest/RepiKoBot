@@ -23,6 +23,10 @@ class SpeakerQuery(TypedDict):
     character_name: str
     style: int | str | None
 
+class ApiLimit(TypedDict):
+    points: int
+    resetInHours: float
+
 class VoiceVoxApi:
 
     # VOICEVOX = "https://voicevox.hiroshiba.jp"
@@ -128,7 +132,7 @@ class VoiceVoxApi:
             params["intonation_scale"] = intonation_scale
         if speed is not None:
             params["speed"] = speed
-        async with httpx.AsyncClient(timeout=60) as client:
+        async with httpx.AsyncClient(timeout=httpx.Timeout(20, read=60)) as client:
             response = await client.post(
                 self.API_TTS,
                 data={"text": text, "key": self.key},
@@ -136,4 +140,9 @@ class VoiceVoxApi:
             )
             response.raise_for_status()
             return response.content
+        
+    async def check_limit(self) -> ApiLimit:
+        async with httpx.AsyncClient(timeout=20) as client:
+            response = await client.get("https://deprecatedapis.tts.quest/v2/api/", params={"key": self.key})
+            return response.json()
 

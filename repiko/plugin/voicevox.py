@@ -7,12 +7,12 @@ from repiko.core.config import pluginConfig, PluginUnits, Pattern
 from repiko.msg.part import Image, Record
 
 from repiko.module.str2image import str2greyPng
-from repiko.module.voicevox import VoiceVoxApi, style_map
+from repiko.module.voicevox import VoiceVoxApi, Character, style_map
 
 from LSparser import Command, Events, ParseResult, OPT
 
 (Command("voicevox").names("vv", "vtts")
-    .opt(("-list", "-l", "-列表"), OPT.N, "列出可用角色")
+    .opt(("-list", "-l", "-列表", "--list", "--l", "--列表"), OPT.T, "列出可用角色")
     .opt(("-character", "-c", "-角色"), OPT.M, "发音角色")
     .opt(("-style", "-s", "-风格", "-语气"), OPT.M, "发音风格")
     .opt(("-id", "-ID", "-speaker", "-发音人", "-说话人", "-编号"), OPT.M, "发音人编号")
@@ -39,14 +39,16 @@ def initVoiceVox(config:dict, bot):
     else:
         logger.warning("无配置，未初始化 voicevox")
 
-def list_vv_gen():
+def list_vv_gen(characters: list[Character] | None = None):
     style_names = style_map()
-    yield "角色列表"
-    yield ""
-    yield "※指定发音角色和风格："
-    yield "【-c 角色名 -s 风格名/左侧ID】或者【-id 右侧中括号内ID】"
-    yield ""
-    for c in vv.characters.values():
+    if characters is None:
+        yield "角色列表"
+        yield ""
+        yield "※指定发音角色和风格："
+        yield "【-c 角色名 -s 风格名/左侧ID】或者【-id 右侧中括号内ID】"
+        yield ""
+        characters = vv.characters.values()
+    for c in characters:
         name_line = f"【{c.display_name}】"
         if c.description:
             name_line = f"{name_line} - {c.description}"
@@ -62,9 +64,17 @@ def list_vv_gen():
         yield ""
 
 async def list_vv():
-    logger.info("尝试获取 VoiceVox 角色列表…")
+    logger.info("尝试获取 VOICEVOX 角色列表…")
     await vv.get_characters()
     return str2greyPng(list_vv_gen(), "voicevox_characters.png")
+
+async def list_vv_by_name(names: list[str]):
+    logger.info(f"尝试获取 VOICEVOX 中 {'、'.join(names)} 的角色信息…")
+    characters = [c for n in names if (c := await vv.find_character(n))]
+    if characters:
+        logger.info(f"找到了角色：{'、'.join(c.display_name for c in characters)}")
+        return "\n".join(list_vv_gen(characters)).strip()
+    return ""
 
 def query_info(query: dict[str, str | None], style_names: dict[str, str]):
     q_c_name: str = query['character_name']
@@ -81,12 +91,19 @@ def filter_float(value: float | None, min_value: float, max_value: float):
     return max(min(value, max_value), min_value)
 
 @Events.onCmd("voicevox")
-async def translate(pr:ParseResult):
+async def voicevox(pr:ParseResult):
     if not vv:
         return ["无可用服务，哑火了…"]
     
     if pr["list"]:
-        return [Image(await list_vv()), "详见：https://voicevox.hiroshiba.jp/dormitory/"]
+        if pr.getByType("list", None, bool):
+            return [Image(await list_vv()), "详见：https://voicevox.hiroshiba.jp/dormitory/"]
+        if names := pr.getByType("list", None, str):
+            names = [names]
+        else:
+            names: list[str] = pr["list"]
+        list_info = await list_vv_by_name(names)
+        return [list_info] if list_info else [f"{'、'.join(names)}？\n没找到这样的角色呀…"]
 
     if not pr.params:
         return ["无字天书不可读呀"]
@@ -126,3 +143,18 @@ async def translate(pr:ParseResult):
         return [log_info, Record(audio, cache=False)]
     
     return [Record(audio, cache=False)]
+
+Command("vvlimit")
+@Events.onCmd("vvlimit")
+async def vvlimit(pr:ParseResult):
+    if not vv:
+        return ["无可用服务，哑火了…"]
+    api_limit = await vv.check_limit()
+    points = api_limit["points"]
+    hours = api_limit["resetInHours"]
+    minutes = int((hours - int(hours)) * 60)
+    hours = int(hours)
+    time_info = f" {hours:02d} 小时" if hours else ""
+    if minutes:
+        time_info = f"{time_info} {minutes:02d} 分钟"
+    return [f"剩余点数：{points}，于{time_info}后重置"]

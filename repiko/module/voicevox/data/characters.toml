@@ -72,7 +72,9 @@ image = "/static/c80661c74af8ee50b41e118a96ce4f93/eadd3/bustup-aoyama_ryusei.png
 ["冥鳴ひまり"]
 name = "冥鳴ひまり"
 name_cn = "冥鸣Himari"
-aliases = []
+aliases = [
+    "死神",
+]
 description = "柔和温暖的声音"
 image = "/static/2c28b01dc088f64b901f8cfbe273ec85/eadd3/bustup-meimei_himari.png"
 

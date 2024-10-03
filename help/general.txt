@@ -9,6 +9,7 @@
 .roll/.r  投骰子
 .tex 基于知乎的公式渲染
 .translate/.tl  基于 DeepL 的翻译
+.voicevox/.vv 基于 WEB 版 VOICEVOX 的日语语音合成
 .ygocard/.yc  基于百鸽的游戏王卡查
 .ygocdb/.ycdb  基于 cards.cdb 的游戏王卡查
 .ygodraw/.yd  抽游戏王卡
