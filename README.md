@@ -15,8 +15,9 @@
 
 - 新建 `font` 目录，放入喜欢的字体（对应修改配置）
 - 安装 ygopro 或从[仓库](https://github.com/mycard/ygopro/tree/server)获取相关文件
-- `pdm install -G svg`
-  如果失败，尝试先安装 [cairo](https://www.cairographics.org/download/)
+<!-- - `pdm install -G svg`
+  如果失败，尝试先安装 [cairo](https://www.cairographics.org/download/) -->
+- `pdm install -G img`
 
 ## 运行
 
