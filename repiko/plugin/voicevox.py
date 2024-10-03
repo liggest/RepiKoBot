@@ -79,8 +79,9 @@ async def list_vv_by_name(names: list[str]):
 def query_info(query: dict[str, str | None], style_names: dict[str, str]):
     q_c_name: str = query['character_name']
     q_s_name: str | None = query['style']
-    assert vv.characters
-    q_c_display = vv.characters[q_c_name].display_name
+    q_c_display = q_c_name
+    if c := vv.characters.get(q_c_name):
+        q_c_display = c.display_name
     if q_s_name:
         return f"{q_c_display} - {style_names.get(q_s_name, q_s_name)}"
     return q_c_display
