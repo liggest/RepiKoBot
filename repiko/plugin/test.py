@@ -113,11 +113,14 @@ async def error(pr: ParseResult):
 @Events.onExecuteError
 async def pasteErrorEmoji(pr: ParseResult, parser: CommandParser, e: Exception):
     msg: Message = pr.raw
-    if not isinstance(e, ApiError):
-        await msg.selector.bot.PasteEmoji(msg.id, 128557)  # 大哭
-    else:
-        try:
+    if not msg.id:
+        logger.warning("无法为没有 id 的消息贴表情")
+        return
+    try:
+        if not isinstance(e, ApiError):
+            await msg.selector.bot.PasteEmoji(msg.id, 128557)  # 大哭
+        else:
             await msg.selector.bot.PasteEmoji(msg.id, 128560)  # 紧张
-        except ApiError as e:
-            logger.error("表情都贴不上了！")
-            raise e
+    except ApiError as e:
+        logger.error("表情都贴不上了！")
+        raise e
