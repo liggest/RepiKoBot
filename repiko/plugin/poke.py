@@ -11,6 +11,7 @@ from LSparser import Events,Command,ParseResult
 # import asyncio
 import yaml
 from pathlib import Path
+from contextlib import contextmanager
 # from contextvars import ContextVar
 
 @Events.on(NoticeSelector.getEventName())
@@ -112,26 +113,36 @@ async def delme(pr:ParseResult):
 #     # meCount.set(meCount.get(1)-1)
 #     # await meStack.get_nowait()
 
-@Events.onCmd("poke")
-async def poke(pr:ParseResult):
+@contextmanager
+def onlyPokeOnce():
     global pokeCount
     pokeCount+=1
+    try:
+        yield pokeCount
+    finally:
+        pokeCount=0
+
+@Events.onCmd("poke")
+async def poke(pr:ParseResult):
+    # global pokeCount
+    # pokeCount+=1
     # mes=meCount.get()
-    logger.debug(f"Poke: {pokeCount}")
-    if pokeCount>=2: # 防止递归
-        return ["请不要让我戳自己（"]
-    msg:Message=pr.raw
-    bot=msg.selector.bot
-    default=[".at"]
-    if not (content:=memberPokes.get(msg.realSrc,{}).get("content")):
-        content=default
-    newMsg=msg.copy()
-    newMsg.content=content
-    result=await bot._handleData(newMsg) # 几乎是从最外层重新处理消息
-    if result:
-        msg.quickReply=True
-        msg._replyJson=result
-    pokeCount=0
+    with onlyPokeOnce() as pokeCount:
+        logger.debug(f"Poke: {pokeCount}")
+        if pokeCount>=2: # 防止递归
+            return ["请不要让我戳自己（"]
+        msg:Message=pr.raw
+        bot=msg.selector.bot
+        default=[".at"]
+        if not (content:=memberPokes.get(msg.realSrc,{}).get("content")):
+            content=default
+        newMsg=msg.copy()
+        newMsg.content=content
+        result=await bot._handleData(newMsg) # 几乎是从最外层重新处理消息
+        if result:
+            msg.quickReply=True
+            msg._replyJson=result
+    # pokeCount=0
     return []
 
 path=Path("config/poke.yaml")

@@ -1,7 +1,7 @@
 from LSparser import Command, Events, ParseResult, CommandParser, OPT
 from LSparser.event import EventNames
 from LSparser.command.parser import CommandState
-# from repiko.core.log import logger
+from repiko.core.log import logger
 from repiko.core.api import ApiError
 from repiko.msg.content import Content
 from repiko.msg.part import Record, TTS, Node, Forward
@@ -115,3 +115,9 @@ async def pasteErrorEmoji(pr: ParseResult, parser: CommandParser, e: Exception):
     msg: Message = pr.raw
     if not isinstance(e, ApiError):
         await msg.selector.bot.PasteEmoji(msg.id, 128557)  # 大哭
+    else:
+        try:
+            await msg.selector.bot.PasteEmoji(msg.id, 128560)  # 紧张
+        except ApiError as e:
+            logger.error("表情都贴不上了！")
+            raise e
