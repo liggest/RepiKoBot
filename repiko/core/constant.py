@@ -72,6 +72,8 @@ class NoticeType(str,Enum):
     """ 其他客户端在线状态变更 """
     Essence="essence"
     """ 精华消息 """
+    GroupMsgEmojiLike = "group_msg_emoji_like"
+    """ 群聊表情回应 """
 
 class MetaEventType(str,Enum):
     """ 请求事件类型 """
