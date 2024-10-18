@@ -78,7 +78,7 @@ async def getme(pr:ParseResult):
     if myPoke := memberPokes.get(qq):
         pokeContent = f" {myPoke['content']}" if myPoke['content'] else "空的"
         return [f"{name} 当前的 .poke 是{pokeContent}"]
-    return [f"{name} 好像还没设置过 .poke 呀，试试用 .help poke 了解一下吧"]
+    return [f"{name} 好像还没设置过 .poke 呀，试着用 .help poke 了解一下吧"]
 
 @Events.onCmd("setpoke")
 async def setme(pr:ParseResult):
