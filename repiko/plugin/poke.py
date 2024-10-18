@@ -63,38 +63,45 @@ Command("delpoke").names("pokedel")
 
 @Events.onCmd("getpoke")
 async def getme(pr:ParseResult):
-    msg:Message=pr.raw
-    qq=msg.realSrc
-    name=msg.getSrcName()
-    atMe=At(msg.realSrc).CQcode
-    if not name or msg.mtype==MessageType.Group:
-        name=atMe
+    msg: Message = pr.raw
+    content = msg.content
+    qq = msg.realSrc
+    atQQ = At(qq)
+    if At in content:
+        at: At = content[At, 0]
+        if at.qq.isdigit():
+            qq = int(at.qq)
+            atQQ = at
+    name = msg.getSrcName()
+    if not name or msg.mtype == MessageType.Group:
+        name = atQQ.CQcode
     if myPoke := memberPokes.get(qq):
-        return [f"{name} 当前的 .poke 是 {myPoke['content']}"]
-    return [f"尚未为 {name} 设置 .poke"]
+        pokeContent = f" {myPoke['content']}" if myPoke['content'] else "空的"
+        return [f"{name} 当前的 .poke 是{pokeContent}"]
+    return [f"{name} 好像还没设置过 .poke 呀，试试用 .help poke 了解一下吧"]
 
 @Events.onCmd("setpoke")
 async def setme(pr:ParseResult):
-    msg:Message=pr.raw
-    qq=msg.realSrc
-    name=msg.getSrcName()
-    atMe=At(msg.realSrc).CQcode
-    content=pr.paramStr.strip()
+    msg: Message = pr.raw
+    qq = msg.realSrc
+    name = msg.getSrcName()
+    atMe = At(msg.realSrc).CQcode
+    content = pr.paramStr.strip()
     if msg.hasAtMe:
-        content=f"{atMe} {content}"
-    memberPokes[qq]={ "name":name, "content":pr.paramStr }
-    if not name or msg.mtype==MessageType.Group:
-        name=atMe
+        content = f"{atMe} {content}"
+    memberPokes[qq] = {"name": name, "content": pr.paramStr}
+    if not name or msg.mtype == MessageType.Group:
+        name = atMe
     return [f"为 {name} 设置了 .poke"]
 
 @Events.onCmd("delpoke")
 async def delme(pr:ParseResult):
-    msg:Message=pr.raw
-    qq=msg.realSrc
-    name=msg.getSrcName()
-    content=memberPokes.pop(qq,None)
-    if not name or msg.mtype==MessageType.Group:
-        name=At(msg.realSrc).CQcode
+    msg: Message = pr.raw
+    qq = msg.realSrc
+    name = msg.getSrcName()
+    content = memberPokes.pop(qq, None)
+    if not name or msg.mtype == MessageType.Group:
+        name = At(msg.realSrc).CQcode
     if not content:
         return [f"未找到 {name} 的 .poke"]
     return [f"为 {name} 删除了 .poke"]
@@ -134,8 +141,10 @@ async def poke(pr:ParseResult):
         msg:Message=pr.raw
         bot=msg.selector.bot
         default=[".at"]
-        if not (content:=memberPokes.get(msg.realSrc,{}).get("content")):
+        if (content:=memberPokes.get(msg.realSrc,{}).get("content")) is None:
             content=default
+        if not content:  # 被故意设为 ""
+            return []
         newMsg=msg.copy()
         newMsg.content=content
         result=await bot._handleData(newMsg) # 几乎是从最外层重新处理消息
