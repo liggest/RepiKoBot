@@ -15,6 +15,8 @@ async def atMe(msg:Message,bot:Bot):
         content=msg.content.plainText
     if "是不是" in content:
         return "围观群众：是啊是啊"
+    elif (word := "喜欢") in content or (word := "傲娇") in content:
+        return f"才、才不{word}呢"
     elif "生气了" in content:
         return "没有哦"
     elif "草" in content or "艹" in content:
