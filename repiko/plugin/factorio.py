@@ -4,7 +4,7 @@ from itertools import chain
 from typing import Annotated, TYPE_CHECKING
 import asyncio
 import re
-from datetime import time
+# from datetime import time
 
 from repiko.core.log import logger
 from repiko.core.config import pluginConfig, PluginUnits, Pattern
@@ -12,7 +12,7 @@ from repiko.msg.data import Message
 from repiko.msg.content import Content
 from repiko.msg.part import Image
 from repiko.module.str2image import str2greyPng
-from repiko.msg.util import isCQcode, CQunescape, CQescape
+from repiko.msg.util import CQunescape
 
 from httpx import AsyncClient
 from factorio_rcon import AsyncRCONClient, InvalidResponse
@@ -170,7 +170,7 @@ async def factorio(pr:ParseResult):
 
     msg: Message = pr.raw
 
-    if pr["l"]:
+    if pr["pl"]:
         return [await _client.send("/players")]
     if pr["e"]:
         return [await _client.send("/evolution")]
