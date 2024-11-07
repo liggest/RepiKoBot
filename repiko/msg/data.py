@@ -335,13 +335,13 @@ class Message(BaseData):
     def replyDeleted(self,val:bool):
         self._replyDeleted=val
 
-    def getSrcName(self):
+    def getSrcName(self) -> str | None:
         """ 发送者昵称 """
-        return self.get("sender",{}).get("nickname")
+        return self.get("sender", {}).get("nickname")
     
-    def getSrcCard(self):
+    def getSrcCard(self) -> str | None:
         """ 发送者群名片 """
-        return self.get("sender",{}).get("card",self.getSrcName())
+        return self.get("sender", {}).get("card", self.getSrcName())
 
 
 class Request(BaseData):
