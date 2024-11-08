@@ -125,18 +125,20 @@ class Client:
             "size": 4096
         }
 
-    _chat_ptn = re.compile(r"\d\d\d\d-\d\d-\d\d (?P<time>\d\d:\d\d:\d\d) \[[A-Z]+\] (?P<content>.*)")
+    _chat_ptn = re.compile(r"(?P<date>\d\d\d\d-\d\d-\d\d) (?P<time>\d\d:\d\d:\d\d) \[[A-Z]+\] (?P<content>.*)")
 
+    _last_date = "0"
     _last_time = "0"
 
     def chat_gen(self, data: str):
         for line in data.splitlines():
             if m := self._chat_ptn.match(line):
-                last_time = m.group('time')
-                if last_time <= self._last_time:
+                last_date, last_time = m.group('date'), m.group('time')
+                if last_date <= self._last_date and last_time <= self._last_time:
                     continue
+                self._last_date = last_date
                 self._last_time = last_time
-                content = Content(m.group('content')).brief
+                content = CQunescape(Content(m.group('content')).brief)
                 yield f"{last_time} {content}"
 
     async def get_chats(self):
@@ -189,7 +191,7 @@ async def factorio(pr:ParseResult):
         else:
             return ["聊天服务不可用…"]
 
-    name = msg.getSrcCard() or "群"
+    name = msg.getSrcCard() or str(msg.realSrc)
     command = f"[{name}] {CQunescape(Content(command).brief.lstrip('/'))}"
     # print(repr(command))
     try:
