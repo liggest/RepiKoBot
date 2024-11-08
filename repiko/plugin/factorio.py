@@ -93,6 +93,9 @@ class Client:
     #             logger.info(f"RCON 接收消息: {response.body}")
 
     def on_done(self, task: asyncio.Task):
+        if task.cancelled():
+            logger.info("RCON 连接已被取消")
+            return
         if task.exception() is not None:
             logger.warning(f"RCON 异常断开，正在重连… \n{task.exception()!r}")
             self.init(self.config)
