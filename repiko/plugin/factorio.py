@@ -15,7 +15,7 @@ from repiko.module.str2image import str2greyPng
 from repiko.msg.util import CQunescape
 
 from httpx import AsyncClient
-from factorio_rcon import AsyncRCONClient, InvalidResponse
+from factorio_rcon import AsyncRCONClient, InvalidResponse, RCONNetworkError
 
 from LSparser import Command, Events, ParseResult, OPT
 
@@ -101,9 +101,17 @@ class Client:
             self.init(self.config)
     
     async def send(self, command: str):
+        try:
+            return await self._send(command)
+        except RCONNetworkError:
+            logger.warning("RCON 发送消息失败，在重连后重试一次...")
+            self.init(self.config)
+            return await self._send(command)
+    
+    async def _send(self, command: str):
         assert self.client
+        logger.info(f"RCON 发送消息: {command}")
         if data := await self.client.send_command(command):
-            logger.info(f"RCON 发送消息: {command}")
             logger.info(f"RCON 接收消息: {data}")
             return data.strip()
     
