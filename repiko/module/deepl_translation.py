@@ -18,6 +18,8 @@ def removeTail(s:str,tail:str):
 class DeepTrans:
 
     class Lang(str,Enum):
+        阿 = "AR"
+        阿拉伯 = "AR"
         保加利亚 = "BG"
         捷克 = "CS"
         丹麦 = "DA"
@@ -43,15 +45,19 @@ class DeepTrans:
         # 意 = "IT"
         日 = "JA"
         日本 = "JA"
+        韩 = "KO"
         立陶宛 = "LT"
         拉脱维亚 = "LV"
+        挪威 = "NB"  # 书面挪威语
         荷兰 = "NL"
+        # 尼德兰 = "NL"
         波兰 = "PL"
 
         葡萄牙 = "PT"
         葡 = "PT"   # ~
         葡萄牙葡萄牙 = "PT-PT"
         葡萄牙葡 = "PT-PT"
+        葡式葡 = "PT-PT"
         巴西葡萄牙 = "PT-BR"
         巴西葡 = "PT-BR"
 
@@ -64,6 +70,12 @@ class DeepTrans:
         乌克兰 = "UK"
         中 = "ZH"
         汉 = "ZH"
+        简体中 = "ZH-HANS"
+        简中 = "ZH-HANS"
+        简体字 = "ZH-HANS"
+        繁体中 = "ZH-HANT"
+        繁中 = "ZH-HANT"
+        繁体字 = "ZH-HANT"
         
         @classmethod
         def get(cls,name:str) -> Self|None:
@@ -74,7 +86,7 @@ class DeepTrans:
             if lang:=cls.get(name):
                 return lang
             if temp:=removeTail(name,"语"):
-                if temp != "中" and (lang:=cls.get(temp)): # no 中语
+                if not temp.endswith("中") and (lang:=cls.get(temp)): # no 中语
                     return lang
             elif temp:=removeTail(name,"文"):
                 if temp != "日本" and (lang:=cls.get(temp)): # no 日本文
@@ -84,11 +96,11 @@ class DeepTrans:
                     return cls.英式英 # 英国话 => 英式英语
                 if temp=="美":
                     return cls.美式英
-                con=(len(temp)==1 and temp not in { "西","日","汉" }) or temp in { "英式英","美式英","巴西葡","巴西葡" }
+                con=(len(temp)==1 and temp not in { "西","日","汉" }) or temp in { "英式英","美式英","葡式葡","葡萄牙葡","巴西葡","简体中","繁体中" }
                 if con and (lang:=cls.get(temp)):    # no 汉国话
                     return lang
             elif temp:=removeTail(name,"话"): # 如 瑞典话
-                con=len(temp)>1 and temp not in { "英式英","美式英","巴西葡","巴西葡" } # no 英式英话
+                con=len(temp)>1 and not temp.endswith("字") and temp not in { "英式英","美式英","葡式葡","葡萄牙葡","巴西葡","简体中","繁体中","简体字","繁体字" } # no 英式英话 简体中话 简体字话
                 if con and (lang:=cls.get(temp)):
                     return lang
 
