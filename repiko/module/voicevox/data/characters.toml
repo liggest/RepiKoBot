@@ -6,7 +6,8 @@ aliases = [
     "四国芽丹",
 ]
 description = "清晰有底气的声音"
-image = "/static/f0dd9ef1a6128916921e1b3e5b817188/eadd3/bustup-shikoku_metan.png"
+# image = "/static/f0dd9ef1a6128916921e1b3e5b817188/eadd3/bustup-shikoku_metan.png"
+image = ""
 
 ["ずんだもん"]
 name = "ずんだもん"
@@ -17,14 +18,16 @@ aliases = [
     "豆打兽",
 ]
 description = "孩童一般的高音"
-image = "/static/872d600b9b7872e389de2bb3888f9de5/eadd3/bustup-zundamon.png"
+# image = "/static/872d600b9b7872e389de2bb3888f9de5/eadd3/bustup-zundamon.png"
+image = ""
 
 ["春日部つむぎ"]
 name = "春日部つむぎ"
 name_cn = "春日部䌷"
 aliases = []
 description = "元气开朗的声音"
-image = "/static/046153ad2a4ff3b8f3b238fbb6c3024a/eadd3/bustup-kasukabe_tsumugi.png"
+# image = "/static/046153ad2a4ff3b8f3b238fbb6c3024a/eadd3/bustup-kasukabe_tsumugi.png"
+image = ""
 
 ["雨晴はう"]
 name = "雨晴はう"
@@ -33,14 +36,16 @@ aliases = [
     "雨晴Hau",
 ]
 description = "轻柔可爱的声音"
-image = "/static/787b7910f89088ba30dc089704a2a6a5/eadd3/bustup-amehare_hau.png"
+# image = "/static/787b7910f89088ba30dc089704a2a6a5/eadd3/bustup-amehare_hau.png"
+image = ""
 
 ["波音リツ"]
 name = "波音リツ"
 name_cn = "波音律"
 aliases = []
 description = "低沉而酷的声音"
-image = "/static/75549daa4535e332de0123efa8709624/eadd3/bustup-namine_ritsu.png"
+# image = "/static/75549daa4535e332de0123efa8709624/eadd3/bustup-namine_ritsu.png"
+image = ""
 
 ["玄野武宏"]
 name = "玄野武宏"
@@ -49,7 +54,8 @@ aliases = [
     "玄武",
 ]
 description = "爽朗的青年音"
-image = "/static/be6fc0c823e6ac724e5023faa08e8cea/eadd3/bustup-kurono_takehiro.png"
+# image = "/static/be6fc0c823e6ac724e5023faa08e8cea/eadd3/bustup-kurono_takehiro.png"
+image = ""
 
 ["白上虎太郎"]
 name = "白上虎太郎"
@@ -58,7 +64,8 @@ aliases = [
     "白虎",
 ]
 description = "刚变声的少年音"
-image = "/static/8891499e3f82aad843ac288fc96d63ab/eadd3/bustup-shirakami_kotarou.png"
+# image = "/static/8891499e3f82aad843ac288fc96d63ab/eadd3/bustup-shirakami_kotarou.png"
+image = ""
 
 ["青山龍星"]
 name = "青山龍星"
@@ -67,7 +74,8 @@ aliases = [
     "青龙",
 ]
 description = "厚重的低音"
-image = "/static/c80661c74af8ee50b41e118a96ce4f93/eadd3/bustup-aoyama_ryusei.png"
+# image = "/static/c80661c74af8ee50b41e118a96ce4f93/eadd3/bustup-aoyama_ryusei.png"
+image = ""
 
 ["冥鳴ひまり"]
 name = "冥鳴ひまり"
@@ -76,28 +84,32 @@ aliases = [
     "死神",
 ]
 description = "柔和温暖的声音"
-image = "/static/2c28b01dc088f64b901f8cfbe273ec85/eadd3/bustup-meimei_himari.png"
+# image = "/static/2c28b01dc088f64b901f8cfbe273ec85/eadd3/bustup-meimei_himari.png"
+image = ""
 
 ["九州そら"]
 name = "九州そら"
 name_cn = "九州宇宙"
 aliases = []
 description = "成熟有风度的声音"
-image = "/static/f228bc23c4c36ce439f1f2c972469869/eadd3/bustup-kyushu_sora.png"
+# image = "/static/f228bc23c4c36ce439f1f2c972469869/eadd3/bustup-kyushu_sora.png"
+image = ""
 
 ["もち子さん"]
 name = "もち子さん"
 name_cn = "模型娘饼子"
 aliases = []
 description = "明了平静的声音"
-image = "/static/33a2e472b53194c79ec2eac3e1d1b39e/eadd3/bustup-mochikosan.png"
+# image = "/static/33a2e472b53194c79ec2eac3e1d1b39e/eadd3/bustup-mochikosan.png"
+image = ""
 
 ["剣崎雌雄"]
 name = "剣崎雌雄"
 name_cn = "剑崎雌雄"
 aliases = []
 description = "平静有安心感的声音"
-image = "/static/e81ad255e492ffa37d800eb98ab598eb/eadd3/bustup-kenzaki_mesuo.png"
+# image = "/static/e81ad255e492ffa37d800eb98ab598eb/eadd3/bustup-kenzaki_mesuo.png"
+image = ""
 
 ["WhiteCUL"]
 name = "WhiteCUL"
@@ -106,14 +118,16 @@ aliases = [
     "whitecul",
 ]
 description = "舒心直率的声音"
-image = "/static/0e11b3f7df4ead3289a19d1535f21da1/eadd3/bustup-white_cul.png"
+# image = "/static/0e11b3f7df4ead3289a19d1535f21da1/eadd3/bustup-white_cul.png"
+image = ""
 
 ["後鬼"]
 name = "後鬼"
 name_cn = "后鬼"
 aliases = []
 description = "文雅有包容力的声音"
-image = "/static/b9a43d487ba003970c0f762e6d6ef8be/eadd3/bustup-goki.png"
+# image = "/static/b9a43d487ba003970c0f762e6d6ef8be/eadd3/bustup-goki.png"
+image = ""
 
 ["No.7"]
 name = "No.7"
@@ -123,21 +137,24 @@ aliases = [
     "7号",
 ]
 description = "坚实凛然的声音"
-image = "/static/43640929eff3a7af041f95d5d7f46d87/eadd3/bustup-number_seven.png"
+# image = "/static/43640929eff3a7af041f95d5d7f46d87/eadd3/bustup-number_seven.png"
+image = ""
 
 ["ちび式じい"]
 name = "ちび式じい"
 name_cn = "小只式爷"
 aliases = []
 description = "亲和沙哑的声音"
-image = "/static/b59524abacaa50e843ee9f95769cb8cd/eadd3/bustup-chibishikiji.png"
+# image = "/static/b59524abacaa50e843ee9f95769cb8cd/eadd3/bustup-chibishikiji.png"
+image = ""
 
 ["櫻歌ミコ"]
 name = "櫻歌ミコ"
 name_cn = "樱歌Miko"
 aliases = []
 description = "可爱的少女音"
-image = "/static/04ed4c0561bcc673e14e9045c0be29b0/7abc6/bustup-ouka_miko.png"
+# image = "/static/04ed4c0561bcc673e14e9045c0be29b0/7abc6/bustup-ouka_miko.png"
+image = ""
 
 ["小夜/SAYO"]
 name = "小夜/SAYO"
@@ -146,7 +163,8 @@ aliases = [
     "小夜sayo",
 ]
 description = "平和温厚的声音"
-image = "/static/d5ffa98906e2be967daa5b5bc7e63fd3/eadd3/bustup-sayo.png"
+# image = "/static/d5ffa98906e2be967daa5b5bc7e63fd3/eadd3/bustup-sayo.png"
+image = ""
 
 ["ナースロボ＿タイプＴ"]
 name = "ナースロボ＿タイプＴ"
@@ -157,14 +175,16 @@ aliases = [
     "饕餮",
 ]
 description = "冷静谨慎的声音"
-image = "/static/784a947d7d05852cef6598c065cc5b61/eadd3/bustup-nurserobo_typet.png"
+# image = "/static/784a947d7d05852cef6598c065cc5b61/eadd3/bustup-nurserobo_typet.png"
+image = ""
 
 ["†聖騎士 紅桜†"]
 name = "†聖騎士 紅桜†"
 name_cn = "†圣骑士 红缨†"
 aliases = []
 description = "活泼清晰的声音"
-image = "/static/0e181c8970d11a66ddc1f1d34613eff5/eadd3/bustup-horinaito_benizakura.png"
+# image = "/static/0e181c8970d11a66ddc1f1d34613eff5/eadd3/bustup-horinaito_benizakura.png"
+image = ""
 
 ["雀松朱司"]
 name = "雀松朱司"
@@ -173,7 +193,8 @@ aliases = [
     "朱雀",
 ]
 description = "平静安定的声音"
-image = "/static/5b88c1f123637da3efdfaa5c1db60807/eadd3/bustup-wakamatsu_akashi.png"
+# image = "/static/5b88c1f123637da3efdfaa5c1db60807/eadd3/bustup-wakamatsu_akashi.png"
+image = ""
 
 ["麒ヶ島宗麟"]
 name = "麒ヶ島宗麟"
@@ -182,35 +203,40 @@ aliases = [
     "麒麟",
 ]
 description = "沉稳的大叔音"
-image = "/static/14a856c726c0616d80226fc1285729c7/eadd3/bustup-kigashima_sourin.png"
+# image = "/static/14a856c726c0616d80226fc1285729c7/eadd3/bustup-kigashima_sourin.png"
+image = ""
 
 ["春歌ナナ"]
 name = "春歌ナナ"
 name_cn = "春歌Nana"
 aliases = []
 description = "活泼有力的声音"
-image = "/static/96338e509a8d7d5fe29c7006ffc439d8/eadd3/bustup-haruka_nana.png"
+# image = "/static/96338e509a8d7d5fe29c7006ffc439d8/eadd3/bustup-haruka_nana.png"
+image = ""
 
 ["猫使アル"]
 name = "猫使アル"
 name_cn = "猫使R"
 aliases = []
 description = "浑厚爽快的声音"
-image = "/static/32685bed6254affedccde0b9e869ee05/eadd3/bustup-nekotsuka_aru.png"
+# image = "/static/32685bed6254affedccde0b9e869ee05/eadd3/bustup-nekotsuka_aru.png"
+image = ""
 
 ["猫使ビィ"]
 name = "猫使ビィ"
 name_cn = "猫使B"
 aliases = []
 description = "纯真无邪的声音"
-image = "/static/84a6703fd70f01e44a34e6aa2ffe361f/eadd3/bustup-nekotsuka_bi.png"
+# image = "/static/84a6703fd70f01e44a34e6aa2ffe361f/eadd3/bustup-nekotsuka_bi.png"
+image = ""
 
 ["中国うさぎ"]
 name = "中国うさぎ"
 name_cn = "中国兔"
 aliases = []
 description = "幽玄青涩的声音"
-image = "/static/f04dcc58fea9390f2d9f9e32374a3221/eadd3/bustup-chugoku_usagi.png"
+# image = "/static/f04dcc58fea9390f2d9f9e32374a3221/eadd3/bustup-chugoku_usagi.png"
+image = ""
 
 ["栗田まろん"]
 name = "栗田まろん"
@@ -219,7 +245,8 @@ aliases = [
     "栗田Maron",
 ]
 description = "中性有深度的声音"
-image = "/static/98b945a4eda37b3afddd0d0f9100b6bb/eadd3/bustup-kurita_maron.png"
+# image = "/static/98b945a4eda37b3afddd0d0f9100b6bb/eadd3/bustup-kurita_maron.png"
+image = ""
 
 ["あいえるたん"]
 name = "あいえるたん"
@@ -228,18 +255,28 @@ aliases = [
     "蓝田诺艾尔",
 ]
 description = "温和悦耳的声音"
-image = "/static/46e63537ae142eb52380d77fe0f99046/eadd3/bustup-aierutan.png"
+# image = "/static/46e63537ae142eb52380d77fe0f99046/eadd3/bustup-aierutan.png"
+image = ""
 
 ["満別花丸"]
 name = "満別花丸"
 name_cn = "满别花丸"
 aliases = []
 description = "生动独特的声音"
-image = "/static/2e60d4746f3746b0e06fe87fd4e6fd78/eadd3/bustup-manbetsu_hanamaru.png"
+# image = "/static/2e60d4746f3746b0e06fe87fd4e6fd78/eadd3/bustup-manbetsu_hanamaru.png"
+image = ""
 
 ["琴詠ニア"]
 name = "琴詠ニア"
 name_cn = "琴咏Nia"
 aliases = []
 description = "流畅无机质的声音"
-image = "/static/1ce1f1aa87b5864495607231e7777fca/eadd3/bustup-kotoyomi_nia.png"
+# image = "/static/1ce1f1aa87b5864495607231e7777fca/eadd3/bustup-kotoyomi_nia.png"
+image = ""
+
+["Voidoll"]
+name = "Voidoll"
+name_cn = ""
+aliases = []
+description = "端庄腼腆的电子音"
+image = ""
