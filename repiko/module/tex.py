@@ -75,7 +75,6 @@ async def atext2img(tex: str):
     if not font:
         raise ValueError("还没有字体！")
     async with httpx.AsyncClient() as client:
-        client: httpx.AsyncClient
         svgText = (await client.get(url, params={"tex": tex})).text
     root = reviseSVG(svgText)
     # img=svg2img(str(root))
@@ -152,10 +151,10 @@ def img2bytes(img: Image.Image):
         img.save(byts, "PNG")
         return byts.getvalue()
 
-def svg2bytes(svgText: str):
+def svg2bytes(svgText: str, background: str | None = "#eeeeee"):
     # print(repr(svgText))
     # print(repr(fontPath))
-    return bytes(svg_to_bytes(svg_string=svgText, dpi=144, font_files=[fontPath]))
+    return bytes(svg_to_bytes(svg_string=svgText, dpi=144, background=background, font_files=[fontPath]))
 
 
 if __name__ == "__main__":
