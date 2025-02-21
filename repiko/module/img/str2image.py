@@ -1,6 +1,7 @@
-from PIL import Image,ImageDraw,ImageFont
+from typing import Iterable
 import os
-import typing
+
+from PIL import Image, ImageDraw, ImageFont
 # import textwrap
 
 marginSize=(20,20)
@@ -45,21 +46,31 @@ def getFileName(title:str,fileName,suffix=".png"):
 def getFilePath(title,fileName,suffix=".png"):
     return imageDir+getFileName(title,fileName,suffix)
 
-def str2greyPng(text:typing.Union[str,typing.Iterable],fileName=None,overwrite=False):
-    if isinstance(text,str):
-        lines=text.splitlines()
-    elif isinstance(text,typing.Iterable):
-        lines=[*map(str,text)]
-    title=""
+def getLines(text: str | Iterable):
+    if isinstance(text, str):
+        return text.splitlines()
+    elif isinstance(text, Iterable):
+        return [str(line) for line in text]
+
+def str2greyImage(text: str | Iterable):
+    lines = getLines(text)
+    title = ""
     if lines:
-        title=lines[0]
+        title = lines[0]
+    return drawText(title, lines[1:])
+
+def str2greyPng(text: str | Iterable, fileName=None, overwrite=False):
+    lines = getLines(text)
+    title = ""
+    if lines:
+        title = lines[0]
     # fileName=getFileName(title,fileName)
-    filePath=getFilePath(title,fileName)
+    filePath = getFilePath(title, fileName)
     if imageExists(filePath) and not overwrite:
-        return r"file:///"+os.path.abspath(filePath).lstrip("/")
-    img=drawText(title,lines[1:])
+        return r"file:///" + os.path.abspath(filePath).lstrip("/")
+    img = drawText(title, lines[1:])
     img.save(filePath)
-    return r"file:///"+os.path.abspath(filePath).lstrip("/")
+    return r"file:///" + os.path.abspath(filePath).lstrip("/")
 
 def drawText(title,lines): #这里的lines不包括title
     if not titleFont or not font:
@@ -116,6 +127,4 @@ def splitLine(line,maxWidth):
 
 def imageExists(fileName):
     return os.path.exists(fileName)
-
-
 

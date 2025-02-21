@@ -8,8 +8,8 @@ from repiko.msg.core import MCore
 # from repiko.msg.message import Message
 from repiko.msg.data import Message
 # from repiko.msg.part import MessagePart,Share,Image,At,Text
-from repiko.msg.part import MessagePart,Image,At,Text
-from repiko.msg.util import CQunescapeComma,CQunescape
+from repiko.msg.part import MessagePart, Image, At, Text
+from repiko.msg.util import CQunescapeComma, CQunescape
 
 # import repiko.module.ygoOurocg_ver4 as ygotest
 # from repiko.module.ygoBG import BaiGe
@@ -27,13 +27,13 @@ from ygoutil.dataloader import CDBReader, ConfReader, ShrinkLevel
 from ygoutil.sqlbuilder import SQLBuilder
 # from repiko.module.ygo.sqlbuilder import SQLBuilder
 from repiko.module.hitokoto import HitokotoRequester
-from repiko.module.str2image import str2greyPng,getFilePath as getImgPath,initFont as initNormalFont
-from repiko.module.util import redirect,asyncRedirect,CONS,Share
+from repiko.module.img.str2image import str2greyPng, getFilePath as getImgPath, initFont as initNormalFont
+from repiko.module.util import redirect, asyncRedirect, CONS, Share
 
 from repiko.module import 麻将
 import repiko.module.AA as AA
-from repiko.module.AA.image import AA2img,initFont as initAAFont
-from repiko.module.tex import initFont as initTexFont,atext2img,LatexError
+from repiko.module.AA.image import AA2img, initFont as initAAFont
+from repiko.module.img.tex import initFont as initTexFont, atext2img, LatexError
 
 import random
 import datetime

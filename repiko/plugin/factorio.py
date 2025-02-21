@@ -11,7 +11,7 @@ from repiko.core.config import pluginConfig, PluginUnits, Pattern
 from repiko.msg.data import Message
 from repiko.msg.content import Content
 from repiko.msg.part import Image
-from repiko.module.str2image import str2greyPng
+from repiko.module.img.str2image import str2greyPng
 from repiko.msg.util import CQunescape
 
 from httpx import AsyncClient

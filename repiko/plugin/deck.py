@@ -15,7 +15,7 @@ from repiko.msg.part import Image
 from repiko.msg.data import Message
 from repiko.core.config import pluginConfig
 
-from repiko.module.str2image import str2greyPng
+from repiko.module.img.str2image import str2greyPng
 
 ygopath:Path=None
 deckpath:Path=None

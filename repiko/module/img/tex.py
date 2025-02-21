@@ -25,7 +25,7 @@ from resvg_py import svg_to_bytes
 # from cairosvg import svg2png
 # import PIL.Image as PILImage
 
-from repiko.module.str2image import getSize
+from img.str2image import getSize
 
 fontName: str = None
 fontPath: str = None

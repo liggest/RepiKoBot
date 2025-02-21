@@ -6,7 +6,7 @@ from repiko.core.log import logger
 from repiko.core.config import pluginConfig, PluginUnits, Pattern
 from repiko.msg.part import Image, Record
 
-from repiko.module.str2image import str2greyPng
+from repiko.module.img.str2image import str2greyPng
 from repiko.module.voicevox import VoiceVoxApi, Character, style_map
 
 from LSparser import Command, Events, ParseResult, OPT
