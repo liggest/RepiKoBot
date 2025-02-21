@@ -48,7 +48,7 @@ class Client:
     def init(self, config: FactorioConfig):
         logger.info("初始化 factorio RCON...")
         self.config = config
-        if config is None:
+        if not self.is_configed:
             logger.warning("无配置，未初始化 factorio RCON")
             return
 
@@ -58,6 +58,10 @@ class Client:
         
         self.task = asyncio.create_task(self.run(config.host, config.port, config.password))
         self.task.add_done_callback(self.on_done)
+
+    @property
+    def is_configed(self):
+        return self.config is not None and self.config.host and self.config.port
 
     @property
     def is_inited(self):
@@ -121,7 +125,8 @@ class Client:
 
     @property
     def is_chat_available(self):
-        return self._panel_config is not None
+        _panel_config = self._panel_config
+        return _panel_config is not None and _panel_config.url and _panel_config.apikey and _panel_config.instance_id and _panel_config.daemon_id
 
     @cached_property
     def _log_api_url(self):
