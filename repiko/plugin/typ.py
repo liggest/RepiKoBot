@@ -7,7 +7,7 @@ from repiko.msg.content import Content
 from repiko.msg.util import CQunescape
 from repiko.module.img.typ import typ_file2png, default_font_paths, default_root_path
 
-from LSparser import Command, Events, ParseResult #, OPT
+from LSparser import Command, Events, ParseResult, OPT
 
 def images_gen(data: bytes | list[bytes]):
     if isinstance(data, bytes):
@@ -31,9 +31,10 @@ template_map = {
     "typtex": "tex_temp.typ", 
 }
 
-Command("typst").names("typ")
-Command("typmd").names("tmd", "md", "markdown")
-Command("typtex").names("ttex")
+hd_opt = ["-HD", "-hd", "-2x", "-2X", "-高清"]
+Command("typst").names("typ").opt(hd_opt, OPT.Not, "更高清的图片渲染")
+Command("typmd").names("tmd", "md", "markdown").opt(hd_opt, OPT.Not, "更高清的图片渲染")
+Command("typtex").names("ttex", "typTeX", "tTeX").opt(hd_opt, OPT.Not, "更高清的图片渲染")
 
 @Events.onCmd("typst")
 @Events.onCmd("typmd")
@@ -45,8 +46,9 @@ async def typst(pr: ParseResult):
     template = template_map.get(pr._cmd.name)
     assert template, "模板不存在"
     template_data = {"content": content, "content_type": "str"}
+    ppi = 300 if pr["HD"] else 144
     return Content(*images_gen(
-        await asyncio.to_thread(typ_file2png, TemplateBase / template, default_font_paths(), root=default_root_path(), ppi=144, data=template_data)
+        await asyncio.to_thread(typ_file2png, TemplateBase / template, default_font_paths(), root=default_root_path(), ppi=ppi, data=template_data)
     ))
 
 # async def typmd(pr: ParseResult):
