@@ -56,12 +56,12 @@ memberPokes:dict[int, dict[str, str]]={}
 # meStack=asyncio.LifoQueue(maxsize=2)
 pokeCount=0
 
-Command("poke").names("戳")
-Command("getpoke").names("pokeget")
-Command("setpoke").names("pokeset")
-Command("delpoke").names("pokedel")
+Command("poke").names("戳", "戳一戳")
+Command("pokeget").names("getpoke")
+Command("pokeset").names("setpoke")
+Command("pokedel").names("delpoke")
 
-@Events.onCmd("getpoke")
+@Events.onCmd("pokeget")
 async def getme(pr:ParseResult):
     msg: Message = pr.raw
     content = msg.content
@@ -80,7 +80,7 @@ async def getme(pr:ParseResult):
         return [f"{name} 当前的 .poke 是{pokeContent}"]
     return [f"{name} 好像还没设置过 .poke 呀，试着用 .help poke 了解一下吧"]
 
-@Events.onCmd("setpoke")
+@Events.onCmd("pokeset")
 async def setme(pr:ParseResult):
     msg: Message = pr.raw
     qq = msg.realSrc
@@ -94,7 +94,7 @@ async def setme(pr:ParseResult):
         name = atMe
     return [f"为 {name} 设置了 .poke"]
 
-@Events.onCmd("delpoke")
+@Events.onCmd("pokedel")
 async def delme(pr:ParseResult):
     msg: Message = pr.raw
     qq = msg.realSrc

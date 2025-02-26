@@ -9,7 +9,7 @@ from repiko.msg.core import MCore
 from repiko.msg.data import Message
 # from repiko.msg.part import MessagePart,Share,Image,At,Text
 from repiko.msg.part import MessagePart, Image, At, Text
-from repiko.msg.util import CQunescapeComma, CQunescape
+from repiko.msg.util import CQunescape
 
 # import repiko.module.ygoOurocg_ver4 as ygotest
 # from repiko.module.ygoBG import BaiGe
@@ -40,14 +40,12 @@ import datetime
 import os
 import re
 from typing import Annotated
-# from pathlib import Path
 # import yaml
 
-from LSparser import Command, OPT, Events, ParseResult, CommandCore, CommandParser
+from LSparser import Command, OPT, Events, ParseResult, CommandParser
 from LSparser.command import CommandHelper
 
 Command("-hello")
-Command("help").names("?","？").opt("-p",OPT.M,"页数")# .opt("-im",OPT.N,"以图片发送")
 Command("calculate").names("cal").opt("-show",OPT.N,"显示计算过程")
 Command("roll").names("r").opt("-act",OPT.M,"要投骰子的行动")
 (Command("ygocard").names("yc","bg","卡查","查卡").opt("-im",OPT.N,"以图片发送").opt(["-pic","-p"],OPT.N,"卡图")
@@ -63,7 +61,7 @@ Command("ygoocg").names("yo","ourocg").opt("-ver",OPT.M,"翻译版本").opt("-wi
 # Command("ygoserver").names("ys")
 Command("luck").names("jrrp").opt("-yc",OPT.N,"根据运值卡查").opt("-yci",OPT.N,"根据运值卡查，发送图片").opt("-ycp",OPT.N,"根据运值卡查，发送卡图")
 (Command("ygodraw").names("yd").opt("-n",OPT.M,"抽卡数").opt("-im",OPT.N,"以图片发送").opt(["-pic","-p"],OPT.N,"卡图")
-    .opt(["-notoken","-nt","-无衍生物"],OPT.N,"不含衍生物").opt(["-noalias","-na","-无同名卡"],OPT.N,"不含同名卡")
+    .opt(["-notoken","-nt","-无衍生物"],OPT.N,"不含衍生物").opt(["-noalias","-na","-无同名卡","-无异画"],OPT.N,"不含异画卡")
     .opt(["-main","-主卡组"],OPT.N,"只含主卡组").opt(["-extra","-ex","-额外"],OPT.N,"只含额外")
     .opt("-reload",OPT.N,"重载图片")
 )
@@ -127,24 +125,6 @@ def toLS(*args):
 @Events.onCmd("hello")
 def hello(_):
     return ["喵哈喽~"]
-
-CommandHelper.lineLimit=20
-
-@Events.onCmd("help")
-def helpinfo(pr:ParseResult):
-    if f"{pr.type}{pr.command}" in ("!?","！？"):
-        return [] # !? 和 ！？ 不触发
-
-    root="./help"
-    core=pr.parser.core
-    if core.name!=CommandCore.default:
-        root=os.path.join(root,core.name)
-    h=CommandHelper(root,core)
-    page=pr.getToType("p",1,int)
-    result=h.getHelp(pr.params,page)
-    if result:
-        return [CQunescapeComma(result)]
-    return ["是没见过的帮助呢"]
 
 @Events.onCmd("calculate")
 def calculate(pr:ParseResult):

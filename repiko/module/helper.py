@@ -1,91 +1,47 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-import os
 
-class Helper():
-    def __init__(self,hpath):
-        self.helpPath=hpath
-        self.linenum=10
+from pathlib import Path
+
+from LSparser.command.helper import CommandHelper
+
+from repiko.module.img.typ import typ_file2png, default_font_paths
+
+class RpkHelper(CommandHelper):
+    def __init__(self, root: Path | str = Path("./help"), core=None):
+        super().__init__(root, core)
+
+    @property
+    def rootPath(self) -> str:
+        # 兼容旧逻辑
+        return self._rootPath.as_posix()
+
+    @rootPath.setter
+    def rootPath(self, value: Path | str):
+        self._rootPath = Path(value)
     
-    cmdShorthand={
-        "yc":"ygocard",
-        "eat":"canteen",
-        "cal":"calculate",
-        "r":"roll",
-        "ys":"ygoserver",
-        "ts":"translate",
-        "?":"help",
-        "？":"help",
-        "jrrp":"luck",
-        "yd":"ygodraw",
-        "抽卡":"ygodraw",
-        "aw":"aword",
-        "一句话":"aword",
-        "一言":"aword",
-        "猫":"cat"
-        }
+    def getHelpToml(self, target: str | list = ""):
+        """
+            按页查看指令对应的帮助 toml 文件\n
+                target 目标指令，可以为字符串或列表，内容为指令名或包含其下的选项名\n
+        """
+        cmd, target = self.tryFindCmd(target) # 检查、更新target，并尝试寻找指令模板
+        filePath = self.getHelpFilePath(target, ".toml") or self.getHelpFilePath(target, ".typ")
+        if filePath:
+            return filePath
+        return None
 
-    def getHelp(self,target=[],page=1):
-        for i in range(len(target)):
-            t=self.cmdShorthand.get(target[i],None)
-            if not t is None:
-                target[i]=t
-        path=os.path.join(self.helpPath,*target)
-        #print(os.path.abspath('.'))
-        if os.path.exists(path+".txt"):
-            filepath=path+".txt"
-            print(filepath)
-        else:
-            filepath=os.path.join(path,"general.txt")
-            if not os.path.exists(filepath):
-                return ["是没见过的帮助呢"]
-        r=self.getFileResult(filepath,page)
-        return [r]
-
-    def readFile(self,filepath):
-        result=[]
-        with open(filepath,"r",encoding="utf8") as f:
-            result=f.readlines()
-        return result
-
-    def fileClipper(self,fresult):
-        l=len(fresult)
-        result=[]
-        for i in range(0,l,self.linenum):
-            lm=l-i
-            if lm>=self.linenum/2:
-                result.append("".join(fresult[i:i+self.linenum]))
-            else:
-                if result==[]:
-                    result.append("".join(fresult[-lm:]))
-                else:
-                    result[-1]+="".join(fresult[-lm:])
-        result[-1]+="\n"
-        return result
-
-    def addPage(self,fcresult):
-        l=len(fcresult)
-        if l<2:
-            return fcresult,l
-        for i in range(l):
-            p="===%d/%d==="%(i+1,l)
-            fcresult[i]+=p
-        return fcresult,l
-
-    def getFileResult(self,filepath,page=1):
-        r,l=self.addPage(self.fileClipper(self.readFile(filepath)))
-        index=page-1
-        if index>=l:
-            return r[l-1]
-        elif index<=0:
-            return r[0]
-        return r[index]
-
-
-if __name__=="__main__":
-    h=Helper("./help")
-    #print(h.getHelp()[0])
-    #print(h.getHelp(page=2)[0])
-    #print(h.getHelp(page=3)[0])
-    print(h.getHelp(["hello"])[0])
-    #print(h.getHelp(["ygocard"],page=2)[0])
+    def getHelpFilePath(self, target:list, suffix=".txt"):
+        path = self._rootPath.joinpath(*target)
+        filePath = path.with_suffix(suffix) # 先找 name.{suffix}
+        if not filePath.exists():
+            filePath = (path / self.defaultFile).with_suffix(suffix) # 再找 name/general.{suffix}
+            if not filePath.exists():
+                return None
+        return filePath
+    
+def renderHelpToml(filePath: Path, ppi: float = 144):
+    if filePath.suffix == ".toml":
+        data = {"content": (Path("/") / filePath).as_posix()}
+        filePath =  Path("typ/template/help_temp.typ")
+    elif filePath.suffix == ".typ":
+        data = {}
+    return typ_file2png(filePath, default_font_paths(), root=Path("."), ppi=ppi, data=data)
