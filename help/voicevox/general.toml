@@ -1,0 +1,38 @@
+names = [
+    ".voicevox",
+    ".vv",
+    ".vtts",
+]
+description = """
+基于WEB版VOICEVOX的日语语音合成
+
+默认发音人为俊达萌
+"""
+
+examples = [
+    { input = ".vv こんにちは、世界！" },
+    { input = ".vv -l" },
+    { input = ".vv --l 春日部 冥鸣" },
+    { input = ".vv -角色 四国玫碳 -风格 刺刺 お前はもう死んでいる！" },
+    { input = ".vv -c 後鬼 -s 2 お前はもう死んでいるじゃい！" },
+    { input = ".vv -id 34 ドロー！！モンスターカード！！！" },
+    { input = ".vv -id 34 -音高 0.07 -抑扬 1.7 -语速 0.95 -log ドロー！！モンスターカード！！！" },
+]
+
+options = [
+    { names = ["-l", "-列表"], description = "列出可用角色与风格" },
+    { names = ["--l", "--列表"], params = "角色称呼", description = "列出指定角色的风格" },
+    { names = ["-c", "-角色"], params = "角色称呼", description = "指定发音角色" },
+    { names = ["-s", "-风格", "-语气"], params = "风格称呼或编号", description = "指定发音风格" },
+    { names = ["-id", "-发音人"], params = "编号", description = "直接用编号指定发音人（角色 + 风格）" },
+    { names = ["-p", "-音高"], params = "数值", description = "调整音高", hint = "在 (-0.15, 0.15) 范围内，默认 0.0" },
+    { names = ["-is", "-抑扬"], params = "数值", description = "调整抑扬", hint = "在 (0.0, 2.0) 范围内，默认 1.0" },
+    { names = ["-sp", "-语速"], params = "数值", description = "调整语速", hint = "在 (0.5, 2.0) 范围内，默认 1.0" },
+    { names = ["-log", "-日志"], description = "展示本次合成相关的上述参数" },
+]
+
+misc = """
+可能因为各种原因合成失败，如无法处理输入文段、复读姬网速不够、达到当日调用限制等
+
+可以试着用假名拼中文发音，详见 ```rpk .help 假名化```
+"""

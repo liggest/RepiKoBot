@@ -1,5 +1,6 @@
-.tex/.TEX
-  基于知乎的 Tex 公式渲染
+.tex/.TeX
+  基于知乎的 TeX 公式渲染
 例：
   .tex \LaTeX
   .tex \{打牌，不打牌\}\times\{水群，不水群\}
+  另见 .help typtex

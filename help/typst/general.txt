@@ -1,0 +1,15 @@
+.typst/.typ
+  简易 typst 文段渲染
+例：
+  .typ #box(stroke: luma(75%), radius: 4pt, outset: 4pt)[我是*#text("一段", size: 14pt, fill: red)*文本]
+  .typ
+  #let fib(n) = {if n <= 2 { 1 } else { fib(n - 1) + fib(n - 2) }}
+  #let count = 10
+  #let nums = range(1, count + 1)
+  #table(columns: count, ..nums.map(n => $F_#n$), ..nums.map(n => [#fib(n)]))
+  .typ -hd
+  #set math.mat(delim: "[")
+  $ mat("打牌"; "不打牌") dot mat("水群", "不水群") $
+选项详细：
+  -hd/-2x/-高清  渲染更高分辨率的图片
+  关联指令，另见 .help typmd 和 .help typtex

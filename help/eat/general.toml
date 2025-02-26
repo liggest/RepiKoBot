@@ -1,0 +1,18 @@
+names = [
+    ".canteen",
+    ".eat",
+]
+description = "今天去哪吃呢"
+
+examples = [
+    { input = ".eat" },
+    { input = ".eat -r" },
+    { input = ".eat --l 西北风 东北风 龙卷风" },
+    { input = ".eat --ban 楼上楼 清真餐厅" },
+]
+
+options = [
+    { names = ["-r"], description = "重置餐厅列表" },
+    { names = ["--l"], params = "项A 项B ...", description = "使用自定义列表" },
+    { names = ["--ban"], params = "项A 项B ...", description = "除去餐厅列表中的某些项" },
+]

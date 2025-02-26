@@ -1,0 +1,18 @@
+names = [
+    ".ydpic",
+    ".ydp",
+    ".抽卡",
+]
+description = """
+抽游戏王卡
+
+```rpk .yd -pic``` 的简写，发送卡图
+"""
+
+examples = [
+    { input = ".ydp" },
+    { input = ".ydp -ex" },
+    { input = ".抽卡" },
+]
+
+misc = "另见 ```rpk .help 抽卡！```"

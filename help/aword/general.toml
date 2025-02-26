@@ -1,0 +1,31 @@
+names = [
+    ".hitokoto",
+    ".htkt",
+    ".一言",
+    ".aword",
+    ".aw",
+    ".一句话",
+]
+description = "基于一言的短句分享"
+
+examples = [
+    { input = ".一言" },
+    { input = ".一言 -t 动画" },
+    { input = ".一言 --t 漫画 游戏 诗词" },
+    { input = ".一言 acdf", hint = "直接用短句类型代码" },
+]
+
+options = [
+    { names = ["-t"], params = "类型", description = "指定句子来源" },
+    { names = ["--t"], params = "类型1 类型2 ...", description = "提供更多类型"},
+]
+
+misc = """
+默认随机短句类型
+
+短句类型代码：
+
+a-动画 b-漫画 c-游戏 d-文学 e-原创 f-网络
+
+g-其他 h-影视 i-诗词 j-网易云 k-哲学
+"""

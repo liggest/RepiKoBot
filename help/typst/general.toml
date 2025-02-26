@@ -1,0 +1,40 @@
+names = [
+    ".typst",
+    ".typ",
+]
+description = "简易typst文段渲染"
+
+examples = [
+    # { input = '.typ #box(stroke: luma(75%), radius: 4pt, outset: 4pt)[我是*#text("一段", size: 14pt, fill: red)*文本]' },
+    { plain = """#raw(".typ", lang: "rpk") 
+#raw(`#box(stroke: luma(75%), radius: 4pt, outset: 4pt)[
+  我是*#text("一段", size: 14pt, fill: red)*文本
+]`.text, lang: "typst")""" },
+#     { input = """
+# .typ
+# #let fib(n) = {if n <= 2 { 1 } else { fib(n - 1) + fib(n - 2) }}
+# #let count = 10
+# #let nums = range(1, count + 1)
+# #table(columns: count, ..nums.map(n => $F_#n$), ..nums.map(n => [#fib(n)]))
+# """ },
+    { plain = """#raw(".typ\n", lang: "rpk") 
+#raw(`#let fib(n) = {if n <= 2 { 1 } else { fib(n - 1) + fib(n - 2) }}
+#let count = 10
+#let nums = range(1, count + 1)
+#table(columns: count, ..nums.map(n => $F_#n$), ..nums.map(n => [#fib(n)]))
+`.text, lang: "typst")""" },
+#     { input = """
+# .typ -hd
+# #set math.mat(delim: "[")
+# $ mat("打牌"; "不打牌") dot mat("水群", "不水群") $
+# """ },
+{ plain = """#raw(".typ -hd\n", lang: "rpk") 
+#raw(`#set math.mat(delim: "[")
+$ mat("打牌"; "不打牌") dot mat("水群", "不水群") $`.text, lang: "typst")""" },
+]
+
+options = [
+    { names = ["-hd", "-2x", "-高清"], description = "渲染更高分辨率的图片" },
+]
+
+misc = "关联指令，另见 ```rpk .help typmd``` 和 ```rpk .help typtex```"

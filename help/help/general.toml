@@ -1,0 +1,22 @@
+names = [
+    ".help",
+    ".?",
+]
+description = """
+指令帮助
+
+不提供指令名，展示整体指令列表
+
+提供指令名，展示特定指令的帮助信息
+"""
+
+examples = [
+    { input = ".help" },
+    { input = ".help ygocard" },
+    { input = ".help yc -t" },
+]
+
+options = [
+    { names = ["-text", "-t"], description = "展示经典的文本帮助" },
+    { names = ["-p"], params = "页码", description = "文本帮助有多页时，查询指定页数" },
+]

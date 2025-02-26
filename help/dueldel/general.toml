@@ -1,0 +1,13 @@
+names = [
+    ".dueldel",
+    ".delduel",
+    ".删房",
+    ".破坏牌",
+    ".除外牌",
+    ".送墓牌",
+]
+description = "```rpk .duel -del``` 的简写"
+
+examples = [
+    { input = ".dueldel" },
+]

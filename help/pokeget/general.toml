@@ -1,0 +1,10 @@
+names = [
+    ".getpoke",
+    ".pokeget",
+]
+description = "查看复读姬被戳时的反应"
+
+examples = [
+    { input = ".getpoke" },
+    { input = ".getpoke @群友" },
+]

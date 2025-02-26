@@ -1,0 +1,20 @@
+names = [
+    "-broadcast",
+]
+description = """
+群广播
+向给定的各群发送消息
+"""
+
+examples = [
+    { input = "-broadcast 喵哈喽~ --group 10001 10002" },
+    { input = "-broadcast update -preset update" },
+]
+
+options = [
+    { names = ["--qq"], params = "qq1 qq2 ...", description = "要广播到的QQ" },
+    { names = ["--group"], params = "群1 群2 ...", description = "要广播到的QQ群" },
+    { names = ["--preset"], params = "预设1 预设2 ...", description = "广播到预设中的QQ和群" },
+]
+
+misc = "各选项也有短选项版本"

@@ -1,0 +1,31 @@
+names = [
+    ".ygodraw",
+    ".yd",
+]
+description = "抽游戏王卡"
+
+misc = """
+从cards.cdb中抽取
+"""
+
+examples = [
+    { input = ".yd" },
+    { input = ".yd -pic" },
+    { input = ".ydp", hint = "```rpk .yd -pic``` 的简写" },
+    { input = ".yd 卡组抽卡 -n 42" },
+    { input = ".yd -ex -n 15" },
+    { input = ".yd 5", hint = "```rpk .yd -n 5``` 的简写"  },
+    { input = ".yd -无衍生物 -无异画" },
+    { input = ".yd -im" },
+]
+
+options = [
+    { names = ["-pic", "-p"], description = "以卡图形式发送", hint = "一次只能抽一张" },
+    { names = ["-n"], params = "数字", description = "抽卡张数", hint = "抽取多张时，只列出卡片名称" },
+    { names = ["-main", "-主卡组"], description = "只抽主卡组" },
+    { names = ["-ex", "-额外"], description = "只抽额外" },
+    { names = ["-nt", "-notoken", "-无衍生物"], description = "不抽衍生物" },
+    { names = ["-na", "-noalias", "-无异画", "-无同名卡"], description = "不抽异画卡" },
+    { names = ["-im"], description = "以图片形式展示卡片文本" },
+    { names = ["-reload"], description = "和 -pic 或 -im 一起使用，重载卡图" },
+]

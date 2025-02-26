@@ -1,0 +1,15 @@
+names = [
+    ".群赛抽卡",
+    ".决斗都市",
+    ".duelcity",
+    ".yddc",
+]
+description = "一发20连！没有衍生物！"
+
+examples = [
+    { input = ".群赛抽卡" },
+]
+
+options = [
+    { names = ["-im"], description = "以图片形式展示卡片文本" },
+]

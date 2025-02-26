@@ -1,0 +1,5 @@
+.getpoke/.pokeget
+  查看复读姬被戳时的反应
+例：
+  .getpoke
+  .getpoke @群友

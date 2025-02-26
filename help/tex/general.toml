@@ -1,0 +1,20 @@
+names = [
+    ".tex",
+    ".TeX",
+]
+description = "基于知乎的TeX公式渲染"
+
+examples = [
+    # { input = '.tex \LaTeX' },
+    { plain = '''
+    #raw(".tex", lang: "rpk")
+    #raw("\LaTeX", lang: "tex")
+    ''' },
+    { plain = '''
+    #raw(".tex", lang: "rpk")
+    #raw(`\{打牌，不打牌\}\times\{水群，不水群\}`.text, lang: "tex")
+    ''' },
+    # { input = '.tex \{打牌，不打牌\}\times\{水群，不水群\}' },
+]
+
+misc = "另见 ```rpk .help typtex```"

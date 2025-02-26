@@ -1,0 +1,26 @@
+names = [
+    ".roll",
+    ".r",
+]
+description = """
+投骰子
+
+骰子格式 xdy，意为 x 个 y 面骰子
+
+默认投 1d100
+
+输入包含 xdy 的四则运算表达式，可计算其结果
+"""
+
+examples = [
+    { input = ".rd" },
+    { input = ".r 1d6" },
+    { input = ".r 3d6+5 -act 横扫" },
+    { input = ".r 3d6+5 也是横扫" },
+]
+
+options = [
+    { names = ["-act"], params = "行动", description = "为指定行动投骰子" },
+]
+
+misc = "d100 可以省略为 d"

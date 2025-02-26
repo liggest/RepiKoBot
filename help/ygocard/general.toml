@@ -1,0 +1,28 @@
+names = [
+    ".ygocard",
+    ".yc",
+    ".bg",
+]
+description = "基于百鸽的游戏王卡查"
+
+examples = [
+    { input = ".yc 解码语者" },
+    { input = ".yc 地狱扭蛋 -wiki" },
+    { input = ".yc 治疗之神 -pic" },
+    { input = ".ycp 治疗之神", hint = "```rpk .yc -pic``` 的简写" },
+    { input = ".yc 创圣魔导王 恩底弥翁 -im" },
+]
+
+options = [
+    { names = ["-pic", "-p"], description = "以卡图形式发送" },
+    { names = ["-wiki"], description = "附加日文wiki链接" },
+    { names = ["-im"], description = "以图片形式展示卡片文本" },
+    { names = ["-url", "-link"], description = "附加百鸽链接" },
+    { names = ["-database"], description = "附加数据库链接" },
+    { names = ["-QA"], description = "附加Q&A链接" },
+    { names = ["-yugipedia"], description = "附加Yugipedia链接" },
+    { names = ["-ourocg"], description = "附加OurOcg链接" },
+    { names = ["-script", "-lua"], description = "附加脚本链接" },
+    { names = ["-rule"], description = "附加裁定链接" },
+    { names = ["-reload"], description = "和 -pic 或 -im 一起使用，重载卡图" },
+]

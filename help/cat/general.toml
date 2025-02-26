@@ -1,0 +1,19 @@
+names = [
+    ".cat",
+    ".猫",
+]
+description = """
+猫猫
+
+生成一只本不存在的猫
+"""
+
+examples = [
+    { input = ".cat" },
+]
+
+misc = """
+基于https://thiscatdoesnotexist.com/
+
+发图不稳定，测试中
+"""

@@ -1,9 +1,17 @@
 .ygocard/.yc/.bg
   基于百鸽的游戏王卡查
+例：
+  .yc 解码语者
+  .yc 地狱扭蛋 -wiki
+  .yc 治疗之神 -pic
+  .ycp 治疗之神
+  （.yc -pic 的简写）
+  .yc 创圣魔导王 恩底弥翁 -im
+选项详细：
   -pic/-p  以卡图形式发送
   -wiki  附加日文wiki链接
-  -im  以图片形式发送卡片文本
-  -url/-link  百鸽链接
+  -im  以图片形式展示卡片文本
+  -url/-link  附加百鸽链接
   -database  附加数据库链接
   -QA  附加Q&A链接
   -yugipedia  附加Yugipedia链接
@@ -11,10 +19,3 @@
   -script/-lua 附加脚本链接
   -rule 附加裁定链接
   -reload 和 -pic 或 -im 一起使用，重载卡图
-例：
-  .yc 解码语者
-  .yc 地狱扭蛋 -wiki
-  .yc 治疗之神 -p
-  .ycp 治疗之神
-  （.yc -pic 的简写）
-  .yc 创圣魔导王 恩底弥翁 -im

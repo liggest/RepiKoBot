@@ -1,0 +1,21 @@
+names = [
+    ".server",
+    ".srv",
+    ".服",
+    ".服务器",
+]
+description = """
+简易服务器信息提示
+
+给出对应名称的服务器
+"""
+
+examples = [
+    { input = ".srv 超先行" },
+    { input = ".srv 23333 编年史" },
+    { input = ".srv -l" },
+]
+
+options = [
+    { names = ["-l"], description = "列出当前记录的全部服务器" },
+]

@@ -1,5 +1,6 @@
 .voicevox/.vv/.vtts
-  基于 WEB 版 VOICEVOX 的日语语音合成，默认发音人为俊达萌
+  基于 WEB 版 VOICEVOX 的日语语音合成
+  默认发音人为俊达萌
 例：
   .vv こんにちは、世界！
   .vv -l

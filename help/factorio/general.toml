@@ -1,0 +1,18 @@
+names = [
+    ".factorio",
+    ".异星",
+    ".异星工厂",
+]
+description = "简陋的群聊、异星工厂服务端互通"
+
+examples = [
+    { input = ".异星" },
+    { input = ".异星 yahoo~" },
+    { input = ".异星 -pl" },
+]
+
+options = [
+    { names = ["-pl", "-玩家"], description = "玩家列表" },
+    { names = ["-e", "-进化"], description = "当前进化信息" },
+    { names = ["-t", "-时间"], description = "当前游戏时长" },
+]

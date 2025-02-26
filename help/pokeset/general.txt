@@ -1,0 +1,4 @@
+.pokeset/.setpoke
+  指定复读姬被戳时的反应
+例：
+  .setpoke .jrrp

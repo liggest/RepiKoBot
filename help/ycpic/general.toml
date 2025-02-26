@@ -1,0 +1,15 @@
+names = [
+    ".ycpic",
+    ".ycp",
+    ".bgp",
+]
+description = """
+基于百鸽的游戏王卡查
+
+```rpk .yc 卡名 -pic``` 的简写，发送卡图
+"""
+
+examples = [
+    { input = ".ycp 棉花糖" },
+    { input = ".ycp 马卡龙棉花糖 -wiki" },
+]

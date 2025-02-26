@@ -1,0 +1,24 @@
+names = [
+    ".withdraw",
+    ".撤回",
+]
+description = "让复读姬撤回消息"
+
+misc_A = "需要回复要撤回的消息来使用"
+
+examples = [
+    { input = ".withdraw"},
+    { input = ".withdraw -all" },
+    { input = "多嘴" },
+    { input = "住嘴" },
+    { input = "住口！" },
+    # { input = "[CQ:face,id=55]" },
+    # { input = "[CQ:face,id=146]" },
+    { input = "💣" },
+]
+
+options = [
+    { names = ["-all", "-both"], description = "复读姬是管理员时，在稍后也撤回此指令" },
+]
+
+misc_B = "回复中使用上述关键字，等同于 ```rpk .withdraw -all```"

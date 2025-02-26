@@ -1,0 +1,24 @@
+names = [
+    ".decks",
+    ".listdeck",
+    ".decklist",
+    ".卡组列表",
+]
+description = """
+展示服务器里的卡组名称
+
+可以添加搜索关键字
+"""
+
+examples = [
+    { input = ".decks" },
+    { input = ".decks -n 100" },
+    { input = ".decks 乱组" },
+    { input = ".decks 圣刻 异色 真红" },
+]
+
+options = [
+    { names = ["-n"], params = "数量", description = "展示的数量（默认50）"},
+]
+
+misc = "相关指令见 ```rpk .help deckset``` 和 ```rpk .help deckdel```"

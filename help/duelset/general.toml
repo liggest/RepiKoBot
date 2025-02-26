@@ -1,0 +1,13 @@
+names = [
+    ".duelset",
+    ".setduel",
+    ".设房",
+    ".盖放牌",
+]
+description = "```rpk .duel 房间 -set``` 的简写"
+
+examples = [
+    { input = ".duelset 俺的房" },
+    { input = ".duelset 俺的房 -tm 0" },
+    { input = ".duelset 俺的房 -23333" },
+]

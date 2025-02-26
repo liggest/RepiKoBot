@@ -1,0 +1,22 @@
+names = [
+    ".ygoocg",
+    ".yo",
+    ".ourocg",
+]
+description = "基于OurOcg的游戏王卡查"
+
+examples = [
+    { input = ".yo 解码语者" },
+    { input = ".yo 蓝眼白龙 -ver cn" },
+    { input = ".yo 地狱扭蛋 -wiki" },
+    { input = ".yo 笑容药水 -p" },
+    { input = ".yo 悠悠 -im" },
+]
+
+options = [
+    { names = ["-pic", "-p"], description = "以卡图形式发送" },
+    { names = ["-ver"], params = "cn/nw", description = "切换翻译版本为NW（默认）或CN" },
+    { names = ["-wiki"], description = "附加日文wiki链接" },
+    { names = ["-im"], description = "以图片形式展示卡片文本" },
+    { names = ["-reload"], description = "和 -pic 或 -im 一起使用，重载卡图" },
+]

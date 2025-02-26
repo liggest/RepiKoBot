@@ -1,7 +1,5 @@
 .withdraw/.撤回
   回复复读姬的消息，使之撤回
-  -all/-both  复读姬是管理员时，在稍后也撤回此指令
-  回复中使用一些关键字，等同于 .withdraw -all
 例：
   （回复复读姬）
   .withdraw
@@ -12,3 +10,6 @@
   [CQ:face,id=55]
   [CQ:face,id=146]
   💣
+选项详细：
+  -all/-both  复读姬是管理员时，在稍后也撤回此指令
+  回复中使用上述关键字，等同于 .withdraw -all

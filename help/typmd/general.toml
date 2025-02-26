@@ -1,0 +1,18 @@
+names = [
+    ".typmd",
+    ".tmd",
+    ".md",
+    ".markdown",
+]
+description = "基于typst的简易markdown文段渲染"
+
+examples = [
+    # { input = '.tmd # \\还活着/' },
+    { plain = '#raw(".tmd", lang: "rpk") #raw("# \\还活着/", lang: "markdown")' },
+    # { input = ".tmd **能**不能~~好好~~___speak___`一下`❓" },
+    { plain = '#raw(".tmd", lang: "rpk") #raw("**能**不能~~好好~~___speak___`一下`❓", lang: "markdown")' },
+]
+
+options = [
+    { names = ["-hd", "-2x", "-高清"], description = "渲染更高分辨率的图片" },
+]

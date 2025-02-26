@@ -1,0 +1,17 @@
+names = [
+    "抽卡！",
+]
+description = """
+抽游戏王卡
+
+```rpk .yd -pic``` 的简写，发送卡图
+"""
+
+examples = [
+    { input = "抽卡！" },
+    { input = "闪光抽卡！" },
+    { input = "ドロー！" },
+    { input = "draw!" },
+]
+
+misc = "另见 ```rpk .help ydp```"

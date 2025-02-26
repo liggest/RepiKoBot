@@ -1,0 +1,23 @@
+names = [
+    ".mahjong",
+    ".maj",
+    ".麻将",
+    ".雀",
+]
+description = "简易抽麻将牌"
+
+examples = [
+    { input = ".maj" },
+    { input = ".麻将 -n 4" },
+    { input = ".麻将 28" },
+]
+
+options = [
+    { names = ["-n"], params = "数字", description = "抽取张数" },
+]
+
+misc = """
+默认抽一套胡了的牌
+
+指定张数则随机抽取
+"""

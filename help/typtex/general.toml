@@ -1,0 +1,19 @@
+names = [
+    ".typtex",
+    ".ttex",
+]
+description = "基于typst的TeX公式渲染"
+
+examples = [
+    # { input = '.ttex \{打牌，不打牌\}\times\{水群，不水群\} -hd' },
+    { plain = '''
+    #raw(".ttex -hd", lang: "rpk")
+    #raw(`\{打牌，不打牌\}\times\{水群，不水群\}`.text, lang: "tex")
+    ''' }
+]
+
+options = [
+    { names = ["-hd", "-2x", "-高清"], description = "渲染更高分辨率的图片" },
+]
+
+misc = "另见 ```rpk .help tex```"

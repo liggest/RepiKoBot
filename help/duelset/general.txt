@@ -1,4 +1,4 @@
-.duelset/.setduel/.盖放牌/.设房
+.duelset/.setduel/.设房/.盖放牌
   .duel 房间 -set 的简写
 例：
   .duelset 俺的房

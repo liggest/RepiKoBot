@@ -1,17 +1,5 @@
-.poke/.戳
+.poke/.戳/.戳一戳
   戳一戳复读姬
-
-.setpoke/.pokeset
-  指定复读姬被戳时的反应
+  相关指令见 .help pokeset .help pokeget 和 .help pokedel
 例：
-  .setpoke .jrrp
-
-.getpoke/.pokeget
-  查看指定过的反应
-例：
-  .getpoke
-
-.delpoke/.pokedel
-  删除指定过的反应
-例：
-  .delpoke
+  .poke

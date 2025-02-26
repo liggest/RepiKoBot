@@ -1,22 +1,23 @@
 .ygodraw/.yd
   抽游戏王卡
   从cards.cdb中抽取
-  抽取多张时，只列出卡片名称
+例：
+  .yd
+  .yd -pic
+  .ydp
+  （.yd -pic 的简写）
+  .yd 卡组抽卡 -n 42
+  .yd -ex -n 15
+  .yd 5
+  .yd -无衍生物 -无异画
+  .yd -im
+选项详细：
   -pic/-p  以卡图形式发送（一张）
   -n 数字  抽卡张数
-  -im  以图片形式发送卡片文本
+  （抽取多张时，只列出卡片名称）
   -main/-主卡组  只抽主卡组
   -ex/-额外  只抽额外
   -nt/-notoken/-无衍生物  不抽衍生物
-  -na/-noalias/-无同名卡  不抽同名卡
+  -na/-noalias/-无异画/-无同名卡  不抽异画卡
+  -im  以图片形式展示卡片文本
   -reload 和 -pic 或 -im 一起使用，重载卡图
-例：
-  .yd
-  .yd -p
-  .ydp
-  （.yd -pic 的简写）
-  .yd 5
-  .yd 卡组抽卡 -n 42
-  .yd -im
-  .yd -ex -n 15
-  .yd -notoken -noalias

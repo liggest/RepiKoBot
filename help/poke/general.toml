@@ -1,0 +1,18 @@
+names = [
+    ".poke",
+    ".戳",
+    ".戳一戳",
+]
+description = "戳一戳复读姬"
+
+examples = [
+    { input = ".poke" },
+]
+
+misc = """相关指令见 
+
+```rpk .help pokeset``` 
+
+```rpk .help pokeget``` 
+
+```rpk .help pokedel```"""

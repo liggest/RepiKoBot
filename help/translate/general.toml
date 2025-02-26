@@ -1,0 +1,26 @@
+names = [
+    ".translate",
+    ".tl",
+]
+description = "基于DeepL的翻译"
+examples = [
+    { input = ".tl make it Chinese!" },
+    { input = ".tl В добрый путь! -从 俄语 -到 英语" },
+    { input = ".tl 俺のターン！ -to en", output = "My turn!" },
+    { input = ".tl 山重水复疑无路 -日语", hint = "`-日语` 等同于 `-到 日语`，对下述常用语言有效" },
+    { input = ".tl Uygarlastiramadiklarimizdanmissinizcasina" },
+]
+misc = """
+常用语言：
+
+中文 英语 日语 法语 俄语 德语 西班牙语 葡萄牙语
+"""
+
+options = [
+    { names = ["-from", "-从"], params = "语言", description = "设定源语言" },
+    { names = ["-to", "-到"], params = "语言", description = "设定目标语言" },
+    { names = ["-Eng"], description = "翻译到英式英语" },
+    { names = ["-US"], description = "翻译到美式英语（默认）" },
+    { names = ["-mf", "-正经"], description = "翻译可能变得更正经" },
+    { names = ["-lf", "-不正经"], description = "翻译可能变得更不正经" },
+]

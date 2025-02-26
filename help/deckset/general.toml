@@ -1,0 +1,29 @@
+names = [
+    ".deckset",
+    ".setdeck",
+    ".设置卡组",
+]
+description = """
+从群文件为服务器添加卡组
+
+需要提供群文件里的路径，指向卡组文件或装有卡组文件的文件夹
+"""
+
+examples = [
+    { input = ".deckset 强力卡组A.ydk 强力卡组B.ydk" },
+    { input = ".deckset 强力卡组A 强力卡组B" },
+    { input = ".deckset ./卡组们/" },
+    { input = ".setdeck 卡组 -me" },
+    { input = ".setdeck . -me" },
+]
+
+misc = """
+已经存在的同名卡组会被覆盖
+
+如果提供了卡组文件夹，默认会下载其中所有卡组文件，不问上传者
+"""
+
+options = [
+    { names = ["-me"], description = "只下载自己上传的文件" },
+]
+

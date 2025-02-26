@@ -1,0 +1,7 @@
+.typmd/.tmd/.md/.markdown
+  基于 typst 的简易 markdown 文段渲染
+例：
+  .tmd # \还活着/
+  .tmd **能**不能~~好好~~___speak___`一下`❓
+选项详细：
+  -hd/-2x/-高清  渲染更高分辨率的图片

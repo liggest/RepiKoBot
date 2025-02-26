@@ -1,0 +1,9 @@
+names = [
+    ".luck",
+    ".jrrp",
+]
+description = "查看今日运势（"
+
+examples = [
+    { input = ".luck" },
+]

@@ -1,0 +1,4 @@
+.delpoke/.pokedel
+  移除复读姬被戳时的反应
+例：
+  .delpoke

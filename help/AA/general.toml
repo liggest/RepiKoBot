@@ -1,0 +1,13 @@
+names = [
+    ".AA",
+    ".aa",
+]
+description = "基于AAMZ随机抽取AA"
+examples = [
+    { input = ".AA" },
+    { input = ".AA -R18", hint = "可能含有 R18 要素（谨慎使用）" },
+]
+
+options = [
+    { names = ["-R18", "-r18"], description = "允许抽取结果含有 R18 要素" },
+]

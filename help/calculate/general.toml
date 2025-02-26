@@ -1,0 +1,20 @@
+names = [
+    ".calculate",
+    ".cal",
+]
+description = """
+带括号四则运算
+
+输入表达式得到计算结果
+"""
+
+examples = [
+    { input = ".cal (3+5)*2" },
+    { input = ".cal (8-6)/(4-2) -show" },
+]
+
+options = [
+    { names = ["-show"], description = "显示计算过程" },
+]
+
+misc = "输入时请切换至英文输入法"

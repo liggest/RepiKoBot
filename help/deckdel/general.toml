@@ -1,0 +1,15 @@
+names = [
+    ".deckdel",
+    ".deldeck",
+    ".删除卡组",
+]
+description = """
+删除服务器中已有的卡组
+
+需要提供卡组名称
+"""
+
+examples = [
+    { input = ".deckdel 强力卡组A.ydk 强力卡组B.ydk" },
+    { input = ".deldeck 强力卡组A 强力卡组B" },
+]

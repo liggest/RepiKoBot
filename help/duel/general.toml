@@ -1,0 +1,28 @@
+names = [
+    ".duel",
+    ".决斗",
+    ".打牌",
+    ".牌",
+    ".房",
+]
+description = """
+ygo约战开房！
+
+通过指令生成房间代码，主要用于233和超先行服
+
+可以记录生成的房间代码，方便之后快捷调出
+"""
+
+examples = [
+    { input = ".duel 房 -t -tm 0", output = '#"TM0,T#房"' },
+    { input = ".duel 房 -麻将 -时间 0", output = '#"TM0,T#房"', hint = "同上一条" },
+    { input = ".duelset 俺的房", output = "记录了房间【俺的房】" },
+    { input = ".duel", output = "俺的房" },
+    { input = ".duel -s 编年史", output = "决斗编年史的服务器信息" },
+]
+
+misc = """
+一些指令别名也可以带叹号，比如 ```rpk .duel!``` ```rpk .决斗！``````rpk .打牌！```
+
+选项详见 ```rpk .help duel detail```
+"""
