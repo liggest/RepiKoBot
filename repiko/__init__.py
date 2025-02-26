@@ -12,3 +12,5 @@ def __getattr__(name):  # 延迟加载 app
         app = getApp()
         return app
     raise AttributeError
+
+__all__ = ["run", "app"]

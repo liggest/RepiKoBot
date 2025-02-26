@@ -8,7 +8,7 @@ from repiko.core.constant import ConnectionMethod
 if TYPE_CHECKING:
     config:Config  # 基础配置
     pluginConfig:Config  # 插件配置
-    from typing import Callable, Any
+    # from typing import Callable, Any
     from repiko.core.bot import Bot
 
 _configName="config.toml"
