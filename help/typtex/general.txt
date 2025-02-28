@@ -1,7 +1,7 @@
 .typtex/.ttex
   基于 typst 的 TeX 公式渲染
 例：
-  .ttex \{打牌，不打牌\}\times\{水群，不水群\} -hd
+  .ttex -hd \{打牌，不打牌\}\times\{水群，不水群\}
   另见 .help tex
 选项详细：
   -hd/-2x/-高清  渲染更高分辨率的图片

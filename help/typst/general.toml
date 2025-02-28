@@ -10,6 +10,8 @@ examples = [
 #raw(`#box(stroke: luma(75%), radius: 4pt, outset: 4pt)[
   我是*#text("一段", size: 14pt, fill: red)*文本
 ]`.text, lang: "typst")""" },
+    { plain = """#raw(".typ", lang: "rpk") 
+#raw(`#text(size: 720pt, bottom-edge: "bounds", top-edge: "bounds")[哇]`.text, lang: "typst")""" },
 #     { input = """
 # .typ
 # #let fib(n) = {if n <= 2 { 1 } else { fib(n - 1) + fib(n - 2) }}

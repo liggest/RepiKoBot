@@ -1,0 +1,24 @@
+options = [
+    { names = ["-me", "-ME", "-mine", "-我", "-俺", "-老子"], description = "我的房" },
+    { names = ["-get", "-发动", "-检索", "-召唤", "-特招"], params = "名称", description = "得到房" },
+    { names = ["-set", "-盖放"], params = "名称", description = "记录房，无名称则记录“我的房”" },
+    { names = ["-del", "-remove", "-破坏", "-除外", "-送去墓地"], params = "名称", description = "移除房，无名称则移除“我的房”" },
+    { names = ["-random", "-r", "-ran"], description = "随机房间名，忽视 -me 和 -get" },
+]
+
+examples = [
+    { input = ".duel 我的房 -set", output = "记录“我的房”" },
+    { input = ".duelset 我的房", hint = "同上" },
+    { input = ".duel -me" },
+    { input = "！决斗 -老子" },
+    { input = ".duel 划水 -t -tm 0 -盖放 划水房" },
+    { input = ".duel -get 划水房" },
+    { input = ".duel -检索 划水房" },
+    { input = ".duel -get @群友", hint = "获得群友记录的房" },
+    { input = ".duel @群友", hint = "同上" },
+    { input = ".duel -del", hint = "移除“我的房”" },
+    { input = ".dueldel", hint = "同上" },
+    { input = ".duel -除外 划水房" },
+    { input = ".duel -r" },
+    { input = ".duel", hint = "什么都不提供，若存在“我的房”，则 -me，否则 -r" },
+]

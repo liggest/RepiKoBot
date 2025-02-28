@@ -1,0 +1,29 @@
+options = [
+    { names = ["-match", "-m", "-M", "-比赛", "-三局"], description = "比赛模式" },
+    { names = ["-tag", "-t", "-T", "-双打", "-麻将"], description = "双打" },
+    { names = ["-ot", "-OT", "-ot混", "-OT混"], description = "OT混" },
+    { names = ["-tcg", "-TCG"], description = "TCG" },
+    { names = ["-lp", "-LP", "-基本分", "-生命", "-生命值", "-血"], params = "数量", description = "基本分" },
+    { names = ["-time", "-tm", "-TM", "-时间"], params = "分钟", description = "回合时间" },
+    { names = ["-start", "-st", "-ST", "-起手"], params = "数量", description = "起手手牌数" },
+    { names = ["-draw", "-dr", "-DR", "-抽", "-抽卡", "-抽牌"], params = "数量", description = "回合抽牌数" },
+    { names = ["-lflist", "-lf", "-LF", "-禁卡表"], params = "编号", description = "禁限卡表" },
+    { names = ["-nolflist", "-nf", "-NF", "-nolf", "-NOLF", "-无禁卡表", "-无禁卡", "-无禁限", "-无限制"], description = "无禁限卡表" },
+    { names = ["-nounique", "-nu", "-NU", "-无独有"], description = "无独有卡" },
+    { names = ["-nocheck", "-nc", "-NC", "-不检查", "-不检查卡组"], description = "不检查卡组" },
+    { names = ["-noshuffle", "-ns", "-NS", "-不洗牌"], description = "不洗牌" },
+    { names = ["-ai", "-AI", "-人机"], description = "人机" },
+    { names = ["-rule", "-mr", "-MR", "-规则"], params = "编号", description = "大师规则" },
+]
+
+examples = [
+    { input = ".duel -M" },
+    { input = ".duel -t" },
+    { input = ".duel -麻将" },
+    { input = ".duel -tm 0" },
+    { input = ".duel -lp 64000" },
+    { input = ".duel -NF -NU -NC -NS" },
+    { input = ".duel 琪露诺 -ai" },
+]
+
+misc = "禁卡表编号、规则编号详见233服官网"

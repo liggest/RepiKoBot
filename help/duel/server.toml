@@ -1,0 +1,25 @@
+options = [
+    { names = ["-233"], description = "233服-233" },
+    { names = ["-2333"], description = "233服-2333" },
+    { names = ["-23333"], description = "233服-23333" },
+    { names = ["-server", "-s", "-服", "-服务器"], params = "服务器名", description = "服务器" },
+]
+
+misc = """
+目前可用服务器有：
+
+#grid(columns: 3, column-gutter: 1em, row-gutter: 1em,
+    "233", "s1.ygo233.com", "233",
+    "超先行", "mygo.superpre.pro", "888",
+    "repiko", "49.232.115.194", "7911",
+    "无限火力", "ds.linmengstore.win", "4911",
+    "编年史", "duelstart.com", "2333",
+    "2pick", "2pick.mycard.moe", "765"
+)
+"""
+
+examples = [
+    { input = ".duel 约战 -2333" },
+    { input = ".duel 编年史 -s 编年史" },
+    { input = ".duel 轮抽 -服 2pick" },
+]

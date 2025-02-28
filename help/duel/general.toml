@@ -22,7 +22,7 @@ examples = [
 ]
 
 misc = """
-一些指令别名也可以带叹号，比如 ```rpk .duel!``` ```rpk .决斗！``````rpk .打牌！```
+一些指令别名也可以带叹号，比如 ```rpk .duel!```  ```rpk .决斗！``````rpk .打牌！```
 
 选项详见 ```rpk .help duel detail```
 """
