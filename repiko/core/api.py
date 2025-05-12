@@ -129,14 +129,16 @@ class Api:
 
     async def msg(self, msgID:int, mtype=MessageType.Private):
         # TODO
-        rj=await self.post("get_msg",{ "message_id":msgID })
-        return Message(
+        rj = await self.post("get_msg",{ "message_id":msgID })
+        msg = Message(
             rj,
             post_type="message",
             message_type=mtype,
             user_id=rj.get("sender",{}).get("user_id",0),
             self_id=self.bot.MYQQ
         )
+        msg.selector = self.bot.mSelector
+        return msg
 
     async def deleteMsg(self, msgID:int):
         return await self.post("delete_msg",{ "message_id":msgID })
