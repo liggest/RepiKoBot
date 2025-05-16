@@ -28,5 +28,5 @@ def to_kana(pr:ParseResult):
         logger.info(f"初始化拼音-假名转换器，风格 {converter._style.name}")
 
     text = pr.paramStr
-    print(converter._map["shi"])
+    # print(converter._map["shi"])
     return ["".join(converter.convert(text))]

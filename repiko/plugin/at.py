@@ -2,6 +2,7 @@ from LSparser import Events,Command,ParseResult,OPT
 
 from repiko.core.bot import Bot
 from repiko.core.constant import EventNames,MessageType
+from repiko.core.log import logger
 from repiko.msg.data import Message
 from repiko.msg.part import Face,Reply,At
 from repiko.msg.content import Content
@@ -64,7 +65,7 @@ async def delayedDelete(bot:Bot,msgID:int,second:int=8):
 
 async def runaway(msg:Message,bot:Bot,deleteBoth=False):
     if msg.replyDeleted:
-        print("已经撤回过了")
+        logger.info("已经撤回过了")
         return
     reply:Reply=msg.content[0]
     await bot.DeleteMsg(reply.id)
