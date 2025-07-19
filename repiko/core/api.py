@@ -176,8 +176,8 @@ class Api:
         param={ "group_id":group, **file }
         return (await self.post("get_group_file_url",param)).get("url","")
     
-    async def pasteEmoji(self, msgID:int, emojiID:int):
-        return await self.post("set_msg_emoji_like",{ "message_id": msgID, "emoji_id": emojiID })
+    async def pasteEmoji(self, msgID:int, emojiID:int, paste=True):
+        return await self.post("set_msg_emoji_like",{ "message_id": msgID, "emoji_id": emojiID, "set": paste })
 
     async def robotQQRange(self) -> list[dict[str, str]]:  # [ {"minUin": ..., "maxUin": ...} ]
         return await self.post("get_robot_uin_range")

@@ -2,19 +2,13 @@
 import asyncio
 from pathlib import Path
 
-from repiko.msg.part import Image
 from repiko.msg.content import Content
 from repiko.msg.util import CQunescape
 from repiko.module.img.typ import typ_file2png, default_font_paths, default_root_path
+from repiko.module.util import images_gen
 
 from LSparser import Command, Events, ParseResult, OPT
 
-def images_gen(data: bytes | list[bytes]):
-    if isinstance(data, bytes):
-        yield Image(data)
-    else:
-        for d in data:
-            yield Image(d)
 
 # Command("-ttest")
 

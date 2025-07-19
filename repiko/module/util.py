@@ -1,7 +1,11 @@
-from LSparser import ParseResult
-from repiko.msg.part import Share as _Share, Text
+from contextlib import asynccontextmanager
+
+from repiko.msg.part import Share as _Share, Text, Image
 from repiko.msg.data import Message
 from repiko.core.constant import MessageType
+from repiko.core.bot import Bot
+
+from LSparser import ParseResult
 
 CONS=None
 def redirect(cmd:str,pattern=None,func:callable=None):
@@ -54,3 +58,22 @@ class Share:
         if self.mtype==MessageType.Group:
             return Text(self.share.url)
         return self.share
+    
+def images_gen(data: bytes | list[bytes]):
+    if isinstance(data, bytes):
+        yield Image(data)
+    else:
+        for d in data:
+            yield Image(d)
+
+@asynccontextmanager
+async def under_emoji(bot: Bot, message_id: int, emoji_id: int, cancel_later=True):
+    try:
+        yield await bot.PasteEmoji(message_id, emoji_id)
+    finally:
+        if cancel_later:
+            await bot.PasteEmoji(message_id, emoji_id, paste=False)
+
+async def under_emoji_pr(pr:ParseResult, emoji_id: int, cancel_later=True):
+    msg: Message = pr.raw
+    return under_emoji(msg.selector.bot, msg.id, emoji_id, cancel_later)

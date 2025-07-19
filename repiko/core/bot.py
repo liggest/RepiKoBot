@@ -579,8 +579,8 @@ class Bot:
     async def GroupFileLink(self, group:int, file:dict):
         return await self._api.groupFileLink(group,file)
 
-    async def PasteEmoji(self, msgID:int, emojiID:int):
-        return await self._api.pasteEmoji(msgID, emojiID)
+    async def PasteEmoji(self, msgID:int, emojiID:int, paste=True):
+        return await self._api.pasteEmoji(msgID, emojiID, paste)
 
     # def CopyYGO(self):
     #     cplist=["cards.cdb","lflist.conf","strings.conf"]
