@@ -59,12 +59,12 @@ class Share:
             return Text(self.share.url)
         return self.share
     
-def images_gen(data: bytes | list[bytes]):
+def images_gen(data: bytes | list[bytes], cache: bool = True):
     if isinstance(data, bytes):
-        yield Image(data)
+        yield Image(data, cache=cache)
     else:
         for d in data:
-            yield Image(d)
+            yield Image(d, cache=cache)
 
 @asynccontextmanager
 async def under_emoji(bot: Bot, message_id: int, emoji_id: int, cancel_later=True):

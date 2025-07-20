@@ -4,7 +4,8 @@ from pathlib import Path
 
 from repiko.msg.content import Content
 from repiko.msg.util import CQunescape
-from repiko.module.img.typ import typ_file2png, default_font_paths, default_root_path
+from repiko.module.img.typ import typ_file2png
+from repiko.module.img.typ import default_font_paths, default_root_path, default_template_path
 from repiko.module.util import images_gen
 
 from LSparser import Command, Events, ParseResult, OPT
@@ -18,7 +19,7 @@ from LSparser import Command, Events, ParseResult, OPT
 #         "width": "5"
 #     }))]
 
-TemplateBase = Path("typ/template")
+TemplateBase = default_template_path()
 template_map = {
     "typst": "typ_temp.typ", 
     "typmd": "md_temp.typ", 

@@ -153,7 +153,7 @@ Assistant: 上海人口为 2600 万，而广州人口为 1500 万，因此上海
     <name>{tool_name or tool.name}</name>
     <description>{tool.description}</description>
     <argument_schema>{tool.inputSchema}</argument_schema>
-    </tool>"""
+</tool>"""
 
     def tools_gen(self):
         for tool_name, server in self.mcp.tool2server.items():
@@ -168,7 +168,9 @@ Assistant: 上海人口为 2600 万，而广州人口为 1500 万，因此上海
 
 上述示例中的工具可能不存在，实际可用的工具如下：
 
-{self.tools()}"""
+```xml
+{self.tools()}
+```"""
 
     ToolUseRules = """## 工具调用的核心原则
 

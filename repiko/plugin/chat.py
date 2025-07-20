@@ -13,7 +13,7 @@ from repiko.msg.content import Content
 from repiko.module.chat.model import LLM, Session, Dialogue, ReasoningMessage
 from repiko.module.chat.mcp import McpServers
 from repiko.module.chat.prompt import McpSystemPrompt
-from repiko.module.img.typ import typ_file2png, default_font_paths, default_root_path
+from repiko.module.img.typ import typ_file2png, default_font_paths, default_root_path, default_template_path
 from repiko.module.util import images_gen, under_emoji
 
 from openai.types.chat import ChatCompletionMessageParam
@@ -32,16 +32,17 @@ PluginUnits.addDefault("chat", annotation=ChatConfig)
 
 _llm = None
 _mcp = None
+_mcp_task = None
 _config: ChatConfig | None = None
 _sessions = {}
 
 def init_mcp(config_path: Path):
-    global _mcp
+    global _mcp, _mcp_task
     with open(config_path, "r", encoding="utf-8") as f:
         mcp_config: dict = json.load(f)
     
     _mcp = McpServers(mcp_config.get("mcpServers", {}))
-    asyncio.create_task(_mcp.run())
+    _mcp_task = asyncio.create_task(_mcp.run())
 
 @pluginConfig.on
 def init_chat(config:dict[str, ChatConfig], bot):
@@ -59,9 +60,11 @@ def init_chat(config:dict[str, ChatConfig], bot):
     init_mcp(_config.mcp_config)
 
 @Events.on(EventNames.Shutdown)
-def botShutDown(bot):
+async def botShutDown(bot):
     if _mcp:
         _mcp._end.set()
+    if _mcp_task:
+        await _mcp_task
 
 def get_session(session_id: int, reset: bool = False) -> Session:
     session: Session = _sessions.get(session_id)
@@ -93,13 +96,15 @@ def all_visible_chat(session: Session):
         for message in dialog.pair:
             yield message.as_param()
 
+TemplateBase = default_template_path()
 
 async def render_chat(messages: list[ChatCompletionMessageParam]):
     messages = json.dumps(messages, ensure_ascii=False)
     template_data = {"content": messages, "content_type": "str"}
     ppi = 144
     return Content(*images_gen(
-        await asyncio.to_thread(typ_file2png, TemplateBase / "chat_temp.typ", default_font_paths(), root=default_root_path(), ppi=ppi, data=template_data)
+        await asyncio.to_thread(typ_file2png, TemplateBase / "chat_temp.typ", default_font_paths(), root=default_root_path(), ppi=ppi, data=template_data),
+        cache=False
     ))
 
 (Command("chat").names("deepseek", "DeepSeek", "ds")
@@ -126,11 +131,6 @@ async def chat(pr: ParseResult):
             return await render_chat(messages)
         return ["它什么也没说…！"]
 
-(Command("mcp").names("MCP")
- .opt(("-list", "-l"), OPT.N, "列出当前可用的 MCP")
- .opt(("-system", "-sys"), OPT.N, "列出当前系统提示词")
-)
-
 def mcp_list_servers():
     for server in _mcp.servers:
         if server.is_inited:
@@ -148,7 +148,10 @@ def mcp_list_tools():
             if tool in _mcp.tool2server or _mcp.wrap_tool_name(tool) in _mcp.tool2server:
                 yield f"{indent}{tool}"
 
-TemplateBase = Path("typ/template")
+(Command("mcp").names("MCP")
+ .opt(("-list", "-l"), OPT.N, "列出当前可用的 MCP")
+ .opt(("-system", "-sys"), OPT.N, "列出当前系统提示词")
+)
 
 @Events.onCmd("mcp")
 async def mcp_cmd(pr: ParseResult):
