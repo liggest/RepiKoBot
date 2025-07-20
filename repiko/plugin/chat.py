@@ -1,262 +1,203 @@
-# from repiko.core.bot import Bot
-from repiko.core.log import logger
-from repiko.core.config import pluginConfig, PluginUnits, Pattern
-from repiko.core.constant import EventNames
-from repiko.msg.data import Message
-from revChatGPT.V3 import Chatbot
-from EdgeGPT.EdgeGPT import Chatbot as ChatbotV4, ConversationStyle
 
-
-from LSparser import *
-
-from typing import Annotated, TypedDict, Literal
-from typing_extensions import NotRequired
-# from enum import Enum
-import asyncio
+from typing import Annotated
+from pathlib import Path
 import json
-import re
+import asyncio
+
+from repiko.core.constant import EventNames
+from repiko.core.config import pluginConfig, PluginUnits, Pattern
+from repiko.core.log import logger
+from repiko.msg.data import Message
+from repiko.msg.content import Content
+
+from repiko.module.chat.model import LLM, Session, Dialogue, ReasoningMessage
+from repiko.module.chat.mcp import McpServers
+from repiko.module.chat.prompt import McpSystemPrompt
+from repiko.module.img.typ import typ_file2png, default_font_paths, default_root_path
+from repiko.module.util import images_gen, under_emoji
+
+from openai.types.chat import ChatCompletionMessageParam
+from LSparser import Command, Events, ParseResult, OPT
+
 
 class ChatConfig(Pattern):
-    key:Annotated[str | None,"OpenAI api key"]
-    cookiePath:Annotated[str | None,"bing cookie path"]
+    api_key: Annotated[str, "OpenAI style api key"]
+    base_url: Annotated[str, "OpenAI style base URL"]
+    model_name: Annotated[str, "Model name"]
+    mcp_config: Annotated[Path, "MCP config path"] = "config/mcp.json"
+    max_tokens: Annotated[int, "Max tokens"] = 32 * 1024
+    expire_time: Annotated[int, "Session expire time in seconds"] = 60 * 60
 
-PluginUnits.addDefault("chat",annotation=ChatConfig)
+PluginUnits.addDefault("chat", annotation=ChatConfig)
 
-chatbot:Chatbot=None
-chatbotV4:ChatbotV4=None
+_llm = None
+_mcp = None
+_config: ChatConfig | None = None
+_sessions = {}
 
-# SysPrompt=("You are ChatGPT, an AI assistant that can access the internet. " 
-#            "Internet search results will be sent from the system in JSON format. "
-#            "Respond conversationally and cite your sources via a URL at the end of your message. "
-#            "那么，你好，ChatGPT，请回答我的问题")
-SysPrompt=("你好，ChatGPT，请回答我的问题。" 
-           "你可以用网络上的信息回复，将参考链接放在回复的尾部即可。")
+def init_mcp(config_path: Path):
+    global _mcp
+    with open(config_path, "r", encoding="utf-8") as f:
+        mcp_config: dict = json.load(f)
+    
+    _mcp = McpServers(mcp_config.get("mcpServers", {}))
+    asyncio.create_task(_mcp.run())
 
 @pluginConfig.on
-async def initChat(config:dict[str,ChatConfig], bot):
-    logger.info("初始化 chatbot 们...")
-    if (data := config.get("chat")):
-        initChatBot(data)
-        await initChatBotV4(data)
-    # return True
+def init_chat(config:dict[str, ChatConfig], bot):
+    global _llm, _config
+    _config = config.get("chat")
 
-def initChatBot(config:ChatConfig):
-    global chatbot
-    if not (config and config.key):
-        logger.warning("无配置，未初始化 chatbot")
-        return
-    chatbot = Chatbot(config.key,system_prompt=SysPrompt)
-    logger.info("chatbot 初始化完毕")
-
-async def initChatBotV4(config:ChatConfig):
-    global chatbotV4
-    if not (config and config.cookiePath):
-        logger.warning("无配置，未初始化 chatbotV4")
-        return
-    with open(config.cookiePath, encoding="utf-8") as f:
-        chatbotV4 = await ChatbotV4.create(cookies=json.load(f))
-    logger.info("chatbotV4 初始化完毕")
-
-# @Events.on(EventNames.StartUp)
-# def botStartUP(bot:Bot):
-#     initChat(bot)
-
-Command("chat").names("Chat","AI","ai").opt(("-reset","-r"),OPT.N,"重置")
-
-@Events.onCmd("chat")
-async def aiChat(pr:ParseResult):
-    if pr["reset"] or not chatbot:
-        # msg:Message=pr.raw
-        # initChat(pluginConfig.data, msg.selector.bot)
-        initChatBot(pluginConfig.data.get("chat"))
-    if not chatbot:
-        return ["缺少组件，哑口无言"]
-    # res=chatbot.get_chat_response(pr.paramStr)
-    # chat="".join(chatbot.ask_stream(pr.paramStr)).strip()
-    # if chat:
-    #     return [chat]
-    # if res and (chat:=res.get("message")):
-    #     return [chat]
-    # return ["缺少电波，哑口无言"]
-    asyncio.create_task(chatTask(pr))
-    # return []
-
-def ask(s:str):
-    return chatbot.ask(s).strip()
-
-async def chatTask(pr:ParseResult):
-    # await asyncio.sleep(0.01)
-    chat = await asyncio.get_running_loop().run_in_executor(None,ask,pr.paramStr)
-    # chat="".join(chatbot.ask_stream(pr.paramStr)).strip()
-    msg:Message = pr.raw
-    bot = msg.selector.bot
-    if chat:
-        await bot.SendContents(msg.copy(srcAsDst=True),[chat])
-    else:
-        await bot.SendContents(msg.copy(srcAsDst=True),["缺少电波，哑口无言"])
-
-styles = {
-    "创意": ConversationStyle.creative,
-    "均衡": ConversationStyle.balanced,
-    "准确": ConversationStyle.creative,
-    "c": ConversationStyle.creative,
-    "b": ConversationStyle.balanced,
-    "p": ConversationStyle.precise,
-    "creative": ConversationStyle.creative,
-    "balanced": ConversationStyle.balanced,
-    "precise": ConversationStyle.precise,
-}
-
-class BingBaseMessage(TypedDict):
-    text: str
-    author: Literal["user"] | Literal["bot"]
-    offense: str
-
-class BingSuggest(BingBaseMessage):
-    messageType: Literal["Suggestion"]
-
-class BingSource(TypedDict):
-    providerDisplayName: str
-    seeMoreUrl: str
-    imageLink: NotRequired[str]
-
-class BingMessage(BingBaseMessage):
-    spokenText: NotRequired[str]  # 给用户的提问提示
-    sourceAttributions: NotRequired[list[BingSource]]
-    suggestedResponses: NotRequired[list[BingSuggest]]  # 给用户的提问建议
-    messageType: NotRequired[Literal["InternalSearchQuery"] | Literal["InternalSearchResult"] | Literal["InternalLoaderMessage"] | Literal["RenderCardRequest"]]
-
-class BingThrottling(TypedDict):
-    maxNumUserMessagesInConversation: int
-    numUserMessagesInConversation: int
-
-class BingResult(TypedDict):
-    value: Literal["Success"] | str
-
-class BingItem(TypedDict):
-    messages:list[BingMessage]
-    throttling: BingThrottling
-    result: BingResult
-
-class Bing(TypedDict):
-    type: int
-    item: BingItem
-
-hintMsg = ""
-hints:list[BingSuggest] = []
-autoReset = False # 聊天前自动重置
-queue = asyncio.Queue(maxsize=1)
-
-(Command("bing").names("Bing","chat4","Chat4")
- .opt(("-reset","-r"),OPT.N,"重置")
- .opt(("-style","-s","-风格"),OPT.M,"聊天风格")
- .opt(("-hint","-h","-提示"),OPT.N,"提示文本")
- .opt(("-debug","-d"),OPT.N)
-)
-@Events.onCmd("bing")
-async def bingChat(pr:ParseResult):
-    global autoReset
-    if not chatbotV4 or autoReset:
-        autoReset = False
-        initChatBotV4(pluginConfig.data.get("chat"))
-    elif pr["reset"]:
-        await chatbotV4.close()
-        initChatBotV4(pluginConfig.data.get("chat"))
-    if not chatbotV4:
-        return ["缺少组件，哑口无言"]
-    if pr["hint"]:
-        result = ""
-        if hintMsg:
-            result = f"{hintMsg}\n"
-        if hints:
-            text = "\n".join(f"  {h['text']}" for h in hints)
-            result = f"{result}{text}"
-        return [result]
-
-    asyncio.create_task(chatTaskV4(pr))
-    # return []
-
-async def chatTaskV4(pr:ParseResult):
-    style = pr.getByType("style")
-    style = styles.get(style,None)
-    await queue.put(pr)
-    try:
-        chat:Bing = await chatbotV4.ask(pr.paramStr,conversation_style=style)
-        logger.debug("拿到 chat")
-    finally:
-        await queue.get()
-
-    if pr["debug"]:
-        with open("out.json","w",encoding="utf-8") as f:
-            import json
-            json.dump(chat,f,indent=4,ensure_ascii=False)
-
-    text = bingText(chat)
-    if not text:
-        result = ["Bing 暂无回应"]
-        if autoReset and not pr.data.get("retrying"):
-            pr.data["retrying"] = True  # 标记为正在重试
-            await bingChat(pr)          # 无回应且 autoReset 时立即重试
-        elif pr.data.get("retrying"):
-            logger.error("Bing 重试后依然无回应")
-    else:
-        result = [text]
-
-    msg:Message=pr.raw
-    bot = msg.selector.bot
-    await bot.SendContents(msg.copy(srcAsDst=True),result)
-
-refPattern = re.compile(r"\[\^(\d+)\^\]")  # [^1^]
-
-def bingText(chat:Bing):
-    global hintMsg, hints, autoReset
-    if not (item := chat.get("item")):
-        autoReset = True
-        return
-    if not (msgs := item.get("messages")):
-        autoReset = True
+    if not _config or (not _config.api_key or not _config.base_url or not _config.model_name):
+        logger.warning("无配置，未初始化 chat")
+        _config = None
         return
     
-    limitText = ""
-    if limit := item.get("throttling"):
-        limitText = f"{limit['numUserMessagesInConversation']} / {limit['maxNumUserMessagesInConversation']}"
-        if limit['numUserMessagesInConversation'] == limit['maxNumUserMessagesInConversation']:
-            autoReset = True
+    logger.info("初始化 chat...")
 
-    for m in reversed(msgs):
-        if m["author"] == "bot" and ("messageType" not in m or "suggestedResponses" in m): # 没有 messageType 的是回复
-            break
-    if m["author"] != "bot": # 没有回复
-        autoReset = True # 下次提问前重置 ChatBotV4
-        return
-    if text := m.get("text",""):
-        text = refPattern.sub(r"[\1]",text)  # [^1^] => [1]
-    texts = [text]
-    logger.debug(text)
-
-    hintMsg = m.get("spokenText","")
-    hints = m.get("suggestedResponses",[])
-
-    logger.debug(f"offense: {repr(m['offense'])}, hint: {repr(hintMsg)}, limit: {limitText}")
-
-    if sources := m.get("sourceAttributions",[]):
-        texts.append( "\n".join( f"[{i+1}] {s['seeMoreUrl']}" for i,s in enumerate(sources) ) )
-
-    if limit:
-        texts.append(limitText)
-    return "\n".join(texts)
+    _llm = LLM(api_key=_config.api_key, base_url=_config.base_url)
+    init_mcp(_config.mcp_config)
 
 @Events.on(EventNames.Shutdown)
-async def closeChatBot(bot):
-    if chatbotV4:
-        await chatbotV4.close()
-        logger.info("关闭 chatbotV4")
+def botShutDown(bot):
+    if _mcp:
+        _mcp._end.set()
 
-if __name__ == "__main__":
+def get_session(session_id: int, reset: bool = False) -> Session:
+    session: Session = _sessions.get(session_id)
+    if not session or session.is_expired or reset:
+        session = _sessions[session_id] = Session(
+            session_id, _config.model_name, McpSystemPrompt(_mcp), _llm, _mcp, _config.expire_time
+        )
+    return session
 
-    async def main():
-        await initChatBotV4(ChatConfig({ "cookiePath" : "my_cookie.json" }))
-        print(bingText(await chatbotV4.ask("山重水复疑无路", conversation_style=ConversationStyle.creative)))
-        await chatbotV4.close()
+def visible_chat(dialog: Dialogue):
+    if dialog:
+        return [message.as_param() for message in dialog.pair]
+    return []
 
-    asyncio.run(main())
+def all_dialog_chat(dialog: Dialogue):
+    if not dialog:
+        return
+    for message in dialog:
+        if isinstance(message.content, ReasoningMessage):
+            yield message.content.model_dump(mode="json", exclude_unset=True)
+        else:
+            yield message.as_param()
+        
+
+def all_visible_chat(session: Session):
+    for dialog in session._raw_messages:
+        if not dialog:
+            continue
+        for message in dialog.pair:
+            yield message.as_param()
+
+
+async def render_chat(messages: list[ChatCompletionMessageParam]):
+    messages = json.dumps(messages, ensure_ascii=False)
+    template_data = {"content": messages, "content_type": "str"}
+    ppi = 144
+    return Content(*images_gen(
+        await asyncio.to_thread(typ_file2png, TemplateBase / "chat_temp.typ", default_font_paths(), root=default_root_path(), ppi=ppi, data=template_data)
+    ))
+
+(Command("chat").names("deepseek", "DeepSeek", "ds")
+ .opt(("-reset", "-r"), OPT.N, "重置会话")
+)
+
+@Events.onCmd("chat")
+async def chat(pr: ParseResult):
+    if not _llm:
+        return ["未配置 chat，当前不可用…"]
+
+    msg: Message = pr.raw
+    session_id = msg.realSrc
+
+    session = get_session(session_id, pr["reset"])
+    
+    async with under_emoji(msg.selector.bot, msg.id, 351):
+        response = await session.chat(pr.paramStr, temperature=0.6)
+        if _config.max_tokens:
+            session.rotate(_config.max_tokens)
+
+        if response.content and (messages := visible_chat(session._raw_messages.last_dialogue)):
+            # logger.debug(repr(messages))
+            return await render_chat(messages)
+        return ["它什么也没说…！"]
+
+(Command("mcp").names("MCP")
+ .opt(("-list", "-l"), OPT.N, "列出当前可用的 MCP")
+ .opt(("-system", "-sys"), OPT.N, "列出当前系统提示词")
+)
+
+def mcp_list_servers():
+    for server in _mcp.servers:
+        if server.is_inited:
+            yield f"✅ {server.name}"
+        else:
+            yield f"❌ {server.name}"
+
+def mcp_list_tools():
+    indent = " " * 2
+    for server in _mcp.servers:
+        if not server._tools:
+            continue
+        yield server.name
+        for tool in server._tools:
+            if tool in _mcp.tool2server or _mcp.wrap_tool_name(tool) in _mcp.tool2server:
+                yield f"{indent}{tool}"
+
+TemplateBase = Path("typ/template")
+
+@Events.onCmd("mcp")
+async def mcp_cmd(pr: ParseResult):
+    if not _mcp:
+        return ["未配置 mcp，当前不可用…"]
+
+    if pr["list"]:
+        return ["\n".join(mcp_list_tools())]
+    
+    if pr["system"]:
+        return await render_chat([McpSystemPrompt(_mcp).as_param()])
+
+    return ["\n".join(mcp_list_servers())]
+
+(Command("chatlog").names("对话记录", "历史记录")
+ .opt(("-last", "-tail", "-尾"), OPT.N, "最后一轮对话")
+ .opt(("-text", "-t"), OPT.N, "文本形式的最后一轮对话")
+ .opt(("-debug", "-d"), OPT.N, "包含详细信息的最后一轮对话")
+)
+
+@Events.onCmd("chatlog")
+async def chatlog(pr: ParseResult):
+    if not _llm:
+        return ["未配置 chat，当前不可用…"]
+
+    msg: Message = pr.raw
+    session_id = msg.realSrc
+
+    if session_id not in _sessions:
+        return ["对话记录是空的…"]
+    
+    session = get_session(session_id)
+
+    if pr["text"] or pr["debug"]:
+        pr.args["last"] = True  # 只能拿最后一轮的文本
+
+    if pr["last"]:
+        if pr["text"]:
+            if session._raw_messages.last_dialogue:
+                return [str(session._raw_messages.last_dialogue[-1].as_param()["content"]).strip()]
+        elif pr["debug"]:
+            return await render_chat(list(all_dialog_chat(session._raw_messages.last_dialogue)))
+        elif messages := visible_chat(session._raw_messages.last_dialogue):
+            return await render_chat(messages)
+        return ["它什么也没说…！"]
+    
+    if messages := [*all_visible_chat(session)]:
+        return await render_chat(messages)
+    return ["对话记录是空的…"]
+            
+# (Command("chatbuild").names("tchat")
+# )

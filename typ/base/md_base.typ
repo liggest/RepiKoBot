@@ -36,7 +36,8 @@
   doc
 }
 
-#let md_block_quote = it => block(text(it, fill: luma(32)), stroke: (left: 1.5pt + luma(64)), fill: luma(242), inset: 4pt, width: 100%)
+#let md_block_quote = it => block(text(it), stroke: (left: 1.5pt + luma(64)), fill: luma(242), inset: (right: 2pt, rest: 4pt), width: 100%)
+
 
 #let maybe-image(path, ..args) = context {
   let path-label = label(path)
@@ -50,6 +51,8 @@
     ]
   }
 }
+
+#let maybe-image-md(path, alt: none) = maybe-image(path, alt: alt)
 
 #let to-inches(value) = {
   if type(value) == str {
@@ -67,11 +70,13 @@
 #let render-md(
   md-text,
   width: 5in,
+  init: init,
   scope: (image: (path, alt: none) => maybe-image(path, alt: alt)),
-  smart-punctuation: false
+  blockquote: md_block_quote,
+  smart-punctuation: false,
 ) = {
   let args = sys.inputs
   width = to-inches(args.at("width", default: width))
   show: init.with(width: width)
-  cmarker.render(md-text, blockquote: md_block_quote, math: mitex, scope: scope, smart-punctuation: smart-punctuation)
+  cmarker.render(md-text, blockquote: blockquote, math: mitex, scope: scope, smart-punctuation: smart-punctuation)
 }

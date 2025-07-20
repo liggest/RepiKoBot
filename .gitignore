@@ -168,6 +168,7 @@ config/__main__.toml
 config/config.toml
 config/plugin.toml
 config/poke.yaml
+config/mcp.json
 # config/broadcast.toml
 # config/font.toml
 # config/trans.toml
@@ -178,3 +179,4 @@ config/bing.json
 /image/
 /old/
 /AAFile/
+# /typ/

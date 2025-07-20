@@ -15,7 +15,7 @@
   doc
 }
 
-#let render-tex(tex) = {
+#let render-tex(tex, init: init) = {
   show: init
   mitex(tex)
 }

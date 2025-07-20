@@ -16,7 +16,7 @@
   doc
 }
 
-#let render-typ(doc) = {
+#let render-typ(doc, init: init) = {
   show: init
   eval(doc, mode: "markup")
 }
