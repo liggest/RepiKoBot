@@ -26,7 +26,7 @@ class ChatConfig(Pattern):
     model_name: Annotated[str, "Model name"]
     mcp_config: Annotated[Path, "MCP config path"] = "config/mcp.json"
     max_tokens: Annotated[int, "Max tokens"] = 32 * 1024
-    expire_time: Annotated[int, "Session expire time in seconds"] = 60 * 60
+    expire_time: Annotated[int, "Session expire time in seconds"] = 60 * 60 * 2
 
 PluginUnits.addDefault("chat", annotation=ChatConfig)
 
@@ -184,6 +184,9 @@ async def chatlog(pr: ParseResult):
         return ["对话记录是空的…"]
     
     session = get_session(session_id)
+
+    if not session._raw_messages:
+        return ["对话记录是空的…"]
 
     if pr["text"] or pr["debug"]:
         pr.args["last"] = True  # 只能拿最后一轮的文本
