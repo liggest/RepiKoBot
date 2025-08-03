@@ -107,7 +107,7 @@ async def render_chat(messages: list[ChatCompletionMessageParam]):
         cache=False
     ))
 
-(Command("chat").names("deepseek", "DeepSeek", "ds")
+(Command("chat").names("deepseek", "DeepSeek", "ds", "ai", "AI")
  .opt(("-reset", "-r"), OPT.N, "重置会话")
 )
 
@@ -149,8 +149,8 @@ def mcp_list_tools():
                 yield f"{indent}{tool}"
 
 (Command("mcp").names("MCP")
- .opt(("-list", "-l"), OPT.N, "列出当前可用的 MCP")
- .opt(("-system", "-sys"), OPT.N, "列出当前系统提示词")
+ .opt(("-list", "-l"), OPT.N, "当前可用工具列表")
+ .opt(("-system", "-sys"), OPT.N, "当前系统提示词")
 )
 
 @Events.onCmd("mcp")
@@ -168,8 +168,8 @@ async def mcp_cmd(pr: ParseResult):
 
 (Command("chatlog").names("对话记录", "历史记录")
  .opt(("-last", "-tail", "-尾"), OPT.N, "最后一轮对话")
- .opt(("-text", "-t"), OPT.N, "文本形式的最后一轮对话")
- .opt(("-debug", "-d"), OPT.N, "包含详细信息的最后一轮对话")
+ .opt(("-text", "-t", "-文本"), OPT.N, "文本形式的最后一轮对话")
+ .opt(("-debug", "-d", "-调试"), OPT.N, "包含详细信息的最后一轮对话")
 )
 
 @Events.onCmd("chatlog")

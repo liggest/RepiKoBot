@@ -1,0 +1,17 @@
+names = [
+    ".mcp",
+]
+description = """
+查看 ```rpk .chat``` 中使用的MCP服务
+"""
+
+examples = [
+    { input = ".mcp" },
+    { input = ".mcp -l" },
+    { input = ".mcp -system" },
+]
+
+options = [
+    { names = ["-l", "-list"], description = "列出当前可用的 MCP 拥有的工具" },
+    { names = ["-sys", "-system"], description = "列出当前系统提示词" },
+]

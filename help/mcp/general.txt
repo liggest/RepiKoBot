@@ -1,0 +1,9 @@
+.mcp
+  查看 .chat 中使用的 MCP 服务
+例：
+  .mcp
+  .mcp -l
+  .mcp -system
+选项概览：
+  -l/-list  当前可用工具列表
+  -sys/-system  当前系统提示词

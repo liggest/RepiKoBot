@@ -1,0 +1,23 @@
+names = [
+    ".chat",
+    ".ai"
+]
+description = """
+基于DeepSeek API的AI对话
+"""
+
+examples = [
+    { input = ".chat 吃 250 个包子会怎么样" },
+    { input = ".chat 抽卡面包的效果？" },
+    { input = ".chat 抽卡面包的效果？ -r" },
+]
+
+options = [
+    { names = ["-r", "-reset"], description = "重新开始对话" },
+]
+
+misc = """
+不同问题的思考长度不同，有时可能要等待较长时间才能得到回复
+
+可以使用 ```rpk .chatlog``` 查看对话记录，详见 ```rpk .help chatlog```
+"""

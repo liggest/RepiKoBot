@@ -10,9 +10,10 @@
 #let data-override = (
   "aword": (names: (".hitokoto", ".htkt", ".一言")),
   "choose": (names: (".choose", ".选")),
-  "duel": (names: (".duel", ".决斗", ".打牌", ".牌")),
+  "duel": (names: (".duel", ".决斗", ".打牌", ".房")),
   // "help": (names: (".help",)),
   "mahjong": (names: (".mahjong", ".麻将")),
+  "poke": (names: (".poke", ".戳")),
   "tex": (names: (".tex",)),
   "voicevox": (names: (".voicevox", ".vv")),
   "ygocard": (names: (".ygocard", ".yc")),
@@ -24,11 +25,13 @@
     "AA", 
     "aword", 
     "calculate", 
+    "chat", 
     "choose", 
     "duel", 
     "help", 
     "luck", 
     "mahjong", 
+    "poke", 
     "roll", 
     "tex", 
     "translate", 
@@ -46,7 +49,7 @@
         if "names" not in item or "description" not in item {
           let spec = toml("./" + cmd + "/general.toml")
           item.names = item.at("names", default: spec.names)
-          item.description = item.at("description", default: spec.description.split().first())
+          item.description = item.at("description", default: spec.description.split("\n").first())
         }
         item
       }
@@ -61,3 +64,5 @@
 ))
 
 查看指令详情，请使用 ```rpk .help 某指令名```
+
+例如：```rpk .help help```

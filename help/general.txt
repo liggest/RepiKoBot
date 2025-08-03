@@ -1,18 +1,22 @@
 .AA/.aa  基于 AAMZ 随机抽取 AA
-.aword/.aw/.一言  基于一言的短句分享
 .calculate/.cal  带括号四则运算
-.choose/.选/.帮我决定  从给出的选项中挑一个
-.duel/.决斗/.打牌/.牌  ygo 约战开房
-.help  指令帮助
+.chat/.ai  基于 DeepSeek API 的 AI 对话
+.choose/.选  从给出的选项中挑一个
+.duel/.决斗/.打牌/.房  ygo 约战开房！
+.help/.?  指令帮助
+.hitokoto/.htkt/.一言  基于一言的短句分享
 .luck/.jrrp  查看今日运势（
-.mahjong/.麻将  抽麻将牌
+.mahjong/.麻将  简易抽麻将牌
+.poke/.戳  戳一戳复读姬
 .roll/.r  投骰子
-.tex 基于知乎的公式渲染
+.tex  基于知乎的 TeX 公式渲染
 .translate/.tl  基于 DeepL 的翻译
-.voicevox/.vv 基于 WEB 版 VOICEVOX 的日语语音合成
+.typst/.typ  简易 typst 文段渲染
+.voicevox/.vv  基于 WEB 版 VOICEVOX 的日语语音合成
 .ygocard/.yc  基于百鸽的游戏王卡查
 .ygocdb/.ycdb  基于 cards.cdb 的游戏王卡查
 .ygodraw/.yd  抽游戏王卡
 -hello  喵哈喽~
 
 查看指令详情，请使用【.help 某指令名】
+例如：.help help
