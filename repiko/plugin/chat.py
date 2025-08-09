@@ -119,10 +119,17 @@ async def chat(pr: ParseResult):
     msg: Message = pr.raw
     session_id = msg.realSrc
 
+    content = pr.paramStr.strip()
+    if not content:
+        if pr["reset"]:
+            _sessions.pop(session_id, None)
+            return ["对话已重置，让我们重新开始吧"]
+        return ["要聊点什么吗？"]
+
     session = get_session(session_id, pr["reset"])
     
     async with under_emoji(msg.selector.bot, msg.id, 351):
-        response = await session.chat(pr.paramStr, temperature=0.6)
+        response = await session.chat(content, temperature=0.6)
         if _config.max_tokens:
             session.rotate(_config.max_tokens)
 
