@@ -9,8 +9,8 @@ from openai.types.chat import ChatCompletionMessageParam, ChatCompletionMessage
 from openai._types import NOT_GIVEN, NotGiven
 import tiktoken
 from mcp.types import CallToolRequestParams
-from lxml.html import etree, fragment_fromstring, tostring
-from lxml.etree import _Element
+from lxml.html import fragment_fromstring, tostring
+from lxml import etree
 
 from chat.mcp import McpServers
 from chat.log import logger
@@ -106,14 +106,14 @@ class Session:
             xml_message = message.content or ""
             # xml_message = "---".join(xml_message.split("</think>"))
             xml_message = xml_message.replace("</think>", "---")    # remove extra </think>
-            root_element: _Element = etree.Element("root")  # <root>...</root>
+            root_element = etree.Element("root")  # <root>...</root>
             if message.reasoning_content:
                 think_element = fragment_fromstring(message.reasoning_content, create_parent="think")  # <think>...</think>
                 # root_element.insert(0, think_element)
                 root_element.append(think_element)
                 # xml_message = f"""<think>{message.reasoning_content}</think>\n{xml_message}"""
             # xml_message = f"<root>{xml_message}</root>"
-            answer_element: _Element = fragment_fromstring(xml_message, create_parent="answer")  # <answer>...</answer>
+            answer_element = fragment_fromstring(xml_message, create_parent="answer")  # <answer>...</answer>
             root_element.append(answer_element)
 
             logger.debug(f"Handling:\n{tostring(root_element, encoding='unicode')}")
@@ -123,7 +123,7 @@ class Session:
             logger.error(error_msg := repr(e))
             return [ToolPrompt.error(tool_name=None, error=error_msg)]
         
-        tool_use_elements: list[_Element] = tree.findall(".//tool_use")
+        tool_use_elements = tree.findall(".//tool_use")
         tool_use_results = []
         for tool_use in tool_use_elements:
             try:

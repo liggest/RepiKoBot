@@ -11,6 +11,7 @@ dependencies = [
     "beautifulsoup4>=4.11.1",
     "pillow>=9.3.0",
     "lxml>=5.4.0",
+    "types-lxml>=2025.3.30",
     "requests>=2.28.1",
     "deepl>=1.12.0",
     "loguru>=0.6.0",
@@ -52,7 +53,8 @@ requires = ["pdm-pep517>=1.0"]
 build-backend = "pdm.pep517.api"
 
 [tool.pdm.scripts]
-app = "python bot.py {args:--host=0.0.0.0 --port=5701 --reload --reload-dir repiko}"
+app = "python bot.py"
+# app = "python bot.py {args:--host=0.0.0.0 --port=5701 --reload --reload-dir repiko}"
 # app = "uvicorn bot:app --reload --reload-dir repiko --host=0.0.0.0 {args:--port=8080}"
 # wsapp = "python -m repiko.core.websocket"
 # watch = "watchfiles 'pdm run app' repiko"
