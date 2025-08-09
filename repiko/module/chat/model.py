@@ -146,7 +146,7 @@ class Session:
         
         return tool_use_results
         
-    def parse_tool_use(self, tool_node):
+    def parse_tool_use(self, tool_node: etree._Element):
         name_node = tool_node.find("name")
         if name_node is None:
             raise ValueError("Tool name not found")
