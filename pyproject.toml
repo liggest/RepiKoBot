@@ -54,6 +54,7 @@ build-backend = "pdm.pep517.api"
 
 [tool.pdm.scripts]
 app = "python bot.py"
+app-dev = "python bot.py --reload --reload-dir repiko"
 # app = "python bot.py {args:--host=0.0.0.0 --port=5701 --reload --reload-dir repiko}"
 # app = "uvicorn bot:app --reload --reload-dir repiko --host=0.0.0.0 {args:--port=8080}"
 # wsapp = "python -m repiko.core.websocket"
