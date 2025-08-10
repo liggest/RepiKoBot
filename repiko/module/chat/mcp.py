@@ -51,7 +51,7 @@ class Server:
         elif transport_type == "websocket":
             self._client_context = websocket_client(**self.config)
         read, write = await self._client_context.__aenter__()
-        self._session = ClientSession(read, write, read_timeout_seconds=timedelta(seconds=10))
+        self._session = ClientSession(read, write, read_timeout_seconds=timedelta(seconds=60))
         await self._session.__aenter__()
         await self._session.initialize()
         self.is_inited = True
