@@ -28,7 +28,7 @@ from ygoutil.sqlbuilder import SQLBuilder
 # from repiko.module.ygo.sqlbuilder import SQLBuilder
 from repiko.module.hitokoto import HitokotoRequester
 from repiko.module.img.str2image import str2greyPng, getFilePath as getImgPath, initFont as initNormalFont
-from repiko.module.util import redirect, asyncRedirect, CONS, Share
+from repiko.module.util import redirect, asyncRedirect, CONS, Share, first_at
 
 from repiko.module import 麻将
 import repiko.module.AA as AA
@@ -492,13 +492,11 @@ def duel(pr: ParseResult):
         key = pr.getByType("get") or (msg.realSrc if pr["me"] else paramStr) # -get key | -me | .duel key
         room = YGORoom.getMemberRoom(str(key))
         if not room and isinstance(key, str): # 没找到的话尝试处理 @
-            keyContent = Content(key)
-            if len(keyContent) == 1:
-                cqkey = keyContent[0]
-                if isinstance(cqkey, At) and cqkey.qq.isdigit(): # -get @xx | .duel @xx
-                    key = int(cqkey.qq) # 得到 @ 对象的 qq
+            if cqkey := first_at(key):        # -get @xx | .duel @xx
+                if key := cqkey.qq_num:       # 得到 @ 对象的 qq
                     isMe = isMe or key == msg.realSrc
                     room = YGORoom.getMemberRoom(str(key)) # 再试着用 qq 找
+    
     if not room:
         room = YGORoom.parseRoom(paramStr)
     noRoom = not room.name

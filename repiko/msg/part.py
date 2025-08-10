@@ -187,6 +187,11 @@ class At(MessagePart):
             if name:
                 self.name=name
 
+    @property
+    def qq_num(self):
+        if self.qq.isdigit():
+            return int(self.qq)
+
 class Share(MessagePart):
     """ 链接分享 """
     partType="share"

@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 
-from repiko.msg.part import Share as _Share, Text, Image
+from repiko.msg.content import Content
+from repiko.msg.part import Share as _Share, Text, Image, At
 from repiko.msg.data import Message
 from repiko.core.constant import MessageType
 from repiko.core.bot import Bot
@@ -77,3 +78,11 @@ async def under_emoji(bot: Bot, message_id: int, emoji_id: int, cancel_later=Tru
 async def under_emoji_pr(pr:ParseResult, emoji_id: int, cancel_later=True):
     msg: Message = pr.raw
     return under_emoji(msg.selector.bot, msg.id, emoji_id, cancel_later)
+
+def first_at(content: str | Content):
+    if isinstance(content, str):
+        content = Content(content)
+    if At not in content:
+        return None
+    at: At = content[At, 0]
+    return at

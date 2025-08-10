@@ -11,6 +11,7 @@ from repiko.msg.selector import NoticeSelector
 from repiko.msg.data import Notice,Message
 from repiko.msg.part import At
 from repiko.msg.content import Content
+from repiko.module.util import first_at
 
 import yaml
 from LSparser import Events,Command,ParseResult
@@ -66,13 +67,8 @@ Command("pokedel").names("delpoke")
 async def getme(pr:ParseResult):
     msg: Message = pr.raw
     content = msg.content
-    qq = msg.realSrc
-    atQQ = At(qq)
-    if At in content:
-        at: At = content[At, 0]
-        if at.qq.isdigit():
-            qq = int(at.qq)
-            atQQ = at
+    atQQ = first_at(content) or At(msg.realSrc)
+    qq = atQQ.qq_num or msg.realSrc
     name = msg.getSrcName()
     if not name or msg.mtype == MessageType.Group:
         name = atQQ.CQcode
