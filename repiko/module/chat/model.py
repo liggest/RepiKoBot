@@ -80,6 +80,12 @@ class Session:
             return datetime.now() - self.last_response_time > self.expire_time
         return False  # no messages, not expired
 
+    def dialogues_gen(self):
+        yield from self._raw_messages
+
+    def messages_gen(self):
+        return self._raw_messages.messages_gen()
+
     async def chat_once(self, prompt: str, 
                         dialogue: Dialogue | None = None,
                         max_tokens: int | NotGiven = NOT_GIVEN, temperature: float | NotGiven = NOT_GIVEN):
@@ -91,7 +97,7 @@ class Session:
 
         response_message = await self.llm._chat_call(
             self.model_name,
-            self._raw_messages.messages_gen(),
+            self.messages_gen(),
             max_tokens=max_tokens,
             temperature=temperature
         )
@@ -275,17 +281,17 @@ class Messages(list[Dialogue]):
         return super().__getitem__(idx)
 
     @property
-    def _system_message(self):
+    def _system_message(self) -> ChatCompletionMessageParam:
         return self._system_prompt.as_param()
 
     @property
-    def created_time(self):
+    def created_time(self) -> datetime:
         if self:
             return self[0].create_time
         raise AttributeError("Message list is empty")
 
     @property
-    def last_response_time(self):
+    def last_response_time(self) -> datetime:
         if self:
             return self[-1].last_response_time
         raise AttributeError("Message list is empty")

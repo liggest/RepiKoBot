@@ -13,8 +13,9 @@ from repiko.msg.content import Content
 from repiko.module.chat.model import LLM, Session, Dialogue, ReasoningMessage
 from repiko.module.chat.mcp import McpServers
 from repiko.module.chat.prompt import McpSystemPrompt
+from repiko.module.chat.linkage import LinkedSession
 from repiko.module.img.typ import typ_file2png, default_font_paths, default_root_path, default_template_path
-from repiko.module.util import images_gen, under_emoji
+from repiko.module.util import images_gen, under_emoji, first_at
 
 from openai.types.chat import ChatCompletionMessageParam
 from openai import OpenAIError
@@ -35,7 +36,7 @@ _llm = None
 _mcp = None
 _mcp_task = None
 _config: ChatConfig | None = None
-_sessions = {}
+_sessions: dict[int, Session] = {}
 
 def init_mcp(config_path: Path):
     global _mcp, _mcp_task
@@ -67,13 +68,38 @@ async def botShutDown(bot):
     if _mcp_task:
         await _mcp_task
 
-def get_session(session_id: int, reset: bool = False) -> Session:
-    session: Session = _sessions.get(session_id)
-    if not session or session.is_expired or reset:
+def get_session(session_id: int) -> Session | None:
+    session: Session | None = _sessions.get(session_id)
+    if session and not session.is_expired:
+        return session
+    return None
+
+def ensure_session(session_id: int, reset: bool = False) -> Session:
+    session: Session | None = get_session(session_id)
+    if not session or reset:
         session = _sessions[session_id] = Session(
             session_id, _config.model_name, McpSystemPrompt(_mcp), _llm, _mcp, _config.expire_time
         )
     return session
+
+def link_session(main: Session, link_id: int) -> LinkedSession | None:
+    if not (session_to_link := get_session(link_id)):
+        return None  # no session to link
+
+    if isinstance(main, LinkedSession):
+        main.link(session_to_link)
+    else:
+        main = LinkedSession(main, session_to_link)
+
+    _sessions[int(main.id)] = main
+    return main
+
+def unlink_session(main: LinkedSession, link_id: int) -> Session:
+    main.unlink(link_id)
+    if not main.sessions:
+        _sessions[int(main.id)] = main.main_session
+        main = main.main_session
+    return main
 
 def visible_chat(dialog: Dialogue | None):
     if dialog:
@@ -100,7 +126,7 @@ def whole_dialog_chat(dialog: Dialogue | None):
         
 
 def session_visible_chat(session: Session):
-    for dialog in session._raw_messages:
+    for dialog in session.dialogues_gen():
         if not dialog:
             continue
         for message in dialog.pair:
@@ -119,6 +145,8 @@ async def render_chat(messages: list[ChatCompletionMessageParam]):
 
 (Command("chat").names("deepseek", "DeepSeek", "ds", "ai", "AI")
  .opt(("-reset", "-r"), OPT.N, "重置会话")
+ .opt(("-link", "-l", "-连接", "-连", "-联结", "-链接"), OPT.M, "连接他人的会话")
+ .opt(("-unlink", "-unl", "-断开", "-断", "-断连"), OPT.M, "断开与他人的连接")
 )
 
 @Events.onCmd("chat")
@@ -128,16 +156,53 @@ async def chat(pr: ParseResult):
 
     msg: Message = pr.raw
     session_id = msg.realSrc
+    actions = []
+    return_before_chat = False
+    
+    if pr["reset"]:
+        _sessions.pop(session_id, None)
+        actions.append("对话已重置，让我们重新开始吧")
+
+    session = ensure_session(session_id, pr["reset"])
+    
+    if (link_content := pr.getByType("link")):
+        if not (link_at := first_at(link_content)) or not (link_id := link_at.qq_num):
+            actions.append("没看懂要和谁的对话连接…")
+            return_before_chat = True
+        # elif link_id == session_id:
+        #     actions.append("最好不要连接自己的对话哦…")
+        elif (linked_session := link_session(session, link_id)) is None:
+            actions.append("要连接的人什么都没聊过…")
+        else:
+            session = linked_session
+            actions.append(f"成功连接 {link_at.CQcode} 的对话")
+
+    if (unlink_content := pr.getByType("unlink")):
+        if not (unlink_at := first_at(unlink_content)) or not (unlink_id := unlink_at.qq_num):
+            actions.append("没看懂要和谁的对话断开连接…")
+            return_before_chat = True
+        elif not isinstance(session, LinkedSession) or unlink_id not in session.sessions:
+            actions.append("还没连接过呢，没法断开啦")
+        else:
+            session = unlink_session(session, unlink_id)
+            actions.append(f"成功断开与 {unlink_at.CQcode} 对话的连接")
 
     content = pr.paramStr.strip()
     if not content:
-        if pr["reset"]:
-            _sessions.pop(session_id, None)
-            return ["对话已重置，让我们重新开始吧"]
-        return ["要聊点什么吗？"]
+        if return_before_chat:
+            actions.append("要聊点什么吗？整理下参数，再试一次吧")
+        else:
+            actions.append("要聊点什么吗？")
+    else:
+        if return_before_chat:
+            actions.append("整理下参数，再试一次吧")
 
-    session = get_session(session_id, pr["reset"])
-    
+    if actions:
+        await msg.selector.bot.SendContents(msg.copy(srcAsDst=True), ["\n".join(actions)])
+
+    if not content or return_before_chat:
+        return
+
     async with under_emoji(msg.selector.bot, msg.id, 351):
         dialogue = Dialogue()
         try:
@@ -153,7 +218,7 @@ async def chat(pr: ParseResult):
         if response.content and (messages := visible_chat(dialogue)):
             # logger.debug(repr(messages))
             return await render_chat(messages)
-        return ["它什么也没说…！"]
+        return ["结果它什么也没说…！"]
 
 def mcp_list_servers():
     for server in _mcp.servers:
@@ -202,12 +267,16 @@ async def chatlog(pr: ParseResult):
         return ["未配置 chat，当前不可用…"]
 
     msg: Message = pr.raw
-    session_id = msg.realSrc
+
+    if (atQQ := first_at(msg.content)) and (qq := atQQ.qq_num):
+        session_id = qq
+    else:
+        session_id = msg.realSrc
 
     if session_id not in _sessions:
         return ["对话记录是空的…"]
     
-    session = get_session(session_id)
+    session = ensure_session(session_id)
 
     if not session._raw_messages:
         return ["对话记录是空的…"]
