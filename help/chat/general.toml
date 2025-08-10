@@ -10,10 +10,14 @@ examples = [
     { input = ".chat 吃 250 个包子会怎么样" },
     { input = ".chat 抽卡面包的效果？" },
     { input = ".chat 抽卡面包的效果？ -r" },
+    { input = ".chat 前面说了啥 -连接 @群友" },
+    { input = ".chat -断开 @群友" },
 ]
 
 options = [
     { names = ["-r", "-reset"], description = "重新开始对话" },
+    { names = ["-l", "-link", "-连接", "-连"], params = "@群友", description = "连接群友的对话" },
+    { names = ["-unl", "-unlink", "-断开", "-断"], params = "@群友", description = "断开与群友对话的连接" },
 ]
 
 misc = """

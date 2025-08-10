@@ -2,6 +2,7 @@
   查看 .chat 的对话记录
 例：
   .chatlog
+  .chatlog @群友
   .chatlog -t
   .对话记录 -调试
   .对话记录 -尾

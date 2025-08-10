@@ -9,6 +9,7 @@ description = """
 
 examples = [
     { input = ".chatlog" },
+    { input = ".chatlog @群友" },
     { input = ".chatlog -t" },
     { input = ".对话记录 -调试" },
     { input = ".对话记录 -尾" },
