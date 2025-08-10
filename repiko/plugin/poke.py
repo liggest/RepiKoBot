@@ -1,3 +1,8 @@
+# import asyncio
+from pathlib import Path
+from contextlib import contextmanager
+# from contextvars import ContextVar
+
 from repiko.core.bot import Bot
 from repiko.core.constant import NoticeType,MessageType,EventNames,PostType
 from repiko.core.log import logger
@@ -6,13 +11,9 @@ from repiko.msg.selector import NoticeSelector
 from repiko.msg.data import Notice,Message
 from repiko.msg.part import At
 from repiko.msg.content import Content
-from LSparser import Events,Command,ParseResult
 
-# import asyncio
 import yaml
-from pathlib import Path
-from contextlib import contextmanager
-# from contextvars import ContextVar
+from LSparser import Events,Command,ParseResult
 
 @Events.on(NoticeSelector.getEventName())
 async def onNotice(notice:Notice,bot:Bot):
@@ -89,7 +90,8 @@ async def setme(pr:ParseResult):
     content = pr.paramStr.strip()
     if msg.hasAtMe:
         content = f"{atMe} {content}"
-    memberPokes[qq] = {"name": name, "content": pr.paramStr}
+    # memberPokes[qq] = {"name": name, "content": pr.paramStr}
+    memberPokes[qq] = {"name": name, "content": content}
     if not name or msg.mtype == MessageType.Group:
         name = atMe
     return [f"为 {name} 设置了 .poke"]
