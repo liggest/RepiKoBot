@@ -62,8 +62,8 @@
   color 
 }
 
-#let text-avatar(content, color: none) = circle(width: 20pt, fill:
-  text-avatar-color(content, color: color)
+#let text-avatar(content, color: none) = circle(
+  width: 20pt, fill: text-avatar-color(content, color: color)
 )[
   #align(center + horizon)[
     #text(content.first(), font: ((name: "Inria Serif", covers: "latin-in-cjk"),"Noto Sans CJK SC"), lang: "zh", fill: luma(255))
@@ -89,6 +89,12 @@
 
 #let assistant-block(md-text) = render-md(md-text, scope: (image: maybe-image-md), init: md-init, width: auto)
 
+#let error-color = color.hsl(0deg, 50%, 50%)
+
+#let error-block(md-text) = block(stroke: (1pt + error-color), inset: 4pt, radius: 4pt)[
+  #render-md(md-text, scope: (image: maybe-image-md), init: md-init, width: auto)
+]
+
 #let message(data) = {
   // let x = (role: "assistant", content: "123")
   let role = data.at("role", default: "assistant")
@@ -98,6 +104,9 @@
   ] else if role == "assistant" [
     #v(-4pt)
     #text-avatar("Bot")
+  ] else if role == "error" [
+    #v(-1pt)
+    #text-avatar("!", color: error-color)
   ] else []
   let right-grid = if role == "user" [
     #v(-4pt)
@@ -116,6 +125,8 @@
         // align(left, user-block(content))
       } else if role == "assistant" {
         assistant-block(content)
+      } else if role == "error" {
+        error-block(content)
       }
     ]
   ]

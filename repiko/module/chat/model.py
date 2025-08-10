@@ -1,4 +1,5 @@
 
+from __future__ import annotations
 from typing import Iterable, SupportsIndex
 from datetime import datetime, timedelta
 from functools import cached_property
@@ -80,11 +81,13 @@ class Session:
         return False  # no messages, not expired
 
     async def chat_once(self, prompt: str, 
+                        dialogue: Dialogue | None = None,
                         max_tokens: int | NotGiven = NOT_GIVEN, temperature: float | NotGiven = NOT_GIVEN):
         logger.debug(f"Chatting with prompt:\n{prompt}")
-        # self._raw_messages.append({"role": "user", "content": prompt})
-        if self._raw_messages:
-            self._raw_messages.last_dialogue.append(MessageUnit({"role": "user", "content": prompt}))
+        # if self._raw_messages:
+        #     self._raw_messages.last_dialogue.append(MessageUnit({"role": "user", "content": prompt}))
+        if dialogue is not None:
+            dialogue.append(MessageUnit({"role": "user", "content": prompt}))
 
         response_message = await self.llm._chat_call(
             self.model_name,
@@ -97,10 +100,10 @@ class Session:
 
         return response_message
 
-    async def handle_tool_use(self, message: ChatCompletionMessage) -> list[str]:
+    async def handle_tool_use(self, message: ChatCompletionMessage, dialogue: Dialogue) -> list[str]:
 
         message = ReasoningMessage.model_construct(**message.model_dump(mode="json", exclude_none=True, exclude_unset=True, exclude_defaults=True))
-        self._raw_messages.last_dialogue.append(MessageUnit(message))
+        dialogue.append(MessageUnit(message))
 
         try:
             xml_message = message.content or ""
@@ -160,18 +163,23 @@ class Session:
         return CallToolRequestParams(name=tool_name, arguments=arguments)
 
     async def chat(self, prompt: str, 
+                   current_dialogue: Dialogue | None = None,
                    max_tokens: int | NotGiven = NOT_GIVEN, temperature: float | NotGiven = NOT_GIVEN):
-        self._raw_messages.append(Dialogue())
+        if current_dialogue is None:
+            current_dialogue = Dialogue()
+        self._raw_messages.append(current_dialogue)
         try:
-            response = await self.chat_once(prompt, max_tokens, temperature)
+            response = await self.chat_once(prompt, current_dialogue, max_tokens, temperature)
             # tool_use_count = 0
-            while tool_use_results := await self.handle_tool_use(response):
+            while tool_use_results := await self.handle_tool_use(response, current_dialogue):
                 tool_response_prompt = "\n".join(tool_use_results)
-                response = await self.chat_once(tool_response_prompt, max_tokens, temperature)
+                response = await self.chat_once(tool_response_prompt, current_dialogue, max_tokens, temperature)
         finally:
-            if not self._raw_messages.last_dialogue:
-                self._raw_messages.pop()
-        
+            # if not self._raw_messages.last_dialogue:
+                # self._raw_messages.pop()
+            if not current_dialogue:  # if fast failed
+                self._raw_messages.remove(current_dialogue)
+
         return response
     
     def rotate(self, max_tokens: int):
@@ -283,10 +291,10 @@ class Messages(list[Dialogue]):
         raise AttributeError("Message list is empty")
 
     @property
-    def last_dialogue(self) -> Dialogue:
-        if not self:
-            self.append(Dialogue())
-        return self[-1]
+    def last_dialogue(self) -> Dialogue | None:
+        if self:
+            return self[-1]
+        return None
 
     def messages_gen(self, with_system = True):
         if with_system:

@@ -17,6 +17,7 @@ from repiko.module.img.typ import typ_file2png, default_font_paths, default_root
 from repiko.module.util import images_gen, under_emoji
 
 from openai.types.chat import ChatCompletionMessageParam
+from openai import OpenAIError
 from LSparser import Command, Events, ParseResult, OPT
 
 
@@ -74,12 +75,21 @@ def get_session(session_id: int, reset: bool = False) -> Session:
         )
     return session
 
-def visible_chat(dialog: Dialogue):
+def visible_chat(dialog: Dialogue | None):
     if dialog:
         return [message.as_param() for message in dialog.pair]
     return []
 
-def all_dialog_chat(dialog: Dialogue):
+
+def visible_chat_with_error(dialog: Dialogue | None, error: OpenAIError):
+    error_param = {"role": "error", "content": str(error)}
+    if dialog:
+        messages = [dialog[0].as_param(), error_param]
+    else:
+        messages = [error_param]
+    return messages
+
+def whole_dialog_chat(dialog: Dialogue | None):
     if not dialog:
         return
     for message in dialog:
@@ -89,7 +99,7 @@ def all_dialog_chat(dialog: Dialogue):
             yield message.as_param()
         
 
-def all_visible_chat(session: Session):
+def session_visible_chat(session: Session):
     for dialog in session._raw_messages:
         if not dialog:
             continue
@@ -129,11 +139,18 @@ async def chat(pr: ParseResult):
     session = get_session(session_id, pr["reset"])
     
     async with under_emoji(msg.selector.bot, msg.id, 351):
-        response = await session.chat(content, temperature=0.6)
-        if _config.max_tokens:
-            session.rotate(_config.max_tokens)
+        dialogue = Dialogue()
+        try:
+            response = await session.chat(content, current_dialogue=dialogue, temperature=0.6)
 
-        if response.content and (messages := visible_chat(session._raw_messages.last_dialogue)):
+            if _config.max_tokens:
+                session.rotate(_config.max_tokens)
+        except OpenAIError as e:
+            messages = visible_chat_with_error(dialogue, e)
+            logger.error(repr(e))
+            return await render_chat(messages)
+
+        if response.content and (messages := visible_chat(dialogue)):
             # logger.debug(repr(messages))
             return await render_chat(messages)
         return ["它什么也没说…！"]
@@ -199,16 +216,17 @@ async def chatlog(pr: ParseResult):
         pr.args["last"] = True  # 只能拿最后一轮的文本
 
     if pr["last"]:
+        last_dialogue = session._raw_messages.last_dialogue
         if pr["text"]:
-            if session._raw_messages.last_dialogue:
-                return [str(session._raw_messages.last_dialogue[-1].as_param()["content"]).strip()]
+            if last_dialogue:
+                return [str(last_dialogue[-1].as_param()["content"]).strip()]
         elif pr["debug"]:
-            return await render_chat(list(all_dialog_chat(session._raw_messages.last_dialogue)))
-        elif messages := visible_chat(session._raw_messages.last_dialogue):
+            return await render_chat([*whole_dialog_chat(last_dialogue)])
+        elif messages := visible_chat(last_dialogue):
             return await render_chat(messages)
         return ["它什么也没说…！"]
     
-    if messages := [*all_visible_chat(session)]:
+    if messages := [*session_visible_chat(session)]:
         return await render_chat(messages)
     return ["对话记录是空的…"]
             
