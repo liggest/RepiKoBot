@@ -15,6 +15,7 @@
   show raw : set text(font: ("Cascadia Mono", "Noto Sans Mono CJK SC"))
   show raw.where(lang: "rpk") : set raw(syntaxes: "../asset/LSparser.sublime-syntax")
   show raw.where(lang: "rpko") : set raw(syntaxes: "../asset/LSparser-option.sublime-syntax")
+  show raw.where(lang: "rpkov") : set raw(syntaxes: "../asset/LSparser-option-value.sublime-syntax")
   show raw.where(block: false): set raw(lang: "rpko", syntaxes: "../asset/LSparser-option.sublime-syntax")
   // show raw.where(lang: "rpk", block: true) : set text(size: 1.25em)
   show raw.where(lang: "rpko", block: true) : set text(size: 1.25em)
@@ -73,20 +74,31 @@
 }
 
 #let render-one-example(example) = {
+  let has-content = false
   if "input" in example {
     block(fill: text-bg-color, radius: 2pt, outset: 4pt, spacing: 4pt, raw(example.input, lang: "rpk", block: true))
+    has-content = true
   }
   if "output" in example {
-    v(2pt)
+    if has-content {
+      v(2pt)
+    }
     render-output(example.output, small: true)
+    has-content = true
   }
   if "hint" in example {
-    v(2pt)
+    if has-content {
+      v(2pt)
+    }
     render-hint(example.hint, small: true)
+    has-content = true
   }
   if "plain" in example {
-    v(2pt)
+    if has-content {
+      v(2pt)
+    }
     render-plain(example.plain, small: true)
+    has-content = true
   }
   v(1em)
 }

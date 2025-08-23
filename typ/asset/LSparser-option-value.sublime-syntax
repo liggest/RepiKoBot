@@ -1,0 +1,79 @@
+%YAML 1.2
+---
+# See http://www.sublimetext.com/docs/syntax.html
+name: LSparser-option-value
+file_extensions:
+  - lsov
+  - rpkov
+scope: source.lsparser.option.value
+
+variables:
+  # 指令名、选项
+  identifier: '[[:alnum:][:punct:]！？]+'
+  # 短选项
+  short_option: '-{{identifier}}'
+  # 长选项
+  long_option: '--{{identifier}}'
+  parameter: '[^-\s][^\s]*'
+  totally_parameter: '[^\s]+'
+
+contexts:
+  main:
+    # 指令前缀
+    - match: ''
+      push: totally_option_values
+
+  params_and_options:
+    - meta_scope: meta.parameters.lsparser
+    # 长选项
+    - match: '({{long_option}})'
+      scope: entity.other.option.long.lsparser
+      push: option_values
+    # 短选项
+    - match: '({{short_option}})'
+      scope: entity.other.option.short.lsparser
+      push: option_value
+    # 参数
+    - match: '(?!-){{parameter}}'
+      # scope: string.unquoted.parameter.lsparser
+      scope: text.plain.parameter.lsparser
+    # 结束
+    - match: '$'
+      pop: true
+
+  option_value:
+    - meta_scope: meta.option-value.single.lsparser
+    # 选项值（至多一个）
+    - match: '(?!-){{parameter}}'
+      scope: entity.name.label.option.value.lsparser
+      pop: true
+    # 遇到新选项时退出
+    - match: '(?=\s+-)'
+      pop: true
+    # 行结束时退出
+    - match: '$'
+      pop: true
+
+  option_values:
+    - meta_scope: meta.option-value.multiple.lsparser
+    # 匹配选项值（可以有多个）
+    - match: '(?!-){{parameter}}'
+      scope: entity.name.label.option.value.lsparser
+    # 遇到新选项时退出
+    - match: '(?=\s+-)'
+      pop: true
+    # 行结束时退出
+    - match: '$'
+      pop: true
+
+  totally_option_values:
+    - meta_scope: meta.option-value.multiple.lsparser
+    # 匹配选项值（可以有多个）
+    - match: '{{totally_parameter}}'
+      scope: entity.name.label.option.value.lsparser
+    # # 遇到新选项时退出
+    # - match: '(?=\s+-)'
+    #   pop: true
+    # 行结束时退出
+    - match: '$'
+      pop: true
