@@ -255,8 +255,18 @@ async def mcp_cmd(pr: ParseResult):
 
     return ["\n".join(mcp_list_servers())]
 
+
+def dialogue_by_idx(session: Session, idx: int) -> Dialogue:
+    total = len(session._raw_messages)
+    idx = min(idx, total - 1)  # 0..n-1
+    idx = max(idx, -total)     # -n..-1
+    return session._raw_messages[idx]
+
+
 (Command("chatlog").names("对话记录", "历史记录")
+ .opt(("-page", "-p", "-页"), OPT.M, "对话轮数（页数），可正可负")
  .opt(("-last", "-tail", "-尾"), OPT.N, "最后一轮对话")
+ .opt(("-first", "-head", "-首", "-头"), OPT.N, "第一轮对话")
  .opt(("-text", "-t", "-文本"), OPT.N, "文本形式的最后一轮对话")
  .opt(("-debug", "-d", "-调试"), OPT.N, "包含详细信息的最后一轮对话")
 )
@@ -273,27 +283,34 @@ async def chatlog(pr: ParseResult):
     else:
         session_id = msg.realSrc
 
-    if session_id not in _sessions:
-        return ["对话记录是空的…"]
-    
-    session = ensure_session(session_id)
+    session = get_session(session_id)
 
-    if not session._raw_messages:
+    if not session or not session._raw_messages:
         return ["对话记录是空的…"]
 
-    if pr["text"] or pr["debug"]:
-        pr.args["last"] = True  # 只能拿最后一轮的文本
-
+    if pr["first"]:
+        pr.args["page"] = 1
     if pr["last"]:
-        last_dialogue = session._raw_messages.last_dialogue
+        pr.args["page"] = -1
+
+    page: int | None = pr.getToType("page", None, int)
+
+    if page is None and (pr["text"] or pr["debug"]):
+        page = -1  # 默认拿最后一轮的文本
+
+    if page is not None:
+        # 单页
+        idx = page - 1 if page > 0 else page  # 1..n => 0..n-1
+        # last_dialogue = session._raw_messages.last_dialogue
+        page_dialogue = dialogue_by_idx(session, idx)
         if pr["text"]:
-            if last_dialogue:
-                return [str(last_dialogue[-1].as_param()["content"]).strip()]
+            if page_dialogue:
+                return [str(page_dialogue[-1].as_param()["content"]).strip()]
         elif pr["debug"]:
-            return await render_chat([*whole_dialog_chat(last_dialogue)])
-        elif messages := visible_chat(last_dialogue):
+            return await render_chat([*whole_dialog_chat(page_dialogue)])
+        elif messages := visible_chat(page_dialogue):
             return await render_chat(messages)
-        return ["它什么也没说…！"]
+        return ["里面什么也没有…！"]
     
     if messages := [*session_visible_chat(session)]:
         return await render_chat(messages)

@@ -9,8 +9,8 @@ description = """
 examples = [
     { input = ".chat 吃 250 个包子会怎么样" },
     { input = ".chat 抽卡面包的效果？" },
-    { input = ".chat 抽卡面包的效果？ -r" },
-    { input = ".chat 前面说了啥 -连接 @群友" },
+    { plain = "```rpk .chat -r``` 抽卡面包的效果？" },
+    { input = ".chat -连接 @群友 前面说了啥" },
     { input = ".chat -断开 @群友" },
 ]
 
