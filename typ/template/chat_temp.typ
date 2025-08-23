@@ -1,5 +1,4 @@
-#import "../base/md_base.typ": render-md, maybe-image-md
-#import "../base/chat_base.typ": md-init, brighter-block-quote, system-init, reasoning-init, system-block, user-block, reasoning-block, assistant-block, tool-result-block, text-avatar, messages
+#import "../base/chat_base.typ": messages
 
 #{
   set page(width: auto, height: auto, margin: 8pt)

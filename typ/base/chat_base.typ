@@ -1,6 +1,6 @@
 #import "@preview/cuti:0.3.0": show-cn-fakebold
 
-#import "md_base.typ": render-md, maybe-image-md
+#import "md_base.typ": render-md, maybe-image-md, make-md-quote
 
 #let md-text-style(doc, color: luma(32)) = {
   set text(font: ((name: "Inria Serif", covers: "latin-in-cjk"),"Noto Sans CJK SC"), lang: "zh", size: 8pt, fill: color)
@@ -43,7 +43,9 @@
   doc
 }
 
-#let brighter-block-quote = it => block(text(it), stroke: (left: 1.5pt + luma(64)), fill: luma(242), inset: (right: 2pt, rest: 4pt), width: 100%)
+#let brighter-block-quote = it => block(text(it), 
+  stroke: (left: 1.5pt + luma(64)), fill: luma(242), inset: (right: 2pt, rest: 4pt), width: 100%
+)
 
 #let brighter-md-text = md-text-style.with(color: luma(96))
 
@@ -66,33 +68,43 @@
   width: 20pt, fill: text-avatar-color(content, color: color)
 )[
   #align(center + horizon)[
-    #text(content.first(), font: ((name: "Inria Serif", covers: "latin-in-cjk"),"Noto Sans CJK SC"), lang: "zh", fill: luma(255))
+    #text(content.first(), 
+      font: ((name: "Inria Serif", covers: "latin-in-cjk"),"Noto Sans CJK SC"), lang: "zh", fill: luma(255)
+    )
   ]
 ]
 
 #let system-block(md-text) = block(stroke: (1pt + luma(128)), inset: 4pt, radius: 4pt)[
-  #render-md(md-text, scope: (image: maybe-image-md), init: system-init, width: auto)
+  #render-md(md-text, image: maybe-image-md, init: system-init, width: auto)
 ]
 
 #let user-block(md-text) = block(outset: (top: 2pt, bottom: 2pt), inset: 4pt, fill: rgb(239, 246, 255), radius: 4pt)[
   #set align(left)
-  #render-md(md-text.replace("\n", "\n\n"), scope: (image: maybe-image-md), init: md-init, width: auto)
+  #render-md(md-text.replace("\n", "\n\n"), image: maybe-image-md, init: md-init, width: auto)
 ]
 
 #let reasoning-block(md-text) = block(stroke: (left: 1pt + luma(128)), inset: (left: 4pt, top: 2pt, bottom: 2pt))[
-  #render-md(md-text, scope: (image: maybe-image-md), init: reasoning-init, width: auto, blockquote: brighter-block-quote)
+  #render-md(md-text, 
+    image: maybe-image-md, quote: make-md-quote(brighter-block-quote), 
+    init: reasoning-init, width: auto
+  )
 ]
 
-#let tool-result-block(md-text) = block(stroke: (left: 1pt + luma(128)), inset: (right: 4pt, left: 4pt, top: 2pt, bottom: 2pt), radius: 4pt)[
-  #render-md(md-text, scope: (image: maybe-image-md), init: reasoning-init, width: auto, blockquote: brighter-block-quote)
+#let tool-result-block(md-text) = block(stroke: (left: 1pt + luma(128)), 
+  inset: (right: 4pt, left: 4pt, top: 2pt, bottom: 2pt), radius: 4pt
+)[
+  #render-md(md-text, 
+    image: maybe-image-md, quote: make-md-quote(brighter-block-quote),
+    init: reasoning-init, width: auto
+  )
 ]
 
-#let assistant-block(md-text) = render-md(md-text, scope: (image: maybe-image-md), init: md-init, width: auto)
+#let assistant-block(md-text) = render-md(md-text, image: maybe-image-md, init: md-init, width: auto)
 
 #let error-color = color.hsl(0deg, 50%, 50%)
 
 #let error-block(md-text) = block(stroke: (1pt + error-color), inset: 4pt, radius: 4pt)[
-  #render-md(md-text, scope: (image: maybe-image-md), init: md-init, width: auto)
+  #render-md(md-text, image: maybe-image-md, init: md-init, width: auto)
 ]
 
 #let message(data) = {
