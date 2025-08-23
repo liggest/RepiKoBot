@@ -37,7 +37,7 @@ chat = [
 ]
 img = [
     "resvg-py>=0.2.0",
-    "typst>=0.13.0",
+    "typst>=0.13.5",
 ]
 nlp = [
     "pypinyin>=0.53.0",

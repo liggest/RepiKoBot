@@ -5,7 +5,7 @@
 groups = ["default", "chat", "factorio", "img", "nlp"]
 strategy = []
 lock_version = "4.5.0"
-content_hash = "sha256:db8423d900d3157465dcafa7c76695f0f3d77b4349937b47d3b044de299ba977"
+content_hash = "sha256:2fc37af0c0447e6131caec4adeeca13c8f720cbe476bb2a278ddfacdda16e2ad"
 
 [[metadata.targets]]
 requires_python = ">=3.10"
@@ -1399,27 +1399,27 @@ files = [
 
 [[package]]
 name = "typst"
-version = "0.13.0"
+version = "0.13.5"
 requires_python = ">=3.8"
-summary = "Python binding to typst"
+summary = ""
 files = [
-    {file = "typst-0.13.0-cp313-cp313t-macosx_10_12_x86_64.whl", hash = "sha256:ad8d2d6ad250938fbed833aaeb4543284a8a44fb8823e060e3288f9105bac3e6"},
-    {file = "typst-0.13.0-cp313-cp313t-macosx_11_0_arm64.whl", hash = "sha256:1bf5b02676ecd6eb31049dd3181b55f22bddf7c542af8f98cafe7353115cff37"},
-    {file = "typst-0.13.0-cp313-cp313t-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:fd09af5f8355635bef2a759b49afb82bb88fe7e3a91ba4925c13d8a71a96283f"},
-    {file = "typst-0.13.0-cp313-cp313t-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:db69a4ba21a4d662074a5eb5cf41d5979c2691da2ca83ff1c8bfab1376cca178"},
-    {file = "typst-0.13.0-cp313-cp313t-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:985199eb41637496848c348a4d1a101f875b0cb424008b74127aff0253f05b89"},
-    {file = "typst-0.13.0-cp313-cp313t-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:64ecd9ebedcdbf225145522d9ce473a69416c1b643093cd641c6fbe1b5f7b245"},
-    {file = "typst-0.13.0-cp313-cp313t-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:6323a85517274bb174872e25db1817842cb8985ddd6cf7f23fdf28266034a597"},
-    {file = "typst-0.13.0-cp313-cp313t-win_amd64.whl", hash = "sha256:43a0381ead5bef592a83271a631ed4c036e924b2487ab9a12049b6c6d88153f4"},
-    {file = "typst-0.13.0-cp38-abi3-macosx_10_12_x86_64.whl", hash = "sha256:ace60e505b9b983f69a28e3b03e2ed543565f8b81c850b0a31fa5c9eae53b809"},
-    {file = "typst-0.13.0-cp38-abi3-macosx_11_0_arm64.whl", hash = "sha256:b947de93a3357d71bf4262e2ec48afbcab42c8bb341a6f8cba9835b402b16e73"},
-    {file = "typst-0.13.0-cp38-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:f693a7ac974bf628b65083d579a9d0a206213f5540c2316357d3b1acbfddd815"},
-    {file = "typst-0.13.0-cp38-abi3-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:788077874368c2a865e7e313aecbd1ca72e93265e940bbdffb7e05630a6f6d8f"},
-    {file = "typst-0.13.0-cp38-abi3-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:95a184b08372bc34f37c421c65456fe13ba48e7995b171a2617e9ec458dc898e"},
-    {file = "typst-0.13.0-cp38-abi3-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:bdf43c7c1f38aa89a3487e1dc307e2c01b6f9ce29f6ee1808d99b0df8b054b84"},
-    {file = "typst-0.13.0-cp38-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:819cef563a84c654e6fc9c883c8c605f2ab6212d6b82cd443f7f9084644f5c92"},
-    {file = "typst-0.13.0-cp38-abi3-win_amd64.whl", hash = "sha256:40a30c4ce02b6675451c9008f924b9b3deee2b9cf6750868869606c8defa1399"},
-    {file = "typst-0.13.0.tar.gz", hash = "sha256:81492bcd3f0fae7bf868293fe02804939c0e92b1ca8e6836d8f7ccf1e58f9980"},
+    {file = "typst-0.13.5-cp313-cp313t-macosx_10_12_x86_64.whl", hash = "sha256:35585c8730cb4b4b650cfb20c8d188fb9c7da923f3c6039f7df8788211a1715f"},
+    {file = "typst-0.13.5-cp313-cp313t-macosx_11_0_arm64.whl", hash = "sha256:9e18215d2e53b309c95a986f9ebbd406d229f2075dc55a6970f3e15b8ce5264c"},
+    {file = "typst-0.13.5-cp313-cp313t-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:3aceccec661e5521b8cecc9c9e1a085a55c42c11af3737b9b2ee61d466bce2d1"},
+    {file = "typst-0.13.5-cp313-cp313t-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:898ef8e8f8d61cbfb8e6d450c1a1a368a97aa0cf31ec4736a9a983af903bf7ef"},
+    {file = "typst-0.13.5-cp313-cp313t-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:e7448f01cf063160aa026b7def84b9731944849c1a665a78f1efb9209603835f"},
+    {file = "typst-0.13.5-cp313-cp313t-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:ea35dbe2b912f6f70f95a559e18b3f34b4387e13d2d812bb183ffa07acde47ed"},
+    {file = "typst-0.13.5-cp313-cp313t-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:ebd4dd100105d508c15d3845d301d835d90db939157e7708cfa6682398a76d29"},
+    {file = "typst-0.13.5-cp313-cp313t-win_amd64.whl", hash = "sha256:65ab6d0dad29e4d0af2a8cdcd653740c4f49abc3c2f7bb0bda9211d8b8dc5d7b"},
+    {file = "typst-0.13.5-cp38-abi3-macosx_10_12_x86_64.whl", hash = "sha256:ff2f103f974ccb26d10dfc97e67efb33e4973783e485af17161fca23687d220c"},
+    {file = "typst-0.13.5-cp38-abi3-macosx_11_0_arm64.whl", hash = "sha256:339d4cb871b938f700adac12bbea5b21660861891c20c16fc5143a03c3591c36"},
+    {file = "typst-0.13.5-cp38-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:0543afa3b30f104b84df30d534450f1e061217af3cdc4e72a2ae596421d69378"},
+    {file = "typst-0.13.5-cp38-abi3-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:db86345059d6fc884add99ee1a3249ce894034f996a1943b501ae6ba5ecf8a83"},
+    {file = "typst-0.13.5-cp38-abi3-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:4124f599402691b4e30049a31b0234545c970b19260c0884e6234295f92cb757"},
+    {file = "typst-0.13.5-cp38-abi3-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:742a1c957f385eb337873c5ff262a4a0297bb6a1a88badb09860804e5b107461"},
+    {file = "typst-0.13.5-cp38-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:3d277b5bb3160aa05afb84a11b2a428f8e64102f43619b0b43ca2a523161f600"},
+    {file = "typst-0.13.5-cp38-abi3-win_amd64.whl", hash = "sha256:e5efa2bbc1a7bcb714cb00e691db6a07170affd75d0fc23d00e507ad9e48aabd"},
+    {file = "typst-0.13.5.tar.gz", hash = "sha256:fa17e6e134addd8ed8f0329ae924ddc1beb914e931e87cce36297844035f2241"},
 ]
 
 [[package]]
