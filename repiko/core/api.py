@@ -9,6 +9,7 @@ from repiko.msg.part import Node
 if typing.TYPE_CHECKING:
     from repiko.core.bot import Bot
     from repiko.core.websocket import WS
+    from repiko.msg.typing import EssenceInfo, QQInfo, GroupMemberInfo
 
 import httpx
 import requests
@@ -160,10 +161,10 @@ class Api:
     async def sendPrivateForward(self, qq:int, nodes:list[Node]):
         return await self.post("send_private_forward_msg",{ "user_id":qq, "messages":nodes })
 
-    async def groupMemberInfo(self, group:int, qq:int, cache=True):
+    async def groupMemberInfo(self, group:int, qq:int, cache=True) -> GroupMemberInfo:
         return await self.post("get_group_member_info",{ "group_id":group, "user_id":qq, "no_cache":not cache })
 
-    async def qqInfo(self, qq:int, cache=True):
+    async def qqInfo(self, qq:int, cache=True) -> QQInfo:
         return await self.post("get_stranger_info",{ "user_id":qq, "no_cache":not cache })
 
     async def groupRootFolder(self, group:int):
@@ -181,6 +182,15 @@ class Api:
 
     async def robotQQRange(self) -> list[dict[str, str]]:  # [ {"minUin": ..., "maxUin": ...} ]
         return await self.post("get_robot_uin_range")
+
+    async def essenceList(self, group:int) -> list[EssenceInfo]:
+        return await self.post("get_essence_msg_list",{ "group_id": group })
+
+    async def setEssence(self, msgID:int):
+        return await self.post("set_essence_msg",{ "message_id": msgID })
+    
+    async def deleteEssence(self, msgID:int):
+        return await self.post("delete_essence_msg",{ "message_id": msgID })
 
     async def _quickOperation(self, event:dict, operation:dict):
         return await self.post(".handle_quick_operation",{ "context":event, "operation":operation })

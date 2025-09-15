@@ -8,12 +8,14 @@ from repiko.msg.selector import RequestSelector
 # from repiko.msg.message import Message
 from repiko.msg.content import Content
 from repiko.msg.util import CQunescapeComma
+from repiko.module.util import under_emoji, is_admin
 
 from LSparser import Command, Events, CommandCore, ParseResult, CommandParser, OPT
 
 import typing
 import functools
 import asyncio
+from datetime import datetime
 
 # bdcfg=Config("broadcast.toml")
 
@@ -298,9 +300,47 @@ with CommandCore(name="admin") as core:
             result=method(s,*args)
         except Exception as e:
             logger.opt(exception=e).error(f"{repr(method)}({repr(s)}, *{repr(args)}) 执行出错！")
-            return [f"报了 {e.__class__.__name__}"]
+            return [f"报了 {e.__class__.__name__}: {e}"]
         # logger.debug(f"{repr(method)}({repr(s)}, *{repr(args)})")
         return [str(result)]
+
+    Command("clean_essence").names("啊卧槽受不了了帮我把精华消息删一下啊啊啊").opt(["-from"],OPT.M,"开始日期").opt(["-to"],OPT.M,"结束日期")
+    @Events.onCmd("clean_essence")
+    async def clean_essence(pr: ParseResult):
+        msg:Message = pr.raw
+        bot:Bot = msg.selector.bot
+        if msg.mtype != MessageType.Group:
+            return ["去群里找精华消息呀"]
+        
+        if not await is_admin(msg.src, bot.MYQQ, bot):
+            return ["没有权限，爱莫能助→_→"]
+        
+        from_time = pr.getByType("from")
+        to_time = pr.getByType("to")
+        try:
+            from_time = int(datetime.strptime(from_time, "%Y-%m-%d").timestamp()) if from_time else 0
+            to_time = int(datetime.strptime(to_time, "%Y-%m-%d").replace(hour=23, minute=59, second=59).timestamp()
+                         if to_time else int(datetime.now().timestamp()))
+        except ValueError:
+            return ["目前只支持 YYYY-MM-DD 的日期格式"]
+
+        if from_time > to_time:
+            to_time, from_time = from_time, to_time
+        
+        async def do_delete():
+            async with under_emoji(bot, msg.id, 326):  # 机器人生气
+                essences = await bot._api.essenceList(msg.src)
+                count = 0
+                for e in essences:
+                    ctime = e["operator_time"]
+                    if from_time <= ctime <= to_time:
+                        if _result := await bot._api.deleteEssence(e["message_id"]):
+                            count += 1
+            await bot.Send(Message.build(f"清理精华消息完成，共删除 {count} 条", msg.src, MessageType.Group))
+            return count
+        
+        asyncio.create_task(do_delete())
+        return
 
 
 @Events.on(EventNames.MsgFilter)
