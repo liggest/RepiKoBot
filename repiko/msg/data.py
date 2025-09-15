@@ -6,6 +6,7 @@ from collections.abc import Iterable
 from repiko.core.constant import MessageType,RequestType,NoticeType,MetaEventType
 from repiko.msg.part import At,Reply,Text
 from repiko.msg.content import Content
+from repiko.msg.typing import SenderInfo
 from repiko.msg.util import dictSetter
 
 import typing
@@ -335,13 +336,20 @@ class Message(BaseData):
     def replyDeleted(self,val:bool):
         self._replyDeleted=val
 
-    def getSrcName(self) -> str | None:
+    @property
+    def sender(self) -> SenderInfo | None:
+        """ 发送者信息 """
+        return self.get("sender")
+
+    def getSrcName(self):
         """ 发送者昵称 """
-        return self.get("sender", {}).get("nickname")
-    
-    def getSrcCard(self) -> str | None:
+        if sender := self.sender:
+            return sender.get("nickname")
+
+    def getSrcCard(self):
         """ 发送者群名片 """
-        return self.get("sender", {}).get("card", self.getSrcName())
+        if sender := self.sender:
+            return sender.get("card", self.getSrcName())
 
 
 class Request(BaseData):
