@@ -6,6 +6,7 @@ from repiko.core.log import logger
 from repiko.msg.data import Message
 from repiko.msg.part import Face,Reply,At
 from repiko.msg.content import Content
+from repiko.module.util import is_admin
 
 import asyncio
 
@@ -70,14 +71,10 @@ async def runaway(msg:Message,bot:Bot,deleteBoth=False):
     reply:Reply=msg.content[0]
     await bot.DeleteMsg(reply.id)
     msg.replyDeleted=True
-    if deleteBoth and msg.mtype==MessageType.Group:
+    if deleteBoth and msg.mtype==MessageType.Group and await is_admin(msg.src, bot.MYQQ, bot):
         # print("也删这个")
-        meInGroup=await bot.GroupMemberInfo(msg.src,bot.MYQQ)
-        # print(meInGroup)
-        myRole=meInGroup.get("role",None)
-        if myRole=="owner" or myRole=="admin":
-            asyncio.create_task(delayedDelete(bot,msg.id))
-            # bot.AddBackTask(delayedDelete,bot,msg.id)
+        asyncio.create_task(delayedDelete(bot,msg.id))
+        # bot.AddBackTask(delayedDelete,bot,msg.id)
 
 @Events.on(EventNames.ReplyMe)
 async def replyMe(msg:Message,bot:Bot):

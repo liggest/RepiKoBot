@@ -60,7 +60,7 @@ class Share:
             return Text(self.share.url)
         return self.share
     
-def images_gen(data: bytes | list[bytes], cache: bool = True):
+def images_gen(data:bytes | list[bytes], cache:bool = True):
     if isinstance(data, bytes):
         yield Image(data, cache=cache)
     else:
@@ -68,14 +68,14 @@ def images_gen(data: bytes | list[bytes], cache: bool = True):
             yield Image(d, cache=cache)
 
 @asynccontextmanager
-async def under_emoji(bot: Bot, message_id: int, emoji_id: int, cancel_later=True):
+async def under_emoji(bot:Bot, message_id:int, emoji_id:int, cancel_later=True):
     try:
         yield await bot.PasteEmoji(message_id, emoji_id)
     finally:
         if cancel_later:
             await bot.PasteEmoji(message_id, emoji_id, paste=False)
 
-async def under_emoji_pr(pr:ParseResult, emoji_id: int, cancel_later=True):
+async def under_emoji_pr(pr:ParseResult, emoji_id:int, cancel_later=True):
     msg: Message = pr.raw
     return under_emoji(msg.selector.bot, msg.id, emoji_id, cancel_later)
 
@@ -86,3 +86,8 @@ def first_at(content: str | Content):
         return None
     at: At = content[At, 0]
     return at
+
+async def is_admin(group:int, qq:int, bot:Bot, cache=False):
+    member = await bot.GroupMemberInfo(group, qq, cache=cache)
+    role = member.get("role")
+    return role == "owner" or role == "admin"
