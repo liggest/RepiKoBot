@@ -176,11 +176,13 @@ linkNames=["url","database","QA","wiki","yugipedia","ourocg","script","ocg_rule"
 
 @Events.onCmd("ygocard")
 async def ygocard(pr:ParseResult):
-    a=BaiGe()
-    if len(pr.params)==0:
-        if pr.getByType("wiki",False,bool):
+    if len(pr.params) == 0:
+        if pr.getByType("wiki", False, bool):
             return [f"拿去吧~\n{OurOcg._wiki_link}"]
         return ["空气怎么查啊！"]
+    
+    a = BaiGe()
+    a.timeout = 20  # 加点超时时间
     rcard: Card = await a.from_query(pr.paramStr)
     if rcard:
         result = []
