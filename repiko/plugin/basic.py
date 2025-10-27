@@ -15,6 +15,7 @@ from repiko.msg.util import CQunescape
 # from repiko.module.ygoBG import BaiGe
 # from repiko.module.ygoRoom import YGORoom
 from ygoutil.source import BaiGe, BaiGePage, OurOcg
+from ygoutil.source.baige import BaiGeExtraUnit
 from ygoutil.ygoRoom import YGORoom
 from ygoutil.source.cdb.misc import card_from_cdb
 from repiko.module.calculator import Calculator
@@ -53,9 +54,10 @@ Command("roll").names("r").opt("-act",OPT.M,"要投骰子的行动")
     .opt("-yugipedia",OPT.N,"Yugipedia链接").opt("-ourocg",OPT.N,"OurOcg链接")
     .opt(["-script","-lua"],OPT.N,"脚本链接").opt(["-ocgRule","-rule"],OPT.N,"裁定链接").opt(["-url","-link"],OPT.N,"百鸽链接")
     #.opt("-ygorg",OPT.N,"YGOrg链接")
-    .opt("-reload",OPT.N,"重载图片")
+    .opt(["-tokenpic","-tp"],OPT.N,"YGOtoken卡图").opt("-reload",OPT.N,"重载图片")
 )
 Command("ycpic").names("ycp","bgpic","bgp")
+Command("ytpic").names("ytp","yp")
 
 Command("ygoocg").names("yo","ourocg").opt("-ver",OPT.M,"翻译版本").opt("-wiki",OPT.N,"提供wiki链接").opt("-im",OPT.N,"以图片发送").opt(["-pic","-p"],OPT.N,"卡图").opt("-reload",OPT.N,"重载图片")
 # Command("ygoserver").names("ys")
@@ -173,6 +175,7 @@ def undefined(pr:ParseResult, cp:CommandParser):
         pr.output.append(rolldice(pr))
 
 linkNames=["url","database","QA","wiki","yugipedia","ourocg","script","ocg_rule"] # "ygorg"
+YGOTokenPicBase = "http://www.ygotoken.com/images/"
 
 @Events.onCmd("ygocard")
 async def ygocard(pr:ParseResult):
@@ -184,41 +187,46 @@ async def ygocard(pr:ParseResult):
     a = BaiGe()
     a.timeout = 20  # 加点超时时间
     rcard: Card = await a.from_query(pr.paramStr)
-    if rcard:
-        result = []
-        if pr.getByType("pic", False, bool) and rcard._url_unit and rcard.urls.pic:
-            result.append(Image(rcard.urls.pic) if not pr["reload"] else Image(rcard.urls.pic, cache=False)) 
-            #f"[CQ:image,file={rcard.img}]"
-        elif pr.args.get("im", False):
-            filename = str2greyPng(rcard.info(), rcard.name)
-            result.append(Image(filename) if not pr["reload"] else Image(filename, cache=False)) 
-            # f"[CQ:image,file={filename}]"
-        else:
-            result.append(rcard.info())
-        for ln in linkNames:
-            pcard = None # page card
-            if pr.getToType(ln,False,bool):
-                if not pcard:
-                    pcard = await BaiGePage().from_id(rcard.id)
-                    assert pcard
-                if ln == "database" and (dbLang := pr.getByType(ln)):
-                    link = getattr(pcard.urls, f"{ln}_{dbLang.lower()}")  # database_cn / database_en / database_jp
-                else:
-                    link = getattr(pcard.urls, ln)
-                description=pr._cmd.shortOpts[f"-{ln}"].help
-                description=f"{pcard.name}的{description}"
-                if link:
-                    # result.append(link)
-                    result.append(Share(link,title=description,content=link).to(pr))
-                else:
-                    result.append(f"并没有找到{description}……")
-        # if pr.getByType("rule",False,bool) and rcard.ocgRule:
-        #     result.append(rcard.ocgRule)
-    else:
+
+    if not rcard:
         return ["找不到卡片的说……"]
+    
+    result = []
+    image_cache = not pr["reload"]
+    if pr.getByType("pic", False, bool) and rcard._url_unit and rcard.urls.pic:
+        result.append(Image(rcard.urls.pic, cache=image_cache))
+        #f"[CQ:image,file={rcard.img}]"
+    elif pr.args.get("im", False):
+        filename = str2greyPng(rcard.info(), rcard.name)
+        result.append(Image(filename, cache=image_cache))
+        # f"[CQ:image,file={filename}]"
+    elif pr.getByType("tokenpic", False, bool) and isinstance(rcard._extra_unit, BaiGeExtraUnit) and rcard._extra_unit.c_id:
+        result.append(Image(f"{YGOTokenPicBase}/webp/{rcard._extra_unit.c_id}.webp", cache=image_cache))
+    else:
+        result.append(rcard.info())
+    for ln in linkNames:
+        pcard = None # page card
+        if pr.getToType(ln,False,bool):
+            if not pcard:
+                pcard = await BaiGePage().from_id(rcard.id)
+                assert pcard
+            if ln == "database" and (dbLang := pr.getByType(ln)):
+                link = getattr(pcard.urls, f"{ln}_{dbLang.lower()}")  # database_cn / database_en / database_jp
+            else:
+                link = getattr(pcard.urls, ln)
+            description=pr._cmd.shortOpts[f"-{ln}"].help
+            description=f"{pcard.name}的{description}"
+            if link:
+                # result.append(link)
+                result.append(Share(link,title=description,content=link).to(pr))
+            else:
+                result.append(f"并没有找到{description}……")
+    # if pr.getByType("rule",False,bool) and rcard.ocgRule:
+    #     result.append(rcard.ocgRule)
     return result
 
-Events.onCmd("ycpic")(asyncRedirect("ygocard",[CONS,"-pic"],ygocard))
+Events.onCmd("ycpic")(asyncRedirect("ygocard", [CONS, "-pic"], ygocard))
+Events.onCmd("ytpic")(asyncRedirect("ygocard", [CONS, "-tokenpic"], ygocard))
 
 @Events.onCmd("ygoocg")
 async def ygoocg(pr:ParseResult):
