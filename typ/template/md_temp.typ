@@ -8,7 +8,7 @@
     content_str = read(content_str)
   }
 
-  render-md(content_str, image: (path, alt: none) => maybe-image(path, alt: alt))
+  render-md(content_str, image: (path, ..args) => maybe-image(path, ..args))
 }
 
 // #render-md(```
@@ -43,4 +43,4 @@
 //   <line x1="50" y1="60" x2="40" y2="80" stroke="black" stroke-width="2"/>
 //   <line x1="50" y1="60" x2="60" y2="80" stroke="black" stroke-width="2"/>
 // </svg>
-// ```, image: (path, alt: none) => maybe-image(path, alt: alt))
+// ```, image: (path, ..args) => maybe-image(path, ..args))

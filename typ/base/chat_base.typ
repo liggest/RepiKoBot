@@ -1,6 +1,8 @@
 #import "@preview/cuti:0.3.0": show-cn-fakebold
 
-#import "md_base.typ": render-md, maybe-image-md, make-md-quote
+#import "md_base.typ": render-md, maybe-image, make-md-quote
+
+#let maybe-image-md(path, ..args) = maybe-image(path, ..args)
 
 #let md-text-style(doc, color: luma(32)) = {
   set text(font: ((name: "Inria Serif", covers: "latin-in-cjk"),"Noto Sans CJK SC"), lang: "zh", size: 8pt, fill: color)

@@ -1,4 +1,4 @@
-#import "@preview/cmarker:0.1.6"
+#import "@preview/cmarker:0.1.8"
 #import "@preview/mitex:0.2.5": mitex
 #import "@preview/cuti:0.3.0": show-cn-fakebold
 
@@ -43,9 +43,13 @@
 #let md-quote = make-md-quote(md-block-quote)
 
 #let maybe-image(path, ..args) = context {
-  let path-label = label(path)
-   let first-time = query((context {}).func()).len() == 0
-   if first-time or query(path-label).len() > 0 {
+  let path-label = if type(path) == str {
+    label(path)
+  } else {
+    label(str(path.slice(0, 20)))  // bytes to label
+  }
+  let first-time = query((context {}).func()).len() == 0
+  if first-time or query(path-label).len() > 0 {
     [#image(path, ..args)#path-label]
   } else {
     rect(width: 12em, height: 3em, fill: luma(242), stroke: 1pt)[
@@ -55,7 +59,7 @@
   }
 }
 
-#let maybe-image-md(path, alt: none) = maybe-image(path, alt: alt)
+// #let maybe-image-md(path, ..args) = maybe-image(path, ..args)
 
 #let tag-attrs(attrs) = {
   attrs.pairs().map(((key, value)) => {
@@ -88,10 +92,11 @@
   md-text,
   width: 5in,
   init: init,
-  image: (path, alt: none) => maybe-image(path, alt: alt),
+  image: (path, ..args) => maybe-image(path, ..args),
   quote: md-quote,
   scope: (:),
-  html: (svg: ("raw-text", md-svg)),
+  // html: (svg: ("raw-text", md-svg)),
+  html: (:),
   smart-punctuation: false,
 ) = {
   let args = sys.inputs
