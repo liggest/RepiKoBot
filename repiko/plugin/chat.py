@@ -263,7 +263,7 @@ def dialogue_by_idx(session: Session, idx: int) -> Dialogue:
     return session._raw_messages[idx]
 
 
-(Command("chatlog").names("对话记录", "历史记录")
+(Command("chatlog").names("ailog", "对话记录", "历史记录")
  .opt(("-page", "-p", "-页"), OPT.M, "对话轮数（页数），可正可负")
  .opt(("-last", "-tail", "-尾"), OPT.N, "最后一轮对话")
  .opt(("-first", "-head", "-首", "-头"), OPT.N, "第一轮对话")

@@ -1,4 +1,4 @@
-.chatlog/.对话记录/.历史记录
+.chatlog/.ailog/.对话记录/.历史记录
   查看 .chat 的对话记录
 例：
   .chatlog
