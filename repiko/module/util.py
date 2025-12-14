@@ -5,6 +5,7 @@ from repiko.msg.part import Share as _Share, Text, Image, At
 from repiko.msg.data import Message
 from repiko.core.constant import MessageType
 from repiko.core.bot import Bot
+from repiko.core.log import logger
 
 from LSparser import ParseResult
 
@@ -77,6 +78,9 @@ async def under_emoji(bot:Bot, message_id:int, emoji_id:int, cancel_later=True):
 
 async def under_emoji_pr(pr:ParseResult, emoji_id:int, cancel_later=True):
     msg: Message = pr.raw
+    if msg.mtype != MessageType.Group:
+        logger.warning("目前只有群聊支持贴表情")
+        return
     return under_emoji(msg.selector.bot, msg.id, emoji_id, cancel_later)
 
 def first_at(content: str | Content):
