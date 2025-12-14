@@ -11,8 +11,10 @@ from repiko.msg.data import Message
 from repiko.msg.content import Content
 
 from repiko.module.chat.model import LLM, Session, Dialogue, ReasoningMessage
+from repiko.module.chat.tool import ToolManager
 from repiko.module.chat.mcp import McpServers
-from repiko.module.chat.prompt import McpSystemPrompt
+# from repiko.module.chat.prompt import McpSystemPrompt
+from repiko.module.chat.prompt import SimpleSystemPrompt
 from repiko.module.chat.linkage import LinkedSession
 from repiko.module.img.typ import typ_file2png, default_font_paths, default_root_path, default_template_path
 from repiko.module.util import images_gen, under_emoji, first_at
@@ -33,6 +35,7 @@ class ChatConfig(Pattern):
 PluginUnits.addDefault("chat", annotation=ChatConfig)
 
 _llm = None
+_tm = ToolManager()
 _mcp = None
 _mcp_task = None
 _config: ChatConfig | None = None
@@ -40,11 +43,16 @@ _sessions: dict[int, Session] = {}
 
 def init_mcp(config_path: Path):
     global _mcp, _mcp_task
+    if not config_path.exists():
+        logger.warning("无 mcp 配置，未初始化 mcp")
+        return None
+
     with open(config_path, "r", encoding="utf-8") as f:
         mcp_config: dict = json.load(f)
     
     _mcp = McpServers(mcp_config.get("mcpServers", {}))
     _mcp_task = asyncio.create_task(_mcp.run())
+    return _mcp
 
 @pluginConfig.on
 def init_chat(config:dict[str, ChatConfig], bot):
@@ -59,14 +67,23 @@ def init_chat(config:dict[str, ChatConfig], bot):
     logger.info("初始化 chat...")
 
     _llm = LLM(api_key=_config.api_key, base_url=_config.base_url)
-    init_mcp(_config.mcp_config)
+    _mcp = init_mcp(Path(_config.mcp_config))
+    _tm.mcp = _mcp
 
 @Events.on(EventNames.Shutdown)
 async def botShutDown(bot):
     if _mcp:
         _mcp._end.set()
+        _tm.mcp_tools.clear()
     if _mcp_task:
         await _mcp_task
+
+def ensure_mcp_tools():
+    if _tm.mcp and not _tm._mcp_tools_inited:
+        _tm.update_mcp_tools()
+        if _tm.mcp.is_ready:
+            logger.info("TaskManager 中的 MCP 工具已全部就绪")
+            _tm._mcp_tools_inited = True
 
 def get_session(session_id: int) -> Session | None:
     session: Session | None = _sessions.get(session_id)
@@ -78,7 +95,7 @@ def ensure_session(session_id: int, reset: bool = False) -> Session:
     session: Session | None = get_session(session_id)
     if not session or reset:
         session = _sessions[session_id] = Session(
-            session_id, _config.model_name, McpSystemPrompt(_mcp), _llm, _mcp, _config.expire_time
+            session_id, _config.model_name, SimpleSystemPrompt(), _llm, _tm, _config.expire_time
         )
     return session
 
@@ -163,6 +180,7 @@ async def chat(pr: ParseResult):
         _sessions.pop(session_id, None)
         actions.append("对话已重置，让我们重新开始吧")
 
+    ensure_mcp_tools()
     session = ensure_session(session_id, pr["reset"])
     
     if (link_content := pr.getByType("link")):
@@ -251,10 +269,27 @@ async def mcp_cmd(pr: ParseResult):
         return ["\n".join(mcp_list_tools())]
     
     if pr["system"]:
-        return await render_chat([McpSystemPrompt(_mcp).as_param()])
-
+        # return await render_chat([McpSystemPrompt(_mcp).as_param()])
+        return await render_chat([SimpleSystemPrompt().as_param()])
+    
     return ["\n".join(mcp_list_servers())]
 
+def tm_list_tools():
+    for tool in _tm.callable_tools_gen():
+        if tool.enable:
+            yield f"✅ {tool.name}"
+        else:
+            yield f"❌ {tool.name}"
+
+Command("chattool").names("aitool")
+
+@Events.onCmd("chattool")
+def chattool(pr: ParseResult):
+    ensure_mcp_tools()
+    tool_info = "\n".join(tm_list_tools())
+    if tool_info:
+        return [tool_info]
+    return ["一个工具也不剩了…"]
 
 def dialogue_by_idx(session: Session, idx: int) -> Dialogue:
     total = len(session._raw_messages)

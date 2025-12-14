@@ -1,19 +1,20 @@
 
 from __future__ import annotations
-from typing import Iterable, SupportsIndex
+from typing import Iterable, SupportsIndex, TYPE_CHECKING
 from datetime import datetime, timedelta
 from functools import cached_property
 import json
 
 from openai import AsyncOpenAI
-from openai.types.chat import ChatCompletionMessageParam, ChatCompletionMessage
-from openai._types import NOT_GIVEN, NotGiven
+from openai.types.chat import ChatCompletionMessageParam, ChatCompletionMessage, ChatCompletionToolMessageParam
+from openai.types.chat import ChatCompletionToolUnionParam, ChatCompletionToolChoiceOptionParam
+from openai._types import omit, Omit
 import tiktoken
-from mcp.types import CallToolRequestParams
-from lxml.html import fragment_fromstring, tostring
-from lxml import etree
+# from mcp.types import CallToolRequestParams
+# from lxml.html import fragment_fromstring, tostring
+# from lxml import etree
 
-from chat.mcp import McpServers
+from chat.tool import ToolManager
 from chat.log import logger
 from chat.prompt import ToolPrompt, SystemPrompt
 
@@ -42,10 +43,14 @@ class LLM:
     #     return self.sessions.get(session_id)
 
     async def _chat_call(self, model_name: str, messages: Iterable[ChatCompletionMessageParam], 
-                         max_tokens: int | NotGiven = NOT_GIVEN, temperature: float | NotGiven = NOT_GIVEN):
+                         tools: Iterable[ChatCompletionToolUnionParam] | Omit = omit, 
+                         tool_choice: ChatCompletionToolChoiceOptionParam | Omit = omit,
+                         max_tokens: int | Omit = omit, temperature: float | Omit = omit):
         response = await self.openai.chat.completions.create(
             model=model_name,
             messages=messages,
+            tools=tools,
+            tool_choice=tool_choice,
             max_tokens=max_tokens,
             temperature=temperature,
             stream=False
@@ -54,11 +59,11 @@ class LLM:
 
 
 class Session:
-    def __init__(self, id: str, model_name: str, system_prompt: SystemPrompt | str, llm: LLM, mcp: McpServers, expire_time: timedelta | int = 60 * 60):
+    def __init__(self, id: str, model_name: str, system_prompt: SystemPrompt | str, llm: LLM, tm: ToolManager, expire_time: timedelta | int = 60 * 60):
         self.id = id
         self.model_name = model_name
         self.llm = llm
-        self.mcp = mcp
+        self.tm = tm
         self._raw_messages = Messages(system_prompt)
         # self.created_time: datetime = datetime.now()
         # self.last_response_time: datetime = datetime.now()
@@ -86,18 +91,22 @@ class Session:
     def messages_gen(self):
         return self._raw_messages.messages_gen()
 
-    async def chat_once(self, prompt: str, 
+    async def chat_once(self, prompt: str | None, 
                         dialogue: Dialogue | None = None,
-                        max_tokens: int | NotGiven = NOT_GIVEN, temperature: float | NotGiven = NOT_GIVEN):
+                        max_tokens: int | Omit = omit, temperature: float | Omit = omit):
         logger.debug(f"Chatting with prompt:\n{prompt}")
         # if self._raw_messages:
         #     self._raw_messages.last_dialogue.append(MessageUnit({"role": "user", "content": prompt}))
-        if dialogue is not None:
+
+        # prompt is None => chat directly
+        if dialogue is not None and prompt is not None:
             dialogue.append(MessageUnit({"role": "user", "content": prompt}))
 
         response_message = await self.llm._chat_call(
             self.model_name,
             self.messages_gen(),
+            self.tm.tools_gen(),
+            tool_choice=self.tm.tool_choice,
             max_tokens=max_tokens,
             temperature=temperature
         )
@@ -106,71 +115,107 @@ class Session:
 
         return response_message
 
-    async def handle_tool_use(self, message: ChatCompletionMessage, dialogue: Dialogue) -> list[str]:
-
+    async def handle_tool_use(self, message: ChatCompletionMessage, dialogue: Dialogue) -> list[ChatCompletionToolMessageParam]:
         message = ReasoningMessage.model_construct(**message.model_dump(mode="json", exclude_none=True, exclude_unset=True, exclude_defaults=True))
         dialogue.append(MessageUnit(message))
 
-        try:
-            xml_message = message.content or ""
-            # xml_message = "---".join(xml_message.split("</think>"))
-            xml_message = xml_message.replace("</think>", "---")    # remove extra </think>
-            root_element = etree.Element("root")  # <root>...</root>
-            if message.reasoning_content:
-                think_element = fragment_fromstring(message.reasoning_content, create_parent="think")  # <think>...</think>
-                # root_element.insert(0, think_element)
-                root_element.append(think_element)
-                # xml_message = f"""<think>{message.reasoning_content}</think>\n{xml_message}"""
-            # xml_message = f"<root>{xml_message}</root>"
-            answer_element = fragment_fromstring(xml_message, create_parent="answer")  # <answer>...</answer>
-            root_element.append(answer_element)
+        if not message.tool_calls:
+            return []
 
-            logger.debug(f"Handling:\n{tostring(root_element, encoding='unicode')}")
-            # tree = etree.fromstring(xml_message) 
-            tree = root_element
-        except (etree.XMLSyntaxError, etree.ParseError) as e:
-            logger.error(error_msg := repr(e))
-            return [ToolPrompt.error(tool_name=None, error=error_msg)]
-        
-        tool_use_elements = tree.findall(".//tool_use")
         tool_use_results = []
-        for tool_use in tool_use_elements:
+        for tool_call in message.tool_calls:
+            if TYPE_CHECKING:
+                assert tool_call.type == "function"  # Currently only function tools are supported
+            call_id = tool_call.id
+            tool_name = tool_call.function.name
+            arguments_json = tool_call.function.arguments
+
             try:
-                tool_use_info = self.parse_tool_use(tool_use)
+                # parse arguments
+                arguments = json.loads(arguments_json) if arguments_json else {}
             except Exception as e:
                 logger.error(error_msg := repr(e))
-                tool_name = None
-                if (name_node := tool_use.find("name")) is not None and name_node.text:
-                    tool_name = name_node.text
-                tool_use_results.append(ToolPrompt.error(tool_name, error_msg))
+                # tool_use_results.append(ToolPrompt.error(tool_name, error_msg))
+                tool_use_results.append({"role": "tool", "tool_call_id": call_id, "content": ToolPrompt.error(tool_name, error_msg)})
                 continue
         
-            if tool_use_info:
-                try:
-                    result = await self.mcp.call_tool(tool_use_info.name, tool_use_info.arguments)
-                    tool_use_results.append(ToolPrompt.result(tool_use_info.name, result))
-                except Exception as e:
-                    logger.error(error_msg := repr(e))
-                    tool_use_results.append(ToolPrompt.error(tool_use_info.name,error_msg))
+            try:
+                # call tools
+                result = await self.tm.call_tool(tool_name, arguments)
+                # tool_use_results.append(ToolPrompt.result(tool_name, result))
+                tool_use_results.append({"role": "tool", "tool_call_id": call_id, "content": ToolPrompt.result(tool_name, result)})
+            except Exception as e:
+                logger.error(error_msg := repr(e))
+                # tool_use_results.append(ToolPrompt.error(tool_name, error_msg))
+                tool_use_results.append({"role": "tool", "tool_call_id": call_id, "content": ToolPrompt.error(tool_name, error_msg)})
         
         return tool_use_results
+
+
+    # async def handle_tool_use(self, message: ChatCompletionMessage, dialogue: Dialogue) -> list[str]:
+    #     message = ReasoningMessage.model_construct(**message.model_dump(mode="json", exclude_none=True, exclude_unset=True, exclude_defaults=True))
+    #     dialogue.append(MessageUnit(message))
+
+    #     try:
+    #         xml_message = message.content or ""
+    #         # xml_message = "---".join(xml_message.split("</think>"))
+    #         xml_message = xml_message.replace("</think>", "---")    # remove extra </think>
+    #         root_element = etree.Element("root")  # <root>...</root>
+    #         if message.reasoning_content:
+    #             think_element = fragment_fromstring(message.reasoning_content, create_parent="think")  # <think>...</think>
+    #             # root_element.insert(0, think_element)
+    #             root_element.append(think_element)
+    #             # xml_message = f"""<think>{message.reasoning_content}</think>\n{xml_message}"""
+    #         # xml_message = f"<root>{xml_message}</root>"
+    #         answer_element = fragment_fromstring(xml_message, create_parent="answer")  # <answer>...</answer>
+    #         root_element.append(answer_element)
+
+    #         logger.debug(f"Handling:\n{tostring(root_element, encoding='unicode')}")
+    #         # tree = etree.fromstring(xml_message) 
+    #         tree = root_element
+    #     except (etree.XMLSyntaxError, etree.ParseError) as e:
+    #         logger.error(error_msg := repr(e))
+    #         return [ToolPrompt.error(tool_name=None, error=error_msg)]
         
-    def parse_tool_use(self, tool_node: etree._Element):
-        name_node = tool_node.find("name")
-        if name_node is None:
-            raise ValueError("Tool name not found")
-        tool_name = name_node.text
-        if not tool_name:
-            raise ValueError("Tool name is empty")
-        arguments = None
-        arguments_node = tool_node.find("arguments")
-        if arguments_node is not None and arguments_node.text:
-            arguments = json.loads(arguments_node.text)
-        return CallToolRequestParams(name=tool_name, arguments=arguments)
+    #     tool_use_elements = tree.findall(".//tool_use")
+    #     tool_use_results = []
+    #     for tool_use in tool_use_elements:
+    #         try:
+    #             tool_use_info = self.parse_tool_use(tool_use)
+    #         except Exception as e:
+    #             logger.error(error_msg := repr(e))
+    #             tool_name = None
+    #             if (name_node := tool_use.find("name")) is not None and name_node.text:
+    #                 tool_name = name_node.text
+    #             tool_use_results.append(ToolPrompt.error(tool_name, error_msg))
+    #             continue
+        
+    #         if tool_use_info:
+    #             try:
+    #                 result = await self.mcp.call_tool(tool_use_info.name, tool_use_info.arguments)
+    #                 tool_use_results.append(ToolPrompt.result(tool_use_info.name, result))
+    #             except Exception as e:
+    #                 logger.error(error_msg := repr(e))
+    #                 tool_use_results.append(ToolPrompt.error(tool_use_info.name,error_msg))
+        
+    #     return tool_use_results
+        
+    # def parse_tool_use(self, tool_node: etree._Element):
+    #     name_node = tool_node.find("name")
+    #     if name_node is None:
+    #         raise ValueError("Tool name not found")
+    #     tool_name = name_node.text
+    #     if not tool_name:
+    #         raise ValueError("Tool name is empty")
+    #     arguments = None
+    #     arguments_node = tool_node.find("arguments")
+    #     if arguments_node is not None and arguments_node.text:
+    #         arguments = json.loads(arguments_node.text)
+    #     return CallToolRequestParams(name=tool_name, arguments=arguments)
 
     async def chat(self, prompt: str, 
                    current_dialogue: Dialogue | None = None,
-                   max_tokens: int | NotGiven = NOT_GIVEN, temperature: float | NotGiven = NOT_GIVEN):
+                   max_tokens: int | Omit = omit, temperature: float | Omit = omit):
         if current_dialogue is None:
             current_dialogue = Dialogue()
         self._raw_messages.append(current_dialogue)
@@ -178,8 +223,8 @@ class Session:
             response = await self.chat_once(prompt, current_dialogue, max_tokens, temperature)
             # tool_use_count = 0
             while tool_use_results := await self.handle_tool_use(response, current_dialogue):
-                tool_response_prompt = "\n".join(tool_use_results)
-                response = await self.chat_once(tool_response_prompt, current_dialogue, max_tokens, temperature)
+                current_dialogue.extend(MessageUnit(result) for result in tool_use_results)
+                response = await self.chat_once(None, current_dialogue, max_tokens, temperature)
         finally:
             # if not self._raw_messages.last_dialogue:
                 # self._raw_messages.pop()
@@ -228,6 +273,9 @@ class MessageUnit:
         if isinstance(self.content, ReasoningMessage):
             return self.content.message_param
         return self.content
+    
+    def __repr__(self):
+        return f"MessageUnit({self.content!r})"
 
 class Dialogue(list[MessageUnit]):
     def __init__(self, messages: Iterable[MessageUnit] | None = None):

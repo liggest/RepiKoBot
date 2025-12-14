@@ -95,7 +95,7 @@
 #let tool-result-block(md-text) = block(stroke: (left: 1pt + luma(128)), 
   inset: (right: 4pt, left: 4pt, top: 2pt, bottom: 2pt), radius: 4pt
 )[
-  #render-md(md-text, 
+  #render-md(md-text.replace("\n", "\n\n"), 
     image: maybe-image-md, quote: make-md-quote(brighter-block-quote),
     init: reasoning-init, width: auto
   )
@@ -139,6 +139,8 @@
         // align(left, user-block(content))
       } else if role == "assistant" {
         assistant-block(content)
+      } else if role == "tool" {
+        tool-result-block(content)
       } else if role == "error" {
         error-block(content)
       }

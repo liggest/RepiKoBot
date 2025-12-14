@@ -49,8 +49,8 @@ class LinkedSession(Session):
         return self.main_session.llm
 
     @property
-    def mcp(self):
-        return self.main_session.mcp
+    def tm(self):
+        return self.main_session.tm
 
     @property
     def expire_time(self):

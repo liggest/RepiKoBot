@@ -84,6 +84,7 @@ class McpServers:
         for server in self.servers:
             await self._server_contexts.enter_async_context(server)
         await self.init_tools()
+        self._ready.set()
         logger.info("MCP Servers inited")
         # logger.debug(self.tool2server.keys())
         return self
@@ -93,17 +94,17 @@ class McpServers:
         self._server_contexts = None
         self._ready.clear()
         self._end.clear()
+        logger.info("MCP Servers ended")
 
     @property
-    async def is_ready(self):
-        await self._ready.wait()
-        return True
+    def is_ready(self):
+        return self._ready.is_set()
     
     def wrap_tool_name(self, tool_name: str, server: Server) -> str:
-        return f"{server.name}::{tool_name}"
+        return f"{server.name}-{tool_name}"
 
     def unwrap_tool_name(self, tool_name: str, server: Server) -> str:
-        return tool_name.removeprefix(f"{server.name}::")
+        return tool_name.removeprefix(f"{server.name}-")
 
     async def _update_tools(self, server: Server):
         tools = await server._update_tools()
@@ -137,7 +138,4 @@ class McpServers:
 
     async def run(self):
         async with self:
-            self._ready.set()
             await self._end.wait()
-            logger.info("MCP Servers ended")
-            

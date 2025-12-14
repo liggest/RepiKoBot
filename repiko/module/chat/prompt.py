@@ -4,6 +4,7 @@ from functools import cached_property
 
 if TYPE_CHECKING:
     from chat.mcp import McpServers
+    from chat.tool import ToolResult
 
 from mcp.types import Tool, CallToolResult
 from mcp.types import TextContent, ImageContent, EmbeddedResource, TextResourceContents, BlobResourceContents
@@ -182,8 +183,8 @@ Assistant: 上海人口为 2600 万，而广州人口为 1500 万，因此上海
 5. 请像上述示例中那样使用 XML 标签，不要用其他格式。"""
 
     identity = """你是一个 QQ 聊天机器人，负责与其它 QQ 用户聊天（私聊、群聊），解答他们的问题。
-    
-    解答问题时，请尽量使用 Markdown 格式向用户呈现最终结果。"""
+
+解答问题时，请尽量使用 Markdown 格式向用户呈现最终结果。"""
 
     def background_info(self):
         return f"""## 背景信息
@@ -198,16 +199,33 @@ Assistant: 上海人口为 2600 万，而广州人口为 1500 万，因此上海
         yield self.ToolUseRules
         yield self.background_info()
 
+class SimpleSystemPrompt(SystemPrompt):
+
+    identity = """你是一个 QQ 聊天机器人，负责与其它 QQ 用户聊天（私聊、群聊），解答他们的问题。
+
+如果无需额外信息便可自主解决问题，请直接回答。
+必要时，可以按需调用工具。一次可调用多个工具，请分步骤完成任务，基于前一步的结果决定下一步调用哪些工具。
+
+解答问题时，请尽量使用 Markdown 格式向用户呈现最终结果。"""
+
+    def __init__(self):
+        super().__init__(self.identity)
+
 class ToolPrompt:
 
     @classmethod
-    def result_content_gen(cls, result: CallToolResult):
+    def result_content_gen(cls, result: ToolResult):
+        if isinstance(result, str):
+            yield result
+            return
         for content in result.content:
             match content:
                 case TextContent(text=text):
                     yield text
-                case ImageContent(mimeType=mime_type, data=data):
-                    yield f"<image mime_type={mime_type!r}>{data}</image>"
+                # case ImageContent(mimeType=mime_type, data=data):
+                    # yield f"<image mime_type={mime_type!r}>{data}</image>"
+                case ImageContent():
+                    yield content.model_dump_json()
                 case EmbeddedResource(resource=resource):
                     if isinstance(resource, TextResourceContents):
                         yield resource.text
@@ -215,22 +233,38 @@ class ToolPrompt:
                         yield resource.blob
 
     @classmethod
-    def result_gen(cls, tool_name: str | None, result: CallToolResult | None, error: str | None = None):
-        yield "<tool_use_result>"
+    def result_gen(cls, tool_name: str | None, result: ToolResult | None, error: str | None = None):
         if tool_name:
-            yield f"<name>{tool_name}</name>"
+            yield f"<!-- tool: {tool_name}  -->"
+            pass
         if result:
             content = "\n".join(cls.result_content_gen(result)) or "None"
-            if result.isError:
-                yield f"<error>{content}</error>"
+            if isinstance(result, CallToolResult) and result.isError:
+                yield "<!-- status: error -->"
             else:
-                yield f"<result>{content}</result>"
+                yield "<!-- status: success -->"
+            yield content
         if error:
-            yield f"<error>{error}</error>"
-        yield "</tool_use_result>"
+            yield "<!-- status: error -->"
+            yield error
+
+    # @classmethod
+    # def result_gen(cls, tool_name: str | None, result: CallToolResult | None, error: str | None = None):
+    #     yield "<tool_use_result>"
+    #     if tool_name:
+    #         yield f"<name>{tool_name}</name>"
+    #     if result:
+    #         content = "\n".join(cls.result_content_gen(result)) or "None"
+    #         if result.isError:
+    #             yield f"<error>{content}</error>"
+    #         else:
+    #             yield f"<result>{content}</result>"
+    #     if error:
+    #         yield f"<error>{error}</error>"
+    #     yield "</tool_use_result>"
 
     @classmethod
-    def result(cls, tool_name: str, result: CallToolResult | None):
+    def result(cls, tool_name: str, result: ToolResult | None):
         return "\n".join(cls.result_gen(tool_name, result))
 
     @classmethod
