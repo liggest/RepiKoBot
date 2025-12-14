@@ -31,13 +31,13 @@ svg = [
     "rlpycairo>=0.1.0",
 ]
 chat = [
-    "openai>=1.77.0",
-    "mcp>=1.7.1",
-    "tiktoken>=0.9.0",
+    "openai>=2.9.0",
+    "mcp>=1.23.3",
+    "tiktoken>=0.12.0",
 ]
 img = [
-    "resvg-py>=0.2.0",
-    "typst>=0.13.5",
+    "resvg-py>=0.2.4",
+    "typst>=0.14.4",
 ]
 nlp = [
     "pypinyin>=0.53.0",
