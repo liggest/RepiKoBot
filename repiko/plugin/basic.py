@@ -36,6 +36,8 @@ import repiko.module.AA as AA
 from repiko.module.AA.image import AA2img, initFont as initAAFont
 from repiko.module.img.tex import initFont as initTexFont, atext2img, LatexError
 
+from repiko.module.helper import RpkHelper as CommandHelper
+
 import random
 import datetime
 import os
@@ -44,7 +46,7 @@ from typing import Annotated
 # import yaml
 
 from LSparser import Command, OPT, Events, ParseResult, CommandParser
-from LSparser.command import CommandHelper
+# from LSparser.command import CommandHelper
 
 Command("-hello")
 Command("calculate").names("cal").opt("-show",OPT.N,"显示计算过程")
