@@ -266,18 +266,26 @@ class Message(BaseData):
                 self._replyMsg=await self.selector.bot.GetMsg(reply.id,self.mtype)
         return self._replyMsg
 
-    def copy(self,srcAsDst=False):
+    def copy(self, srcAsDst=False, withContent: Content | bool = False):
         """
             浅拷贝一个 msg 对象 \n
-            但额外拷贝 content \n
-            srcAsDst 若为 True 则复制对象的 src 和 dst 调转
+            srcAsDst 若为 True 则复制对象的 src 和 dst 调转\n
+            withContent 
+                默认为 False，不额外拷贝 content；
+                若为 True 则外拷贝 content；
+                若为 Content 则用它的值作为新消息的 content \n
         """
-        msg=self.__class__(super().copy())
-        msg.content=self.content.copy()
+        msg = self.__class__(super().copy())
+        if withContent is True:
+            msg.content = self.content.copy()
+        # withContent is False: 不拷贝 content
+        elif withContent is not False:
+            msg.content = withContent
         if srcAsDst:
-            msg.dst=self.src
-            msg._src=None # 使 src 和 realSrc 等价
-            msg.realSrc=self.dst
+            msg.dst = self.src
+            msg._src = None # 使 src 和 realSrc 等价
+            msg.realSrc = self.dst
+        msg.selector = self.selector
         return msg
 
     @property

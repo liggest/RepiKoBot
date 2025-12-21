@@ -143,8 +143,7 @@ async def poke(pr:ParseResult):
             content=default
         if not content:  # 被故意设为 ""
             return []
-        newMsg=msg.copy()
-        newMsg.content=content
+        newMsg=msg.copy(withContent=content)
         result=await bot._handleData(newMsg) # 几乎是从最外层重新处理消息
         if result:
             msg.quickReply=True

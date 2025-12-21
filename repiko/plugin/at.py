@@ -41,8 +41,7 @@ Command("at").names("@")
 @Events.onCmd("at")
 async def atCmd(pr:ParseResult):
     msg:Message=pr.raw
-    atmsg=msg.copy()
-    atmsg.content=pr.paramStr
+    atmsg=msg.copy(withContent=pr.paramStr)
     reply=await atMe(atmsg,msg.selector.bot)
     if msg.mtype==MessageType.Group:
         return [ Content(At(msg.realSrc),reply) ]

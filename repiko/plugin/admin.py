@@ -128,8 +128,7 @@ with CommandCore(name="admin") as core:
         else:
             cmd=f"!{pr.paramStr}"
             msg:Message=pr.raw
-            msg=msg.copy()
-            msg.content=cmd
+            msg=msg.copy(withContent=cmd)
             apr=await pr.parser.asyncTryParse(msg,fromAdmin=True) # 触发其它 AdminOnly 指令
             result=[]
             for o in apr.output:
@@ -205,11 +204,12 @@ with CommandCore(name="admin") as core:
         if ps:
             rt=ps
         results=await bot.Reload(rt)
-        msgc=msg.copy(srcAsDst=True)
         if results:
-            msgc.content=f"已重载：{'、'.join(results)}"
+            content=f"已重载：{'、'.join(results)}"
         else:
-            msgc.content="什么都没有重载！？"
+            content="什么都没有重载！？"
+        msgc=msg.copy(srcAsDst=True, withContent=content)
+        
         await bot.Send(msgc)
         return []
 
