@@ -101,7 +101,7 @@
   )
 ]
 
-#let assistant-block(md-text) = render-md(md-text, image: maybe-image-md, init: md-init, width: auto)
+#let assistant-block(md-text) = render-md(md-text.trim(at: start), image: maybe-image-md, init: md-init, width: auto)
 
 #let error-color = color.hsl(0deg, 50%, 50%)
 
