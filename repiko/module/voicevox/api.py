@@ -57,7 +57,7 @@ class VoiceVoxApi:
         for speaker in speakers:
             name = speaker["name"]
             if not (c := characters.get(name)):
-                characters[name] = Character(name)
+                c = characters[name] = Character(name)
             for style in speaker["styles"]:
                 s = Style(**style)
                 c.styles.append(s)
