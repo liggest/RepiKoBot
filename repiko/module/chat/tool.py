@@ -10,6 +10,7 @@ from mcp.types import CallToolResult
 from mcp.server.fastmcp.utilities.func_metadata import func_metadata
 
 from chat.mcp import McpServers, Server
+from chat.log import logger
 
 ToolResult = str | CallToolResult
 
@@ -128,6 +129,7 @@ class ToolManager:
             raise ValueError(f"Tool {tool.name!r} already exists")
             
         self.tools[tool.name] = tool
+        logger.info(f"ToolManager added tool {tool.name!r}")
         return fn
 
 

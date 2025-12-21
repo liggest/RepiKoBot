@@ -3,12 +3,15 @@ from typing import Annotated
 from pathlib import Path
 import json
 import asyncio
+from contextvars import ContextVar
+from reprlib import Repr
 
 from repiko.core.constant import EventNames
 from repiko.core.config import pluginConfig, PluginUnits, Pattern
 from repiko.core.log import logger
 from repiko.msg.data import Message
 from repiko.msg.content import Content
+from repiko.msg.util import CQunescapeComma
 
 from repiko.module.chat.model import LLM, Session, Dialogue, ReasoningMessage
 from repiko.module.chat.tool import ToolManager
@@ -19,9 +22,11 @@ from repiko.module.chat.linkage import LinkedSession
 from repiko.module.img.typ import typ_file2png, default_font_paths, default_root_path, default_template_path
 from repiko.module.util import images_gen, under_emoji, first_at
 
+from repiko.module.helper import RpkHelper as CommandHelper
+
 from openai.types.chat import ChatCompletionMessageParam
 from openai import OpenAIError
-from LSparser import Command, Events, ParseResult, OPT
+from LSparser import Command, Events, ParseResult, OPT, CommandCore
 
 
 class ChatConfig(Pattern):
@@ -160,6 +165,8 @@ async def render_chat(messages: list[ChatCompletionMessageParam]):
         cache=False
     ))
 
+chat_pr_context: ContextVar[ParseResult] = ContextVar("chat_pr_context", default=None)
+
 (Command("chat").names("deepseek", "DeepSeek", "ds", "ai", "AI")
  .opt(("-reset", "-r"), OPT.N, "重置会话")
  .opt(("-link", "-l", "-连接", "-连", "-联结", "-链接"), OPT.M, "连接他人的会话")
@@ -224,6 +231,7 @@ async def chat(pr: ParseResult):
     async with under_emoji(msg.selector.bot, msg.id, 351):
         dialogue = Dialogue()
         try:
+            pr_context_token = chat_pr_context.set(pr)
             response = await session.chat(content, current_dialogue=dialogue, temperature=0.6)
 
             if _config.max_tokens:
@@ -232,6 +240,8 @@ async def chat(pr: ParseResult):
             messages = visible_chat_with_error(dialogue, e)
             logger.error(repr(e))
             return await render_chat(messages)
+        finally:
+            chat_pr_context.reset(pr_context_token)
 
         if response.content and (messages := visible_chat(dialogue)):
             # logger.debug(repr(messages))
@@ -273,6 +283,58 @@ async def mcp_cmd(pr: ParseResult):
         return await render_chat([SimpleSystemPrompt().as_param()])
     
     return ["\n".join(mcp_list_servers())]
+
+def bot_cmd_description_gen():
+    yield """执行 QQ 机器人支持的一些指令并尽可能返回结果
+下面提供一个指令格式的示例（例子中名为 `cmd` 的指令并非真实指令）：
+`.cmd param1 param2 -s1 -s2 s2val --l lval1 lval2 lval3`
+解析会得到
+```
+type: "."       # 指令前缀，通常为 "." 或 "。"
+command: "cmd"  # 指令名
+params: ["param1", "param2"]    # 指令参数
+s1: True        # 名为 s1 的开关选项
+s2: "s2val"     # 名为 s2 的带值选项
+l: ["lval1", "lval2", "lval3"]  # 名为 l 的多值长选项
+```
+以下是执行机器人的真实指令 `.help -t` 得到的指令列表
+"""
+    h = CommandHelper(Path("help"), CommandCore.default)
+    yield f"""```
+{h.getHelp()}
+```"""
+    yield "以下是执行 `.help help -t` 指令得到的对 `.help` 指令的文本帮助信息"
+    yield f"""```
+{h.getHelp(["help"])}
+```"""
+    yield """请使用正确的格式调用指令，并利用指令结果更好地完成任务
+对于不知如何使用的指令，可以尝试查看它的文本帮助信息"""
+
+def bot_cmd_result_gen(result: list[Content], msg: Message):
+    for content in result:
+        yield CQunescapeComma(content.brief)
+    if msg.quickReply:
+        rj = msg.replyJson
+        reply: Content = rj["reply"]
+        yield CQunescapeComma(reply.brief)
+
+repr_ = Repr()
+repr_.maxstring = 200
+
+@_tm.add_tool(description="\n".join(bot_cmd_description_gen()))
+async def bot_cmd(cmd: str) -> str:
+    pr: ParseResult | None = chat_pr_context.get()
+    if not pr:
+        return "指令执行环境异常，无法执行…"
+    
+    logger.debug(f"尝试通过机器人执行指令：{cmd}")
+    msg: Message = pr.raw
+    bot = msg.selector.bot
+    content = cmd
+    newMsg = msg.copy(withContent=content)
+    result = await bot.mc.AsyncResponse(newMsg)
+    logger.debug(repr_.repr(result))
+    return "\n".join(bot_cmd_result_gen(result, msg)) or '""'
 
 def tm_list_tools():
     for tool in _tm.callable_tools_gen():
