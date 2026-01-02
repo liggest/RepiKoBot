@@ -94,6 +94,10 @@
 ]
 
 #let tool-content(content, name: none) = {
+  if content.find(regex(`\\u([0-9a-fA-F]{4})`.text)) != none {
+    // \uxxxx to unicode
+    content = json.encode(json(bytes(content)), pretty: false)
+  }
   // exclude leading html tags
   // (?m) => multiline flag
   let start_idx = content.position(regex(`(?m)^[^<]`.text))
