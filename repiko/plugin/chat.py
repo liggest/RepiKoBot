@@ -227,7 +227,7 @@ async def chat(pr: ParseResult):
         dialogue = Dialogue()
         try:
             pr_context_token = chat_pr_context.set(pr)
-            response = await session.chat(content, current_dialogue=dialogue, temperature=0.6)
+            response = await session.chat(content, current_dialogue=dialogue)
 
             if _config.max_tokens:
                 session.rotate(_config.max_tokens)
