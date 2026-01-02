@@ -71,7 +71,8 @@
 )[
   #align(center + horizon)[
     #text(content.first(), 
-      font: ((name: "Inria Serif", covers: "latin-in-cjk"),"Noto Sans CJK SC"), lang: "zh", fill: luma(255)
+      font: ((name: "Inria Serif", covers: "latin-in-cjk"),"Noto Sans CJK SC"), 
+      lang: "zh", fill: luma(255), weight: "bold"
     )
   ]
 ]
@@ -82,7 +83,7 @@
 
 #let user-block(md-text) = block(outset: (top: 2pt, bottom: 2pt), inset: 4pt, fill: rgb(239, 246, 255), radius: 4pt)[
   #set align(left)
-  #render-md(md-text.replace("\n", "\n\n"), image: maybe-image-md, init: md-init, width: auto)
+  #render-md(md-text, image: maybe-image-md, init: md-init, width: auto)
 ]
 
 #let reasoning-block(md-text) = block(stroke: (left: 1pt + luma(128)), inset: (left: 4pt, top: 2pt, bottom: 2pt))[
@@ -92,16 +93,56 @@
   )
 ]
 
-#let tool-result-block(md-text) = block(stroke: (left: 1pt + luma(128)), 
-  inset: (right: 4pt, left: 4pt, top: 2pt, bottom: 2pt), radius: 4pt
+#let tool-content(content, name: none) = {
+  // exclude leading html tags
+  // (?m) => multiline flag
+  let start_idx = content.position(regex(`(?m)^[^<]`.text))
+  // wrap content with code block
+  if start_idx != none {
+    content = content.slice(0, start_idx) + "```\n" + content.slice(start_idx, none) + "\n```"
+  } else {
+    content = "```\n" + content + "\n```"
+  }
+  if name != none {
+    content = "🛠️" + name + "\n\n" + content
+  }
+  content
+}
+
+#let tool-call-block(content) = block(
+  inset: (right: 4pt, bottom: -0.7em),
+  outset: (bottom: 0.7em),
+  spacing: 0.7em
 )[
-  #render-md(md-text.replace("\n", "\n\n"), 
+  #render-md(content,  //-----\n\n
     image: maybe-image-md, quote: make-md-quote(brighter-block-quote),
     init: reasoning-init, width: auto
   )
 ]
 
-#let assistant-block(md-text) = render-md(md-text.trim(at: start), image: maybe-image-md, init: md-init, width: auto)
+#let tool-call-blocks(tool-calls) = {
+  if tool-calls == none {
+    return
+  }
+  for call in tool-calls {
+    tool-call-block(
+      tool-content(call.function.arguments, name:call.function.name)
+    )
+  }
+}
+
+#let tool-result-block(md-text) = block(
+  stroke: (left: (paint: luma(128), thickness: 1pt)),
+  inset: (right: 4pt, left: 4pt, bottom: 2pt),
+  radius: (bottom-left: 4pt),
+)[
+  #render-md(md-text,
+    image: maybe-image-md, quote: make-md-quote(brighter-block-quote),
+    init: reasoning-init, width: auto
+  )
+]
+
+#let assistant-block(md-text) = render-md(md-text, image: maybe-image-md, init: md-init, width: auto)
 
 #let error-color = color.hsl(0deg, 50%, 50%)
 
@@ -135,14 +176,19 @@
       #if role == "system" {
         system-block(content)
       } else if role == "user" {
-        user-block(content)
+        // make user content more md-like by adding extra newlines
+        user-block(content.replace("\n", "\n\n"))
         // align(left, user-block(content))
       } else if role == "assistant" {
-        assistant-block(content)
+        // trim assistant content at start
+        assistant-block(content.trim(at: start))
       } else if role == "tool" {
-        tool-result-block(content)
+        tool-result-block(tool-content(content))
       } else if role == "error" {
         error-block(content)
+      }
+      #if "tool_calls" in data {
+        tool-call-blocks(data.at("tool_calls", default: none))
       }
     ]
   ]

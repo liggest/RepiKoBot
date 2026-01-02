@@ -124,18 +124,16 @@ def unlink_session(main: LinkedSession, link_id: int) -> Session:
     return main
 
 def visible_chat(dialog: Dialogue | None):
-    if dialog:
-        return [message.as_param() for message in dialog.pair]
-    return []
+    if not dialog:
+        return
+    for message in dialog.pair:
+        yield message.as_param()
 
 
 def visible_chat_with_error(dialog: Dialogue | None, error: OpenAIError):
     error_param = {"role": "error", "content": str(error)}
-    if dialog:
-        messages = [dialog[0].as_param(), error_param]
-    else:
-        messages = [error_param]
-    return messages
+    yield from visible_chat(dialog)
+    yield error_param
 
 def whole_dialog_chat(dialog: Dialogue | None):
     if not dialog:
@@ -149,10 +147,7 @@ def whole_dialog_chat(dialog: Dialogue | None):
 
 def session_visible_chat(session: Session):
     for dialog in session.dialogues_gen():
-        if not dialog:
-            continue
-        for message in dialog.pair:
-            yield message.as_param()
+        yield from visible_chat(dialog)
 
 TemplateBase = default_template_path()
 
@@ -237,13 +232,12 @@ async def chat(pr: ParseResult):
             if _config.max_tokens:
                 session.rotate(_config.max_tokens)
         except OpenAIError as e:
-            messages = visible_chat_with_error(dialogue, e)
             logger.error(repr(e))
-            return await render_chat(messages)
+            return await render_chat([*visible_chat_with_error(dialogue, e)])
         finally:
             chat_pr_context.reset(pr_context_token)
 
-        if response.content and (messages := visible_chat(dialogue)):
+        if response.content and (messages := [*visible_chat(dialogue)]):
             # logger.debug(repr(messages))
             return await render_chat(messages)
         return ["结果它什么也没说…！"]
@@ -320,6 +314,8 @@ def bot_cmd_result_gen(result: list[Content], msg: Message):
 
 repr_ = Repr()
 repr_.maxstring = 200
+repr_.maxlist = 200
+repr_.maxother = 200
 
 @_tm.add_tool(description="\n".join(bot_cmd_description_gen()))
 async def bot_cmd(cmd: str) -> str:
@@ -405,7 +401,7 @@ async def chatlog(pr: ParseResult):
                 return [str(page_dialogue[-1].as_param()["content"]).strip()]
         elif pr["debug"]:
             return await render_chat([*whole_dialog_chat(page_dialogue)])
-        elif messages := visible_chat(page_dialogue):
+        elif messages := [*visible_chat(page_dialogue)]:
             return await render_chat(messages)
         return ["里面什么也没有…！"]
     
