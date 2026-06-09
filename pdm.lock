@@ -5,7 +5,7 @@
 groups = ["default", "chat", "factorio", "img", "nlp"]
 strategy = []
 lock_version = "4.5.0"
-content_hash = "sha256:ec9876373b7a96182f45495a0037312b24d9e7d36d97df37c22284b3969f73ab"
+content_hash = "sha256:9ec14a31f83d1a48cd74d53f85aac06859cd0f697fd9c1cc0b207960058cecf2"
 
 [[metadata.targets]]
 requires_python = ">=3.10"
@@ -2229,7 +2229,7 @@ files = [
 
 [[package]]
 name = "ygoutil"
-version = "0.2.2"
+version = "0.2.3"
 requires_python = ">=3.10"
 summary = "一个 ygo 工具集 | Handy tools for ygo"
 dependencies = [
@@ -2241,6 +2241,6 @@ dependencies = [
     "typing-extensions>=4.11.0",
 ]
 files = [
-    {file = "ygoutil-0.2.2-py3-none-any.whl", hash = "sha256:4e44856c18319adf4c778775b6157cf95c59d53e96099016b19b189a63fcad07"},
-    {file = "ygoutil-0.2.2.tar.gz", hash = "sha256:8ee10081a886224cb3704ec8632aaa2981c670e6b74eaff2fa903170c91b5714"},
+    {file = "ygoutil-0.2.3-py3-none-any.whl", hash = "sha256:99d4d63d11b9d22e4bf4ba9393055f40d740d28cd5d92577f6fdfdf66e7a1a71"},
+    {file = "ygoutil-0.2.3.tar.gz", hash = "sha256:c9a0cf7e6e5ccb161d4a0668f767c8236b5de71363e9dbf6e63bc32a4a35877a"},
 ]
